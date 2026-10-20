@@ -79,16 +79,6 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 }
 .in:focus { border-color: var(--acc); background: #fff; outline: 0; box-shadow: 0 0 0 4px var(--acc-glow); }
 
-.dots { display: flex; gap: 10px; justify-content: center; margin: 8px 0 16px; }
-.dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #cbd5e1; transition: all 0.2s ease; }
-.dots i.on { background: var(--acc); border-color: var(--acc); transform: scale(1.15); box-shadow: 0 0 8px var(--acc-glow); }
-
-.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-.pad button {
-  height: 50px; border-radius: 12px; background: #fff0f4; font-size: 18px; font-weight: 600; color: #1e293b;
-  transition: all 0.15s ease;
-}
-.pad button:active { background: #e2e8f0; transform: scale(0.96); }
 
 .msg { min-height: 20px; text-align: center; font-size: 13px; color: var(--bad); margin-bottom: 6px; font-weight: 500; }
 .hint { margin-top: 12px; font-size: 12px; background: var(--warn-bg); color: var(--warn); padding: 10px 14px; border-radius: 12px; }
@@ -101,8 +91,8 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 .story-brand{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;letter-spacing:2px;z-index:1}.story-mark{width:42px;height:42px;border:1px solid rgba(255,255,255,.38);border-radius:14px;display:grid;place-items:center;font-family:serif;font-size:23px;color:#e7c89f}.story-brand-sub{display:block;font-size:9px;letter-spacing:3px;color:#d2ded6;font-weight:400}
 .story-copy{z-index:1;margin-top:30px}.eyebrow{display:block;color:#b5d1bf;font-size:10px;font-weight:600;letter-spacing:2px}.story-copy h2{font-size:32px;line-height:1.45;margin:12px 0;font-weight:600}.story-copy p{color:#d6e0d9;font-size:13px}
 .ingredient-art{position:relative;height:190px;z-index:1}.ingredient{position:absolute;display:grid;place-items:center;border-radius:50%;box-shadow:0 18px 36px rgba(0,0,0,.18);background:linear-gradient(145deg,#fff,#eee6d9)}.rice{width:116px;height:116px;left:15%;top:22px;font-size:60px}.fish{width:138px;height:138px;left:39%;top:0;font-size:68px;background:linear-gradient(145deg,#fff7ed,#f2d6bd)}.leaf{width:82px;height:82px;left:65%;top:78px;font-size:40px}.art-caption{position:absolute;left:8px;bottom:2px;font-size:9px;letter-spacing:2px;color:#d7e0d8}.story-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.2);padding-top:16px;color:#d6e0d9;font-size:10px;letter-spacing:1px;z-index:1}
-#login .lg{width:100%;max-width:none;align-self:center;padding:48px 46px;border:0;border-radius:0;background:#fff;box-shadow:none;backdrop-filter:none}.lg-header{text-align:left;margin-bottom:26px}.lg-icon{width:48px;height:48px;border-radius:15px;margin:0 0 20px;background:linear-gradient(140deg,#356e5b,#1d493d);box-shadow:0 8px 18px rgba(36,91,72,.2)}.lg .eyebrow{color:#8a9c8e}.lg h1{font-size:23px;margin-top:7px}.lg p{font-size:13px}.lg .fld{margin-bottom:16px}.lg .fld span{color:#43554b}.lg .in{background:#fafaf8;border-color:#e5e8e2;border-radius:11px}.lg .in:focus{border-color:#487c65;box-shadow:0 0 0 4px rgba(72,124,101,.12)}.dots{gap:9px;margin:8px 0 12px}.dots i{width:9px;height:9px;border-width:1.5px}.dots i.on{background:#356e5b;border-color:#356e5b}.pad{gap:7px;margin-bottom:11px}.pad button{height:39px;border:1px solid #eef0ec;background:#fafaf8;border-radius:9px;font-size:15px;color:#425248}.pad button:hover{background:#eff4ef}.login-submit{width:100%;margin-top:2px;background:linear-gradient(135deg,#356e5b,#1d493d);box-shadow:0 7px 17px rgba(36,91,72,.18)}.login-submit span{font-size:18px}.hint{background:#fbf5e9;color:#826640}.login-note{text-align:center;font-size:10px!important;color:#9aa39c!important;margin-top:18px}
-@media(max-width:680px){#login{padding:16px;align-items:flex-start}.login-wrap{max-width:440px;min-height:0;grid-template-columns:1fr;border-radius:22px}.login-story{min-height:210px;padding:22px 24px 18px}.story-copy{margin-top:22px}.story-copy h2{font-size:23px;margin:5px 0}.story-copy p{font-size:11px}.ingredient-art{display:none}.story-foot{margin-top:22px;padding-top:10px;font-size:8px}.story-brand{font-size:13px}.story-mark{width:34px;height:34px}.login-story:after{width:230px;height:230px;right:-95px;top:50px}.#login .lg{padding:27px 25px 24px}.lg-header{margin-bottom:19px}.lg-icon{display:none}.lg h1{font-size:20px}.lg .fld{margin-bottom:12px}.pad{margin-bottom:8px}.pad button{height:36px}.login-note{margin-top:13px}}
+#login .lg{width:100%;max-width:none;align-self:center;padding:48px 46px;border:0;border-radius:0;background:#fff;box-shadow:none;backdrop-filter:none}.lg-header{text-align:left;margin-bottom:26px}.lg-icon{width:48px;height:48px;border-radius:15px;margin:0 0 20px;background:linear-gradient(140deg,#356e5b,#1d493d);box-shadow:0 8px 18px rgba(36,91,72,.2)}.lg .eyebrow{color:#8a9c8e}.lg h1{font-size:23px;margin-top:7px}.lg p{font-size:13px}.lg .fld{margin-bottom:16px}.lg .fld span{color:#43554b}.lg .in{background:#fafaf8;border-color:#e5e8e2;border-radius:11px}.lg .in:focus{border-color:#487c65;box-shadow:0 0 0 4px rgba(72,124,101,.12)}.login-submit{width:100%;margin-top:2px;background:linear-gradient(135deg,#356e5b,#1d493d);box-shadow:0 7px 17px rgba(36,91,72,.18)}.login-submit span{font-size:18px}.hint{background:#fbf5e9;color:#826640}.login-note{text-align:center;font-size:10px!important;color:#9aa39c!important;margin-top:18px}
+@media(max-width:680px){#login{padding:16px;align-items:flex-start}.login-wrap{max-width:440px;min-height:0;grid-template-columns:1fr;border-radius:22px}.login-story{min-height:210px;padding:22px 24px 18px}.story-copy{margin-top:22px}.story-copy h2{font-size:23px;margin:5px 0}.story-copy p{font-size:11px}.ingredient-art{display:none}.story-foot{margin-top:22px;padding-top:10px;font-size:8px}.story-brand{font-size:13px}.story-mark{width:34px;height:34px}.login-story:after{width:230px;height:230px;right:-95px;top:50px}.#login .lg{padding:27px 25px 24px}.lg-header{margin-bottom:19px}.lg-icon{display:none}.lg h1{font-size:20px}.lg .fld{margin-bottom:12px}.login-note{margin-top:13px}}
 /* ---------- Pastel sushi login theme ---------- */
 #login{background-color:#fff7f2;background-image:radial-gradient(ellipse at 8% 8%,rgba(255,190,205,.36),transparent 32%),radial-gradient(ellipse at 92% 88%,rgba(190,218,255,.38),transparent 34%),radial-gradient(ellipse at 84% 12%,rgba(255,229,162,.35),transparent 26%)}
 .login-wrap{background:#fffdfb;border-color:#fff;box-shadow:0 25px 65px rgba(181,130,145,.18)}
@@ -113,7 +103,7 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 .eyebrow{color:#c26c88}.story-copy h2{color:#67465a}.story-copy p{color:#866c7b}.story-foot{border-color:rgba(146,105,127,.2);color:#866c7b}
 .ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
 .sushi-friends{position:absolute;right:26px;bottom:62px;z-index:2;display:flex;align-items:flex-end;gap:8px}.sushi-friend{width:53px;height:53px;border:3px solid #fff;border-radius:18px;background:#fff9f7;display:grid;place-items:center;position:relative;box-shadow:0 8px 18px rgba(165,111,135,.18);font-size:29px;transform:rotate(-7deg)}.sushi-friend:nth-child(2){width:46px;height:46px;border-radius:50%;background:#fff7dd;transform:rotate(7deg)}.sushi-friend:nth-child(3){width:39px;height:39px;border-radius:14px;background:#eaf3ff;transform:rotate(-3deg)}.sushi-friend i{position:absolute;bottom:-8px;font-style:normal;font-size:10px;line-height:1;color:#76546a;background:#fff;border-radius:99px;padding:2px 5px;box-shadow:0 2px 5px rgba(100,70,90,.12)}
-#login .lg{background:#fffdfb}.lg-icon{background:linear-gradient(140deg,#f4a8bf,#f5c99e);box-shadow:0 8px 18px rgba(224,151,174,.22)}.lg .eyebrow{color:#c26c88}.lg h1{color:#563e4e}.lg .fld span{color:#644d5c}.lg .in{background:#fff9f7;border-color:#f0dfe2}.lg .in:focus{border-color:#e89bb2;box-shadow:0 0 0 4px rgba(232,155,178,.16)}.dots i.on{background:#e88ca8;border-color:#e88ca8;box-shadow:0 0 8px rgba(232,140,168,.25)}.pad button{border-color:#f3e5e4;background:#fff8f5;color:#725767}.pad button:hover{background:#ffedf1}.login-submit{background:linear-gradient(135deg,#ee9db4,#e9a96f);box-shadow:0 7px 17px rgba(226,151,165,.25)}.hint{background:#fff4d9;color:#936a36}.login-note{color:#a18d98!important}
+#login .lg{background:#fffdfb}.lg-icon{background:linear-gradient(140deg,#f4a8bf,#f5c99e);box-shadow:0 8px 18px rgba(224,151,174,.22)}.lg .eyebrow{color:#c26c88}.lg h1{color:#563e4e}.lg .fld span{color:#644d5c}.lg .in{background:#fff9f7;border-color:#f0dfe2}.lg .in:focus{border-color:#e89bb2;box-shadow:0 0 0 4px rgba(232,155,178,.16)}.login-submit{background:linear-gradient(135deg,#ee9db4,#e9a96f);box-shadow:0 7px 17px rgba(226,151,165,.25)}.hint{background:#fff4d9;color:#936a36}.login-note{color:#a18d98!important}
 @media(max-width:680px){.login-story{min-height:265px;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}.sushi-friends{right:18px;bottom:53px;gap:4px}.sushi-friend{width:42px;height:42px;font-size:24px;border-radius:15px}.sushi-friend:nth-child(2){width:37px;height:37px}.sushi-friend:nth-child(3){width:32px;height:32px;font-size:20px}.story-foot{position:relative;z-index:3}}
 /* ---------- App Shell ---------- */
 #app { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
@@ -292,7 +282,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
   .sheet { border-radius: 24px; }
   .toast { bottom: 28px; }
 }
-@media(max-width:680px){#app .top{padding-left:12px;padding-right:12px;gap:8px}.brand{gap:7px;font-size:14px}.brand-badge{width:28px;height:28px}.me{gap:4px;padding-left:7px}.me-info{font-size:10px}.me-info span{font-size:8px}.me-btn{width:28px;height:28px}#login{min-height:100dvh;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}.login-wrap{width:100%}.lg .in{min-height:46px}.pad button{min-height:42px}}
+@media(max-width:680px){#app .top{padding-left:12px;padding-right:12px;gap:8px}.brand{gap:7px;font-size:14px}.brand-badge{width:28px;height:28px}.me{gap:4px;padding-left:7px}.me-info{font-size:10px}.me-info span{font-size:8px}.me-btn{width:28px;height:28px}#login{min-height:100dvh;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}.login-wrap{width:100%}.lg .in{min-height:46px}}
 /* ---------- Matching pastel sushi theme inside the app ---------- */
 :root{--bg:#fff7f5;--bg-app:#fff7f5;--card-bg:#fffefd;--card-border:#f3e2e8;--ink:#634c5b;--mute:#927d8c;--line:#f0dfe5;--acc:#e78fa9;--acc-hover:#d87593;--acc-light:#fff0f4;--acc-glow:rgba(231,143,169,.2);--warn:#bd8549;--warn-bg:#fff5df;--bad:#c96f83;--bad-bg:#fff0f3;--ok:#78a993;--ok-bg:#edf7f1;--r:18px;--shadow-sm:0 3px 12px rgba(150,102,124,.06);--shadow-md:0 10px 24px rgba(150,102,124,.11)}
 body[data-theme="indigo"]{--acc:#a392c9;--acc-hover:#8978b5;--acc-light:#f3effb;--acc-glow:rgba(163,146,201,.2)}body[data-theme="emerald"]{--acc:#e8b77e;--acc-hover:#d59d60;--acc-light:#fff5e8;--acc-glow:rgba(232,183,126,.22)}body[data-theme="ruby"]{--acc:#df839e;--acc-hover:#cf6d8b;--acc-light:#fff0f4;--acc-glow:rgba(223,131,158,.2)}
@@ -346,9 +336,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
       </div>
       <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" id="lgUser" name="username" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="เช่น เจ้าของร้าน" required></label>
       <label class="fld"><span>รหัสลับ 6 หลัก</span><input class="in" id="lgPinInput" name="pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" placeholder="กรอกรหัส 6 หลัก" style="letter-spacing:5px;text-align:center;font-size:18px"></label>
-      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="msg" id="lgMsg" role="alert" aria-live="polite"></div>
-      <div class="pad" id="pad" aria-label="แป้นตัวเลข"></div>
       <button type="submit" class="btn login-submit">เข้าสู่ระบบ <span aria-hidden="true">→</span></button>
       <div class="hint hide" id="lgHint">เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่</div>
       <p class="login-note">สำหรับใช้งานภายในร้าน · ข้อมูลบันทึกไว้ในฐานข้อมูลกลางของร้าน</p>
@@ -509,32 +497,16 @@ function checkSaturdayAutoLogout() {
 
 /* ---------- Login System ---------- */
 let lock = store.get('inv_lock', { n: 0, until: 0 });
-$('#pad').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'ล้าง', 0, '⌫'].map(k => `<button type="button" data-k="${k}">${k}</button>`).join('');
-
-const drawDots = pinVal => {
-  document.querySelectorAll('#dots i').forEach((d, i) => d.classList.toggle('on', i < (pinVal ? pinVal.length : 0)));
-  $('#dots').classList.toggle('err', false);
-};
-
-function press(k) {
-  const pinInput = $('#lgPinInput'); let val = pinInput.value;
-  if (k === 'ล้าง') val = ''; else if (k === '⌫') val = val.slice(0, -1); else if (val.length < 6) val += k;
-  pinInput.value = val; $('#lgMsg').textContent = ''; drawDots(val);
-  if (val.length === 6) tryLogin();
-}
-
-$('#pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) press(b.dataset.k); });
 $( '#lgUser' ).addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\p{L}\p{M}0-9_]/gu, ''); });
 $('#lgPinInput').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
-  drawDots(e.target.value); $('#lgMsg').textContent = '';
-  if (e.target.value.length === 6) tryLogin();
+  $('#lgMsg').textContent = '';
 });
 $('#lgForm').addEventListener('submit', e => { e.preventDefault(); if ($('#lgPinInput').value.length === 6) tryLogin(); });
 
 async function tryLogin() {
   const name = $('#lgUser').value.trim().toLowerCase(), pinVal = $('#lgPinInput').value, msg = $('#lgMsg');
-  const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; drawDots(''); };
+  const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; };
   if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock.until - Date.now()) / 1000)} วิ`);
   if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
   if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
@@ -555,7 +527,7 @@ async function tryLogin() {
 }
 
 function enter(u) {
-  me = u; $('#lgPinInput').value = ''; drawDots(''); $('#lgUser').value = '';
+  me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
   $('#login').classList.add('hide'); $('#app').classList.remove('hide');
   $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !(u.owner || u.role === 'admin'));
   tab = 'stock'; build(); if (u.must) pinModal(true);
@@ -1130,7 +1102,7 @@ function pinModal(force) {
 }
 
 (async () => {
-  await init(); drawDots('');
+  await init();
   try {
     const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin);
     const token = sess.get();
