@@ -370,7 +370,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
         <b id="meName">---</b>
         <span id="meRole">---</span>
       </div>
-      <button class="me-btn" id="btnPin" title="เปลี่ยน รหัส"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+      <button class="me-btn" id="btnPin" title="จัดการบัญชี"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
       <button class="me-btn" id="btnOut" title="ออกจากระบบ"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
     </div>
   </header>
@@ -566,7 +566,7 @@ function logout() {
   sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
-$('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false);
+$('#btnOut').onclick = logout; $('#btnPin').onclick = () => me?.owner ? ownerAccountModal() : pinModal(false);
 
 async function refreshCloudState() {
   if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
@@ -1087,6 +1087,27 @@ function delUser(name) {
   if (U.filter(x => x.role === 'admin' && x.name !== name).length < 1) return toast('ลบไม่ได้ ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
   openModal(`<h3>ลบผู้ใช้ ${esc(name)}?</h3><div class="acts"><button class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn bad" id="dy">ลบ</button></div>`);
   $('#dy').onclick = () => { U = U.filter(x => x.name !== name); save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว'); };
+}
+
+function ownerAccountModal() {
+  openModal(`<h3>ตั้งค่าบัญชีผู้ดูแลหลัก</h3><form id="ownerAccountForm">
+   <label class="fld"><span>ชื่อผู้ใช้ใหม่</span><input class="in" name="username" required minlength="3" maxlength="20" pattern="[\\p{L}\\p{M}0-9_]{3,20}" autocomplete="username" value="${esc(me.name)}"></label>
+   <label class="fld"><span>รหัสปัจจุบัน 6 หลัก</span><input class="in" name="old" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="current-password" required></label>
+   <label class="fld"><span>รหัสใหม่ 6 หลัก</span><input class="in" name="next" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required></label>
+   <label class="fld"><span>ยืนยันรหัสใหม่</span><input class="in" name="confirm" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required></label>
+   <p class="settings-hint">การเปลี่ยนแปลงจะมีผลกับบัญชีผู้ดูแลหลักเท่านั้น บัญชีพนักงานและข้อมูลสต็อกจะคงเดิม</p>
+   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึกบัญชี</button></div></form>`);
+  $('#ownerAccountForm').onsubmit = async e => {
+    e.preventDefault(); const f = e.target, username = f.elements.username.value.trim().toLowerCase(), next = f.elements.next.value;
+    if (!/^[\p{L}\p{M}0-9_]{3,20}$/u.test(username)) return toast('ชื่อผู้ใช้ต้องมี 3–20 ตัวอักษร ตัวเลข หรือ _', 1);
+    if (next !== f.elements.confirm.value) return toast('รหัสใหม่ไม่ตรงกัน', 1);
+    try {
+      const result = await cloudRpc('api_update_owner_account', { p_token: cloudToken, p_old_hash: await hash(f.elements.old.value), p_new_name: username, p_new_hash: await hash(next) });
+      if (!result.ok) return toast(result.error || 'บันทึกบัญชีไม่สำเร็จ', 1);
+      applyCloudState(result.state); me = result.me; syncSnapshot = cloneData(result.state); syncVersion = result.version;
+      $('#meName').textContent = me.name; closeModal(); build(); toast('บันทึกชื่อผู้ใช้และรหัสผ่านแล้ว');
+    } catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
+  };
 }
 
 function pinModal(force) {
