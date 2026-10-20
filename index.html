@@ -387,14 +387,54 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// คีย์แบบ Publishable เปิดเผยได้ในหน้าเว็บ ส่วนข้อมูลจริงถูกป้องกันด้วยฟังก์ชันฐานข้อมูลและเซสชัน
+const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
+const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
+const cloudTokenStore = {
+  get() { try { return sessionStorage.getItem('inv_cloud_session'); } catch { return null; } },
+  set(v) { try { v ? sessionStorage.setItem('inv_cloud_session', v) : sessionStorage.removeItem('inv_cloud_session'); } catch {} }
+};
+let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false;
+async function cloudRpc(name, args = {}) {
+  const response = await fetch(`${CLOUD_URL}/rest/v1/rpc/${name}`, {
+    method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.message || data.error || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ');
+  return data;
+}
+const cloneData = x => JSON.parse(JSON.stringify(x));
+const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS });
+function applyCloudState(state) {
+  U = (state.users || []).map(({ pin, ...u }) => u);
+  P = state.products || []; L = state.log || [];
+  ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) };
+  CATS = state.categories || []; UNITS = state.units || [];
+}
+function migrateLegacyBrowserData(result) {
+  if (result.version !== 1 || result.me?.role !== 'admin') return false;
+  const oldProducts = store.get('inv_products', null);
+  if (!Array.isArray(oldProducts) || !oldProducts.length) return false;
+  const oldUsers = store.get('inv_users', []);
+  applyCloudState(result.state);
+  for (const oldUser of Array.isArray(oldUsers) ? oldUsers : []) {
+    if (!oldUser?.name || U.some(u => u.name === oldUser.name) || oldUser.owner) continue;
+    U.push({ ...oldUser });
+  }
+  P = oldProducts.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
+  L = store.get('inv_log', []).slice(0, 500);
+  ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
+  CATS = store.get('inv_categories', CATS); UNITS = store.get('inv_units', UNITS);
+  return true;
+}
 const store = {
   get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 
 const sess = {
-  get() { try { return localStorage.getItem('inv_persistent_user'); } catch { return null; } },
-  set(v) { try { v ? localStorage.setItem('inv_persistent_user', v) : localStorage.removeItem('inv_persistent_user'); } catch {} }
+  get() { return cloudTokenStore.get(); },
+  set(v) { cloudToken = v || null; cloudTokenStore.set(v); }
 };
 
 const num = n => Number(n).toLocaleString('th-TH');
@@ -422,9 +462,7 @@ const I = {
 const ic = n => `<svg viewBox="0 0 24 24">${I[n] || ''}</svg>`;
 
 /* ---------- Data Store & Theme Init ---------- */
-let U = store.get('inv_users', null);
-let P = store.get('inv_products', null);
-let L = store.get('inv_log', []);
+let U = [], P = [], L = [];
 let currentTheme = store.get('inv_theme', 'teal');
 document.body.setAttribute('data-theme', currentTheme);
 
@@ -440,34 +478,27 @@ async function hash(s) {
 }
 
 const save = () => {
-  store.set('inv_users', U); store.set('inv_products', P); store.set('inv_log', L.slice(0, 500));
-  store.set('inv_roles', ROLE); store.set('inv_categories', CATS); store.set('inv_units', UNITS);
+  syncQueue = syncQueue.then(async () => {
+    if (!cloudToken || !syncSnapshot) return;
+    const next = { users: U, products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS }, base = syncSnapshot;
+    if (JSON.stringify(safeState()) === JSON.stringify(base)) return;
+    cloudBusy = true;
+    try {
+      const result = await cloudRpc('api_sync', { p_token: cloudToken, p_base: base, p_data: next });
+      if (!result.ok) {
+        if (result.error?.includes('หมดเวลา')) { logout(); return toast(result.error, 1); }
+        return toast(result.error || 'บันทึกข้อมูลส่วนกลางไม่สำเร็จ', 1);
+      }
+      syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1;
+      U.forEach(user => { delete user.pin; });
+      const activeProfile = U.find(user => user.name === me?.name);
+      if (activeProfile) { me = activeProfile; $('#meRole').textContent = ROLE[me.role] || me.role; }
+    } catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
+    finally { cloudBusy = false; }
+  }).catch(error => { cloudBusy = false; toast(error.message || 'บันทึกข้อมูลส่วนกลางไม่สำเร็จ', 1); });
 };
 
-async function init() {
-  if (!U) { U = [{ name: 'เจ้าของร้าน', pin: await hash('123456'), role: 'admin', active: true, must: true }]; }
-  else {
-    const firstAdmin = U.find(u => u.name === 'admin' && u.must);
-    if (firstAdmin) { firstAdmin.name = 'เจ้าของร้าน'; sess.set(null); }
-  }
-  const owner = U.find(u => u.owner) || U.find(u => u.role === 'admin');
-  if (owner) owner.owner = true;
-  U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
-  if (!P) {
-    P = [
-      { id: 'P-1001', name: 'ข้าวญี่ปุ่น', cat: 'ข้าวและเส้น', unit: 'กิโลกรัม', qty: 12, min: 5, loc: 'ชั้นวัตถุดิบแห้ง A1' },
-      { id: 'P-1002', name: 'ปลาแซลมอนสด', cat: 'ปลาและอาหารทะเล', unit: 'กิโลกรัม', qty: 3, min: 4, loc: 'ตู้เย็น 1' },
-      { id: 'P-1003', name: 'ปลาทูน่าสด', cat: 'ปลาและอาหารทะเล', unit: 'กิโลกรัม', qty: 2, min: 3, loc: 'ตู้เย็น 1' },
-      { id: 'P-1004', name: 'สาหร่ายโนริ', cat: 'สาหร่ายและเครื่องปรุง', unit: 'แพ็ค', qty: 8, min: 3, loc: 'ชั้นวัตถุดิบแห้ง A2' },
-      { id: 'P-1005', name: 'น้ำส้มสายชูข้าว', cat: 'สาหร่ายและเครื่องปรุง', unit: 'ขวด', qty: 6, min: 2, loc: 'ชั้นวัตถุดิบแห้ง B1' },
-      { id: 'P-1006', name: 'แตงกวาญี่ปุ่น', cat: 'ผักและผลไม้', unit: 'กิโลกรัม', qty: 4, min: 2, loc: 'ตู้เย็น 2' },
-      { id: 'P-1007', name: 'วาซาบิ', cat: 'สาหร่ายและเครื่องปรุง', unit: 'หลอด', qty: 0, min: 2, loc: 'ตู้เย็น 2' },
-      { id: 'P-1008', name: 'กล่องซูชิ', cat: 'บรรจุภัณฑ์', unit: 'แพ็ค', qty: 10, min: 4, loc: 'ชั้นบรรจุภัณฑ์ C1' }
-    ];
-  }
-  P.forEach(product => { delete product.cost; delete product.price; });
-  save();
-}
+async function init() { U = []; P = []; L = []; syncSnapshot = null; }
 
 function checkSaturdayAutoLogout() {
   const now = new Date();
@@ -508,14 +539,19 @@ async function tryLogin() {
   if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
   if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
   
-  const u = U.find(x => x.name === name), h = await hash(pinVal);
-  if (!u || u.pin !== h) {
+  const h = await hash(pinVal);
+  let result;
+  try { result = await cloudRpc('api_login', { p_name: name, p_pin_hash: h }); }
+  catch (error) { return fail('เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจอินเทอร์เน็ตหรือติดต่อผู้ดูแล'); }
+  if (!result.ok) {
     lock.n++;
     if (lock.n >= 5) { lock = { n: 0, until: Date.now() + 30000 }; store.set('inv_lock', lock); return fail('ลองผิด 5 ครั้ง ล็อก 30 วินาที'); }
-    store.set('inv_lock', lock); return fail(`รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
+    store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
   }
-  if (!u.active) return fail('บัญชีนี้ถูกปิดใช้งาน');
-  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); sess.set(u.name); enter(u);
+  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); sess.set(result.token);
+  applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
+  if (migrateLegacyBrowserData(result)) save();
+  enter(result.me);
 }
 
 function enter(u) {
@@ -526,10 +562,25 @@ function enter(u) {
 }
 
 function logout() {
-  sess.set(null); me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
+  const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
-function showHint() { const first = U.find(u => u.must); $('#lgHint').classList.toggle('hide', !first); if (first) $('#lgHint').innerHTML = `เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>${esc(first.name)}</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ`; }
+function showHint(firstLogin = U.some(u => u.must)) { $('#lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) $('#lgHint').innerHTML = `เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>เจ้าของร้าน</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ`; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false);
+
+async function refreshCloudState() {
+  if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
+  try {
+    const result = await cloudRpc('api_get_state', { p_token: cloudToken });
+    if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+    if (result.version !== syncVersion) {
+      applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role;
+      build(); toast('ข้อมูลสต็อกอัปเดตจากเครื่องอื่นแล้ว');
+    }
+  } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
+}
+setInterval(refreshCloudState, 10000);
 
 const can = {
   edit: () => !!me?.permissions?.editStock,
@@ -1047,16 +1098,30 @@ function pinModal(force) {
   if (force) $('#ov').dataset.lock = 1;
   $('#pn').onsubmit = async e => {
     e.preventDefault(); const f = e.target, n1 = f.elements.n1.value;
-    if (!force && await hash(f.elements.old.value) !== me.pin) return toast('รหัส ปัจจุบันไม่ถูกต้อง', 1);
+    if (!/^\d{6}$/.test(n1)) return toast('รหัสใหม่ต้องเป็นตัวเลข 6 หลัก', 1);
     if (n1 !== f.elements.n2.value) return toast('รหัส ใหม่ไม่ตรงกัน', 1);
-    me.pin = await hash(n1); me.must = false; save(); closeModal(); toast('เปลี่ยน รหัส สำเร็จ');
+    try {
+      const result = await cloudRpc('api_change_pin', { p_token: cloudToken, p_old_hash: force ? '' : await hash(f.elements.old.value), p_new_hash: await hash(n1) });
+      if (!result.ok) return toast(result.error || 'เปลี่ยนรหัสไม่สำเร็จ', 1);
+      applyCloudState(result.state); me = result.me; syncSnapshot = cloneData(result.state); syncVersion = result.version;
+      closeModal(); toast('เปลี่ยนรหัสสำเร็จ');
+    } catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
   };
 }
 
 (async () => {
-  await init(); showHint(); drawDots('');
-  const s = sess.get(), u = s && U.find(x => x.name === s && x.active);
-  if (u) { enter(u); checkSaturdayAutoLogout(); }
+  await init(); drawDots('');
+  try {
+    const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin);
+    const token = sess.get();
+    if (token) {
+      const result = await cloudRpc('api_get_state', { p_token: token });
+      if (result.ok) {
+        applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+        enter(result.me); checkSaturdayAutoLogout();
+      } else { sess.set(null); showHint(false); $('#lgMsg').textContent = result.error || 'กรุณาเข้าสู่ระบบใหม่'; }
+    }
+  } catch { showHint(false); $('#lgMsg').textContent = 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'; }
 })();
 </script>
 </body>
