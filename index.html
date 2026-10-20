@@ -313,6 +313,42 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
 .select-tools{display:flex;align-items:stretch;gap:5px}.select-tools select{flex:1;min-width:0}.icon-tool{width:39px;min-width:39px;border:1px solid #f0dfe5;border-radius:11px;background:#fff8f8;color:#9a7184;font-size:18px;line-height:1;box-shadow:0 2px 6px rgba(150,102,124,.06);transition:transform .16s ease,background .16s ease}.icon-tool:hover{transform:translateY(-1px);background:#ffeaf0}.icon-tool.add-tool{font-size:23px;color:#bd6f88}.settings-hint{font-size:12px;color:var(--mute);margin-bottom:12px}.permissions-card{grid-column:1/-1}.permission-list{display:grid;gap:9px}.permission-user{padding:12px;border:1px solid #f0dfe5;border-radius:14px;background:#fffdfc}.permission-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;color:#634c5b}.owner-tag{padding:3px 8px;border-radius:99px;background:#fff2d8;color:#96713e;font-size:10px;font-weight:600}.permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px}.permission-option{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:#fff7f8;font-size:11px;color:#765a69}.permission-option input{accent-color:var(--acc);width:15px;height:15px}.permission-option input:disabled{opacity:.55}
 @media(prefers-reduced-motion:reduce){#main.page-next,#main.page-prev,.ov,.sheet{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 @media(max-width:460px){.history-item{grid-template-columns:36px minmax(0,1fr) auto;gap:8px;padding:10px}.history-icon{width:36px;height:36px;border-radius:12px;font-size:17px}.history-result{min-width:58px}.history-result strong{font-size:15px}.history-main small{font-size:10px}.history-title b{font-size:13px}.select-tools{gap:4px}.icon-tool{width:35px;min-width:35px}}
+/* ---------- Refined login layout ---------- */
+.login-wrap{min-height:520px}
+.story-copy h2{font-size:27px;line-height:1.45;letter-spacing:.1px}
+.story-copy h2 span{font-size:.82em;font-weight:500}
+.lg-header{margin-bottom:22px}
+.lg h1{font-size:21px;line-height:1.4;letter-spacing:0}
+.lg .fld span{font-size:14px}
+.lg .in{min-height:48px;font-size:15px}
+.login-submit{min-height:48px}
+.login-note{font-size:11px!important}
+@media(max-width:680px){
+  #login{min-height:100dvh;align-items:center;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}
+  .login-wrap{width:100%;max-width:440px;min-height:0;grid-template-columns:1fr;border-radius:22px;overflow:hidden}
+  .login-story{min-height:112px;padding:19px 18px 16px;display:block}
+  .story-brand,.ingredient-art,.story-foot{display:none}
+  .story-copy{margin:0;padding-right:94px}
+  .story-copy h2{font-size:17px;line-height:1.5;margin:0;font-weight:600}
+  .story-copy h2 span{font-size:15px;font-weight:500}
+  .sushi-friends{right:14px;bottom:18px;gap:3px}
+  .sushi-friend{width:37px;height:37px;border-width:2px;border-radius:13px;font-size:21px}
+  .sushi-friend:nth-child(2){width:33px;height:33px}
+  .sushi-friend:nth-child(3){width:29px;height:29px;font-size:18px}
+  .sushi-friend i{font-size:8px;bottom:-7px}
+  #login .lg{padding:21px 20px 20px}
+  .lg-header{text-align:left;margin-bottom:17px}
+  .lg-icon{display:none}
+  .lg h1{font-size:20px;margin:0}
+  .lg .fld{margin-bottom:13px}
+  .lg .fld span{font-size:13px;margin-bottom:6px}
+  .lg .in{min-height:48px;font-size:15px}
+  .login-submit{min-height:48px;font-size:15px}
+  .login-submit span{font-size:17px}
+  .login-note{display:none}
+  .msg{margin-bottom:4px}
+}
+@media(max-height:620px) and (max-width:680px){#login{align-items:flex-start}.login-wrap{margin:auto 0}.login-story{min-height:96px}.#login .lg{padding-top:16px;padding-bottom:16px}}
 </style>
 </head>
 <body data-theme="teal">
@@ -322,7 +358,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
       <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไขหวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
-      <div class="story-copy"><span class="eyebrow">สดใหม่ทุกวัน</span><h2>ของสดดี<br>เริ่มต้นที่การจัดการที่ดี</h2><p>ดูแลวัตถุดิบทุกชิ้น ให้พร้อมสำหรับซูชิคำต่อไป</p></div>
+      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไขหวานบ้านซูชิ<br><span>สาขาพันทายพรมสิน</span></h2></div>
       <div class="sushi-friends" aria-hidden="true"><span class="sushi-friend">🍣<i>•ᴗ•</i></span><span class="sushi-friend">🍙<i>•ᴗ•</i></span><span class="sushi-friend">🍤</span></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
       <div class="story-foot"><span>ไขหวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
@@ -330,9 +366,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
     <form class="lg" id="lgForm" autocomplete="on">
       <div class="lg-header">
         <div class="lg-icon" aria-hidden="true" style="font-size:27px">🍣</div>
-        <span class="eyebrow">ระบบจัดการวัตถุดิบ</span>
-        <h1>เข้าสู่ระบบคลังวัตถุดิบ</h1>
-        <p>ลงชื่อเข้าใช้เพื่อจัดการวัตถุดิบของร้าน</p>
+        <h1>เข้าสู่ระบบ</h1>
       </div>
       <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" id="lgUser" name="username" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="เช่น เจ้าของร้าน" required></label>
       <label class="fld"><span>รหัสลับ 6 หลัก</span><input class="in" id="lgPinInput" name="pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" placeholder="กรอกรหัส 6 หลัก" style="letter-spacing:5px;text-align:center;font-size:18px"></label>
