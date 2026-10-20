@@ -132,7 +132,7 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 
 .me { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 3px 5px 3px 12px; border: 1px solid rgba(255,255,255,0.1); }
 .me-info { font-size: 11.5px; line-height: 1.2; text-align: right; }
-.me-info b { display: block; color: #fff; font-weight: 600; }
+.me-name-row{display:flex;align-items:center;justify-content:flex-end;gap:4px}.me-name-row b{display:block;color:#fff;font-weight:600}.username-edit{width:22px;height:22px;border-radius:8px;background:transparent;color:inherit;display:grid;place-items:center;font-size:14px;line-height:1}.username-edit:hover{background:rgba(255,255,255,.16)}
 .me-info span { color: #94a3b8; font-size: 9.5px; }
 .me-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.12); color: #fff; display: grid; place-items: center; transition: 0.2s; }
 
@@ -367,7 +367,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
     <nav class="dtabs" id="dtabs"></nav>
     <div class="me">
       <div class="me-info">
-        <b id="meName">---</b>
+        <div class="me-name-row"><b id="meName">---</b><button class="username-edit hide" id="btnEditName" type="button" title="แก้ไขชื่อผู้ใช้" aria-label="แก้ไขชื่อผู้ใช้">✎</button></div>
         <span id="meRole">---</span>
       </div>
       <button class="me-btn" id="btnPin" title="จัดการบัญชี"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
@@ -557,7 +557,7 @@ async function tryLogin() {
 function enter(u) {
   me = u; $('#lgPinInput').value = ''; drawDots(''); $('#lgUser').value = '';
   $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role];
+  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !(u.owner || u.role === 'admin'));
   tab = 'stock'; build(); if (u.must) pinModal(true);
 }
 
@@ -566,7 +566,7 @@ function logout() {
   sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
-$('#btnOut').onclick = logout; $('#btnPin').onclick = () => me?.owner ? ownerAccountModal() : pinModal(false);
+$('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
 
 async function refreshCloudState() {
   if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
@@ -575,7 +575,7 @@ async function refreshCloudState() {
     if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
     if (result.version !== syncVersion) {
       applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role;
+      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !(me.owner || me.role === 'admin'));
       build(); toast('ข้อมูลสต็อกอัปเดตจากเครื่องอื่นแล้ว');
     }
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
@@ -1089,27 +1089,26 @@ function delUser(name) {
   $('#dy').onclick = () => { U = U.filter(x => x.name !== name); save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว'); };
 }
 
-function ownerAccountModal() {
-  openModal(`<h3>ตั้งค่าบัญชีผู้ดูแลหลัก</h3><form id="ownerAccountForm">
-   <label class="fld"><span>ชื่อผู้ใช้ใหม่</span><input class="in" name="username" required minlength="3" maxlength="20" pattern="[\\p{L}\\p{M}0-9_]{3,20}" autocomplete="username" value="${esc(me.name)}"></label>
-   <label class="fld"><span>รหัสปัจจุบัน 6 หลัก</span><input class="in" name="old" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="current-password" required></label>
-   <label class="fld"><span>รหัสใหม่ 6 หลัก</span><input class="in" name="next" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required></label>
-   <label class="fld"><span>ยืนยันรหัสใหม่</span><input class="in" name="confirm" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="new-password" required></label>
-   <p class="settings-hint">การเปลี่ยนแปลงจะมีผลกับบัญชีผู้ดูแลหลักเท่านั้น บัญชีพนักงานและข้อมูลสต็อกจะคงเดิม</p>
-   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึกบัญชี</button></div></form>`);
-  $('#ownerAccountForm').onsubmit = async e => {
-    e.preventDefault(); const f = e.target, username = f.elements.username.value.trim().toLowerCase(), next = f.elements.next.value;
+function editMyUsernameModal() {
+  if (!(me?.owner || me?.role === 'admin')) return toast('เฉพาะผู้ดูแลระบบและผู้ดูแลหลักเท่านั้นที่แก้ไขชื่อผู้ใช้ได้', 1);
+  openModal(`<h3>แก้ไขชื่อผู้ใช้</h3><form id="myUsernameForm">
+   <label class="fld"><span>ชื่อผู้ใช้</span><div class="select-tools"><input class="in" name="username" required minlength="3" maxlength="20" pattern="[\\p{L}\\p{M}0-9_]{3,20}" autocomplete="username" readonly value="${esc(me.name)}"><button type="button" class="icon-tool" id="editMyUsername" title="แก้ไขชื่อผู้ใช้" aria-label="แก้ไขชื่อผู้ใช้">✎</button></div></label>
+   <label class="fld"><span>ยืนยันรหัสปัจจุบัน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="current-password" required></label>
+   <p class="settings-hint">เปลี่ยนชื่อได้เฉพาะผู้ดูแลระบบและผู้ดูแลหลัก ชื่อผู้ใช้ต้องไม่ซ้ำกัน</p>
+   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึกชื่อ</button></div></form>`);
+  const f = $('#myUsernameForm');
+  $('#editMyUsername').onclick = () => { f.elements.username.readOnly = false; f.elements.username.focus(); };
+  f.onsubmit = async e => {
+    e.preventDefault(); const username = f.elements.username.value.trim().toLowerCase();
     if (!/^[\p{L}\p{M}0-9_]{3,20}$/u.test(username)) return toast('ชื่อผู้ใช้ต้องมี 3–20 ตัวอักษร ตัวเลข หรือ _', 1);
-    if (next !== f.elements.confirm.value) return toast('รหัสใหม่ไม่ตรงกัน', 1);
     try {
-      const result = await cloudRpc('api_update_owner_account', { p_token: cloudToken, p_old_hash: await hash(f.elements.old.value), p_new_name: username, p_new_hash: await hash(next) });
-      if (!result.ok) return toast(result.error || 'บันทึกบัญชีไม่สำเร็จ', 1);
+      const result = await cloudRpc('api_update_username', { p_token: cloudToken, p_old_hash: await hash(f.elements.pin.value), p_new_name: username });
+      if (!result.ok) return toast(result.error || 'เปลี่ยนชื่อผู้ใช้ไม่สำเร็จ', 1);
       applyCloudState(result.state); me = result.me; syncSnapshot = cloneData(result.state); syncVersion = result.version;
-      $('#meName').textContent = me.name; closeModal(); build(); toast('บันทึกชื่อผู้ใช้และรหัสผ่านแล้ว');
+      $('#meName').textContent = me.name; closeModal(); build(); toast('เปลี่ยนชื่อผู้ใช้แล้ว');
     } catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
   };
 }
-
 function pinModal(force) {
   openModal(`<h3>${force ? 'กำหนด รหัส ใหม่' : 'เปลี่ยน รหัส'}</h3>
   <form id="pn">${force ? '' : '<label class="fld"><span>รหัส ปัจจุบัน</span><input class="in" name="old" inputmode="numeric" maxlength="6" required></label>'}
