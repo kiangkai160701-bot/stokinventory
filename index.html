@@ -3,435 +3,1060 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ระบบจัดการสต็อกสินค้า</title>
+<title>ไขหวานบ้านซูชิ | ระบบจัดการสต็อกวัตถุดิบ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#eceff0;--surf:#fff;--ink:#16221f;--mute:#62716d;--line:#dbe2e0;--acc:#0f6b62;--acc2:#e6f2f0;--warn:#b45309;--warn2:#fdf1e0;--bad:#b42318;--bad2:#fdeceb;--ok:#217a45;--ok2:#e5f4ea;--r:14px}
-*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-body{font-family:'Prompt',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.45}
-button,input,select{font:inherit;color:inherit}
-button{cursor:pointer;border:0;background:none}
-:focus-visible{outline:3px solid #5bb5aa;outline-offset:2px}
-.hide{display:none!important}
-small{color:var(--mute);font-size:12px}
-/* ---------- Login ---------- */
-#login{min-height:100%;display:grid;place-items:center;padding:20px}
-.lg{width:100%;max-width:380px;background:var(--surf);border-radius:22px;padding:26px 22px;box-shadow:0 10px 40px rgba(22,34,31,.12)}
-.lg h1{font-size:24px;font-weight:700;margin-bottom:2px}
-.lg p{color:var(--mute);margin-bottom:18px}
-.fld{display:block;margin-bottom:14px}
-.fld span{display:block;font-size:13px;font-weight:500;margin-bottom:5px}
-.in{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:#f8faf9;min-height:48px}
-.in:focus{border-color:var(--acc);background:#fff;outline:0;box-shadow:0 0 0 3px #cfe9e5}
-.dots{display:flex;gap:10px;justify-content:center;margin:6px 0 14px}
-.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--acc);transition:.12s}
-.dots i.on{background:var(--acc)}
-.dots.err i{border-color:var(--bad);background:var(--bad2)}
-.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.pad button{height:56px;border-radius:14px;background:#f1f4f3;font-size:22px;font-weight:500}
-.pad button:active{background:var(--acc2)}
-.msg{min-height:20px;text-align:center;font-size:13px;color:var(--bad);margin-bottom:6px}
-.hint{margin-top:14px;font-size:12px;background:var(--warn2);color:var(--warn);padding:9px 12px;border-radius:10px}
-/* ---------- App shell ---------- */
-#app{min-height:100%;display:flex;flex-direction:column}
-.top{position:sticky;top:0;z-index:20;background:var(--ink);color:#fff;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px));display:flex;align-items:center;gap:14px}
-.brand{font-weight:700;font-size:17px;flex:1;white-space:nowrap}
-.brand small{display:block;color:#9fb3ae;font-weight:300;font-size:11px}
-.dtabs{display:none;gap:4px}
-.dtabs button,.nav button{color:#b8c9c5;padding:8px 14px;border-radius:10px;font-weight:500}
-.dtabs button.on{background:#fff;color:var(--ink)}
-.me{display:flex;align-items:center;gap:8px;background:#24342f;border-radius:999px;padding:5px 6px 5px 12px;font-size:13px}
-.me b{font-weight:600}
-.me button{background:#364a44;border-radius:999px;width:30px;height:30px;color:#fff;display:grid;place-items:center}
-main{flex:1;width:100%;max-width:1180px;margin:0 auto;padding:16px 14px calc(96px + env(safe-area-inset-bottom,0px))}
-.nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:1px solid var(--line);display:flex;padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px))}
-.nav button{flex:1;color:var(--mute);font-size:12px;padding:8px 4px;display:flex;flex-direction:column;align-items:center;gap:2px}
-.nav button.on{color:var(--acc);font-weight:600}
-.nav svg{width:22px;height:22px}
-svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-/* ---------- Stats ---------- */
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.st{background:var(--surf);border-radius:var(--r);padding:13px 14px}
-.st b{display:block;font-size:24px;font-weight:700;line-height:1.2}
-.st.alert{background:var(--warn2)}.st.alert b{color:var(--warn)}
-.st.bad{background:var(--bad2)}.st.bad b{color:var(--bad)}
-/* ---------- Toolbar ---------- */
-.tools{display:grid;gap:8px;margin-bottom:12px}
-.srch{position:relative}
-.srch svg{position:absolute;left:13px;top:15px;color:var(--mute)}
-.srch .in{padding-left:40px}
-.flt{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
-.flt select{flex:1;min-width:120px;padding:10px 12px;border:1.5px solid var(--line);border-radius:12px;background:#fff}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 16px;border-radius:12px;font-weight:600;min-height:44px;background:var(--acc);color:#fff}
-.btn.sec{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
-.btn.bad{background:var(--bad)}
-.btn.sm{min-height:36px;padding:6px 11px;font-size:13px}
-.btn:disabled{opacity:.5}
-/* ---------- Product rows ---------- */
-.list{display:grid;gap:10px}
-.head{display:none}
-.row{background:var(--surf);border-radius:var(--r);padding:13px 14px;display:grid;grid-template-columns:1fr auto;gap:6px 12px;border-left:5px solid var(--ok)}
-.row.low{border-left-color:var(--warn)}.row.out{border-left-color:var(--bad)}
-.c-name b{display:block;font-weight:600}
-.c-qty{text-align:right}
-.c-qty b{font-size:20px}
-.c-loc,.c-price{font-size:13px;color:var(--mute)}
-.c-price{text-align:right}
-.meter{display:block;height:6px;background:#e5eae9;border-radius:9px;overflow:hidden;margin:4px 0 2px}
-.meter u{display:block;height:100%;background:var(--ok);border-radius:9px}
-.low .meter u{background:var(--warn)}.out .meter u{background:var(--bad)}
-.c-act{grid-column:1/-1;display:flex;gap:8px;padding-top:6px;border-top:1px dashed var(--line);flex-wrap:wrap}
-.pill{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600}
-.p-ok{background:var(--ok2);color:var(--ok)}.p-low{background:var(--warn2);color:var(--warn)}.p-out{background:var(--bad2);color:var(--bad)}
-.p-admin{background:#e7e9fb;color:#3b46a8}.p-staff{background:var(--acc2);color:var(--acc)}.p-viewer{background:#eee;color:#555}
-.empty{background:var(--surf);border-radius:var(--r);padding:36px 20px;text-align:center;color:var(--mute)}
-.empty b{display:block;color:var(--ink);font-size:16px;margin-bottom:4px}
-.fab{position:fixed;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:15;border-radius:999px;padding:14px 20px;box-shadow:0 8px 24px rgba(15,107,98,.4)}
-/* ---------- Logs / users ---------- */
-.card{background:var(--surf);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between}
-.card .t{min-width:0}.card .t b{display:block;font-weight:600}
-.amt{font-weight:700;white-space:nowrap}.amt.in{color:var(--ok)}.amt.out{color:var(--bad)}
-.sect{display:flex;justify-content:space-between;align-items:center;margin:4px 0 12px;gap:10px}
-.sect h2{font-size:18px}
-/* ---------- Modal ---------- */
-.ov{position:fixed;inset:0;z-index:40;background:rgba(10,20,17,.55);display:flex;align-items:flex-end;justify-content:center}
-.sheet{background:#fff;width:100%;max-width:520px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:20px 18px calc(20px + env(safe-area-inset-bottom,0px));animation:up .2s ease-out}
-@keyframes up{from{transform:translateY(40px);opacity:0}}
-.sheet h3{font-size:18px;margin-bottom:14px}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
-.seg label{text-align:center}
-.seg input{position:absolute;opacity:0}
-.seg span{display:block;padding:10px 4px;border:1.5px solid var(--line);border-radius:12px;font-weight:500}
-.seg input:checked+span{background:var(--acc);color:#fff;border-color:var(--acc)}
-.acts{display:flex;gap:10px;margin-top:6px}.acts .btn{flex:1}
-.toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.25s;z-index:60;font-size:14px;max-width:90%}
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.toast.err{background:var(--bad)}
-/* ---------- Desktop ---------- */
-@media(min-width:860px){
- .nav,.fab-m{display:none}.dtabs{display:flex}
- main{padding:22px 24px 40px}
- .stats{grid-template-columns:repeat(4,1fr);gap:14px}
- .st b{font-size:28px}
- .tools{grid-template-columns:1fr auto auto;align-items:center}
- .flt{overflow:visible}.flt select{min-width:150px;flex:none}
- .head,.row{grid-template-columns:2.2fr 1fr 1.4fr 1fr auto;gap:16px;align-items:center}
- .head{display:grid;padding:0 16px;font-size:12px;color:var(--mute);font-weight:500}
- .row{padding:12px 16px}
- .c-act{grid-column:auto;border:0;padding:0;flex-wrap:nowrap}
- .c-qty{text-align:left}.c-price{text-align:left;font-size:14px;color:var(--ink)}
- .fab{position:static;box-shadow:none;border-radius:12px;padding:11px 18px}
- .ov{align-items:center}.sheet{border-radius:22px}
- .toast{bottom:28px}
- .ucard{max-width:760px}
+:root {
+  --bg: #0f172a;
+  --bg-app: #fff7f8;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --ink: #0f172a;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --acc: #0d9488;
+  --acc-hover: #0f766e;
+  --acc-light: #f0fdfa;
+  --acc-glow: rgba(13, 148, 136, 0.15);
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --bad: #e11d48;
+  --bad-bg: #fff1f2;
+  --ok: #10b981;
+  --ok-bg: #ecfdf5;
+  --r: 16px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 8px 20px -4px rgba(0, 0, 0, 0.04);
+  --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
 }
-@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* Theme Variations */
+body[data-theme="indigo"] { --acc: #4f46e5; --acc-hover: #4338ca; --acc-light: #e0e7ff; --acc-glow: rgba(79, 70, 229, 0.15); }
+body[data-theme="emerald"] { --acc: #059669; --acc-hover: #047857; --acc-light: #ecfdf5; --acc-glow: rgba(5, 150, 105, 0.15); }
+body[data-theme="ruby"] { --acc: #be123c; --acc-hover: #9f1239; --acc-light: #fff1f2; --acc-glow: rgba(190, 18, 60, 0.15); }
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:var(--font);background:var(--bg-app);color:var(--ink);font-size:14.5px;line-height:1.45;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;user-select:none}
+:focus-visible{outline:2.5px solid var(--acc);outline-offset:2px}
+.hide{display:none!important}
+
+/* ---------- Smooth Page & Transition Effects ---------- */
+#main {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- Login Screen ---------- */
+#login {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: radial-gradient(circle at 50% 0%, #1e293b 0%, #0f172a 100%);
+}
+.lg {
+  width: 100%; max-width: 400px; background: rgba(255, 255, 255, 0.98); backdrop-filter: blur(20px);
+  border-radius: 28px; padding: 32px 26px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.lg-header { text-align: center; margin-bottom: 24px; }
+.lg-icon {
+  width: 56px; height: 56px; background: linear-gradient(135deg, var(--acc) 0%, var(--acc-hover) 100%);
+  border-radius: 18px; display: grid; place-items: center; margin: 0 auto 14px; color: #fff; box-shadow: 0 10px 20px var(--acc-glow);
+}
+.lg h1 { font-size: 22px; font-weight: 700; color: #0f172a; }
+.lg p { color: var(--mute); font-size: 13px; margin-top: 4px; }
+
+.fld { display: block; margin-bottom: 14px; }
+.fld span { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #334155; }
+.in {
+  width: 100%; padding: 12px 14px; border: 1.5px solid var(--line); border-radius: 12px;
+  background: #fff7f8; font-size: 14.5px; transition: all 0.2s ease;
+}
+.in:focus { border-color: var(--acc); background: #fff; outline: 0; box-shadow: 0 0 0 4px var(--acc-glow); }
+
+.dots { display: flex; gap: 10px; justify-content: center; margin: 8px 0 16px; }
+.dots i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #cbd5e1; transition: all 0.2s ease; }
+.dots i.on { background: var(--acc); border-color: var(--acc); transform: scale(1.15); box-shadow: 0 0 8px var(--acc-glow); }
+
+.pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
+.pad button {
+  height: 50px; border-radius: 12px; background: #fff0f4; font-size: 18px; font-weight: 600; color: #1e293b;
+  transition: all 0.15s ease;
+}
+.pad button:active { background: #e2e8f0; transform: scale(0.96); }
+
+.msg { min-height: 20px; text-align: center; font-size: 13px; color: var(--bad); margin-bottom: 6px; font-weight: 500; }
+.hint { margin-top: 12px; font-size: 12px; background: var(--warn-bg); color: var(--warn); padding: 10px 14px; border-radius: 12px; }
+
+/* ---------- Sushi shop login ---------- */
+#login{min-height:100vh;padding:28px;background:#f5f2eb;background-image:radial-gradient(ellipse at 10% 5%,rgba(229,190,144,.2),transparent 35%),radial-gradient(ellipse at 90% 95%,rgba(46,103,92,.12),transparent 32%)}
+.login-wrap{width:min(100%,920px);min-height:590px;display:grid;grid-template-columns:1fr 1fr;border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 28px 80px rgba(38,46,39,.16);border:1px solid rgba(255,255,255,.85)}
+.login-story{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:34px;color:#fff;background:linear-gradient(155deg,#173b35 0%,#285b4e 55%,#a87953 150%)}
+.login-story:after{content:'';position:absolute;width:370px;height:370px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-150px;top:130px;box-shadow:0 0 0 30px rgba(255,255,255,.025),0 0 0 70px rgba(255,255,255,.02)}
+.story-brand{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;letter-spacing:2px;z-index:1}.story-mark{width:42px;height:42px;border:1px solid rgba(255,255,255,.38);border-radius:14px;display:grid;place-items:center;font-family:serif;font-size:23px;color:#e7c89f}.story-brand-sub{display:block;font-size:9px;letter-spacing:3px;color:#d2ded6;font-weight:400}
+.story-copy{z-index:1;margin-top:30px}.eyebrow{display:block;color:#b5d1bf;font-size:10px;font-weight:600;letter-spacing:2px}.story-copy h2{font-size:32px;line-height:1.45;margin:12px 0;font-weight:600}.story-copy p{color:#d6e0d9;font-size:13px}
+.ingredient-art{position:relative;height:190px;z-index:1}.ingredient{position:absolute;display:grid;place-items:center;border-radius:50%;box-shadow:0 18px 36px rgba(0,0,0,.18);background:linear-gradient(145deg,#fff,#eee6d9)}.rice{width:116px;height:116px;left:15%;top:22px;font-size:60px}.fish{width:138px;height:138px;left:39%;top:0;font-size:68px;background:linear-gradient(145deg,#fff7ed,#f2d6bd)}.leaf{width:82px;height:82px;left:65%;top:78px;font-size:40px}.art-caption{position:absolute;left:8px;bottom:2px;font-size:9px;letter-spacing:2px;color:#d7e0d8}.story-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.2);padding-top:16px;color:#d6e0d9;font-size:10px;letter-spacing:1px;z-index:1}
+#login .lg{width:100%;max-width:none;align-self:center;padding:48px 46px;border:0;border-radius:0;background:#fff;box-shadow:none;backdrop-filter:none}.lg-header{text-align:left;margin-bottom:26px}.lg-icon{width:48px;height:48px;border-radius:15px;margin:0 0 20px;background:linear-gradient(140deg,#356e5b,#1d493d);box-shadow:0 8px 18px rgba(36,91,72,.2)}.lg .eyebrow{color:#8a9c8e}.lg h1{font-size:23px;margin-top:7px}.lg p{font-size:13px}.lg .fld{margin-bottom:16px}.lg .fld span{color:#43554b}.lg .in{background:#fafaf8;border-color:#e5e8e2;border-radius:11px}.lg .in:focus{border-color:#487c65;box-shadow:0 0 0 4px rgba(72,124,101,.12)}.dots{gap:9px;margin:8px 0 12px}.dots i{width:9px;height:9px;border-width:1.5px}.dots i.on{background:#356e5b;border-color:#356e5b}.pad{gap:7px;margin-bottom:11px}.pad button{height:39px;border:1px solid #eef0ec;background:#fafaf8;border-radius:9px;font-size:15px;color:#425248}.pad button:hover{background:#eff4ef}.login-submit{width:100%;margin-top:2px;background:linear-gradient(135deg,#356e5b,#1d493d);box-shadow:0 7px 17px rgba(36,91,72,.18)}.login-submit span{font-size:18px}.hint{background:#fbf5e9;color:#826640}.login-note{text-align:center;font-size:10px!important;color:#9aa39c!important;margin-top:18px}
+@media(max-width:680px){#login{padding:16px;align-items:flex-start}.login-wrap{max-width:440px;min-height:0;grid-template-columns:1fr;border-radius:22px}.login-story{min-height:210px;padding:22px 24px 18px}.story-copy{margin-top:22px}.story-copy h2{font-size:23px;margin:5px 0}.story-copy p{font-size:11px}.ingredient-art{display:none}.story-foot{margin-top:22px;padding-top:10px;font-size:8px}.story-brand{font-size:13px}.story-mark{width:34px;height:34px}.login-story:after{width:230px;height:230px;right:-95px;top:50px}.#login .lg{padding:27px 25px 24px}.lg-header{margin-bottom:19px}.lg-icon{display:none}.lg h1{font-size:20px}.lg .fld{margin-bottom:12px}.pad{margin-bottom:8px}.pad button{height:36px}.login-note{margin-top:13px}}
+/* ---------- Pastel sushi login theme ---------- */
+#login{background-color:#fff7f2;background-image:radial-gradient(ellipse at 8% 8%,rgba(255,190,205,.36),transparent 32%),radial-gradient(ellipse at 92% 88%,rgba(190,218,255,.38),transparent 34%),radial-gradient(ellipse at 84% 12%,rgba(255,229,162,.35),transparent 26%)}
+.login-wrap{background:#fffdfb;border-color:#fff;box-shadow:0 25px 65px rgba(181,130,145,.18)}
+.login-story{color:#67465a;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}
+.login-story:after{content:'';position:absolute;inset:0;width:auto;height:auto;right:0;top:0;border:0;border-radius:0;box-shadow:none;pointer-events:none;background-image:radial-gradient(circle at 13% 77%,rgba(255,255,255,.55) 0 5px,transparent 6px),radial-gradient(circle at 88% 23%,rgba(255,255,255,.6) 0 7px,transparent 8px),radial-gradient(circle at 73% 80%,rgba(245,170,196,.2) 0 45px,transparent 46px),radial-gradient(circle at 19% 32%,rgba(255,255,255,.3) 0 60px,transparent 61px)}
+.story-brand,.story-copy,.ingredient-art,.story-foot{position:relative;z-index:1}
+.story-brand{color:#67465a}.story-mark{border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.7);box-shadow:0 7px 16px rgba(184,121,146,.14);color:#dc7893}.story-brand-sub{color:#98778a}
+.eyebrow{color:#c26c88}.story-copy h2{color:#67465a}.story-copy p{color:#866c7b}.story-foot{border-color:rgba(146,105,127,.2);color:#866c7b}
+.ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
+.sushi-friends{position:absolute;right:26px;bottom:62px;z-index:2;display:flex;align-items:flex-end;gap:8px}.sushi-friend{width:53px;height:53px;border:3px solid #fff;border-radius:18px;background:#fff9f7;display:grid;place-items:center;position:relative;box-shadow:0 8px 18px rgba(165,111,135,.18);font-size:29px;transform:rotate(-7deg)}.sushi-friend:nth-child(2){width:46px;height:46px;border-radius:50%;background:#fff7dd;transform:rotate(7deg)}.sushi-friend:nth-child(3){width:39px;height:39px;border-radius:14px;background:#eaf3ff;transform:rotate(-3deg)}.sushi-friend i{position:absolute;bottom:-8px;font-style:normal;font-size:10px;line-height:1;color:#76546a;background:#fff;border-radius:99px;padding:2px 5px;box-shadow:0 2px 5px rgba(100,70,90,.12)}
+#login .lg{background:#fffdfb}.lg-icon{background:linear-gradient(140deg,#f4a8bf,#f5c99e);box-shadow:0 8px 18px rgba(224,151,174,.22)}.lg .eyebrow{color:#c26c88}.lg h1{color:#563e4e}.lg .fld span{color:#644d5c}.lg .in{background:#fff9f7;border-color:#f0dfe2}.lg .in:focus{border-color:#e89bb2;box-shadow:0 0 0 4px rgba(232,155,178,.16)}.dots i.on{background:#e88ca8;border-color:#e88ca8;box-shadow:0 0 8px rgba(232,140,168,.25)}.pad button{border-color:#f3e5e4;background:#fff8f5;color:#725767}.pad button:hover{background:#ffedf1}.login-submit{background:linear-gradient(135deg,#ee9db4,#e9a96f);box-shadow:0 7px 17px rgba(226,151,165,.25)}.hint{background:#fff4d9;color:#936a36}.login-note{color:#a18d98!important}
+@media(max-width:680px){.login-story{min-height:265px;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}.sushi-friends{right:18px;bottom:53px;gap:4px}.sushi-friend{width:42px;height:42px;font-size:24px;border-radius:15px}.sushi-friend:nth-child(2){width:37px;height:37px}.sushi-friend:nth-child(3){width:32px;height:32px;font-size:20px}.story-foot{position:relative;z-index:3}}
+/* ---------- App Shell ---------- */
+#app { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
+.top {
+  position: sticky; top: 0; z-index: 30; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(12px); color: #fff;
+  padding: 12px 18px; padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.brand { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+.brand-badge { background: linear-gradient(135deg, var(--acc), var(--acc-hover)); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; }
+.brand small { display: block; color: #94a3b8; font-weight: 400; font-size: 10.5px; }
+
+.dtabs { display: none; gap: 4px; }
+.dtabs button { color: #94a3b8; padding: 7px 14px; border-radius: 10px; font-weight: 500; font-size: 13.5px; transition: 0.2s; }
+.dtabs button.on { background: rgba(255,255,255,0.15); color: #fff; }
+
+.me { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 3px 5px 3px 12px; border: 1px solid rgba(255,255,255,0.1); }
+.me-info { font-size: 11.5px; line-height: 1.2; text-align: right; }
+.me-info b { display: block; color: #fff; font-weight: 600; }
+.me-info span { color: #94a3b8; font-size: 9.5px; }
+.me-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.12); color: #fff; display: grid; place-items: center; transition: 0.2s; }
+
+main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 16px 14px calc(100px + env(safe-area-inset-bottom, 0px)); }
+
+/* ---------- Bottom Navigation (Mobile Luxury Bar) ---------- */
+.nav {
+  position: fixed; left: 14px; right: 14px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 22px; display: flex; padding: 5px 6px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+}
+.nav button {
+  flex: 1; color: #94a3b8; font-size: 10px; font-weight: 500; padding: 6px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 16px;
+  transition: all 0.2s ease; position: relative;
+}
+.nav button.on { color: #fff; background: rgba(255, 255, 255, 0.12); }
+.nav button.on::after {
+  content: ''; position: absolute; bottom: 3px; width: 10px; height: 2.5px;
+  background: var(--acc); border-radius: 99px; box-shadow: 0 0 6px var(--acc);
+}
+.nav svg { width: 20px; height: 20px; }
+svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- Stats Dash Cards ---------- */
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.st {
+  background: var(--card-bg); border-radius: var(--r); padding: 14px; border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm); position: relative;
+}
+.st small { color: var(--mute); font-size: 11.5px; font-weight: 500; display: block; }
+.st b { display: block; font-size: 20px; font-weight: 700; color: var(--ink); margin: 3px 0 1px; }
+.st.alert { background: #fffbf0; border-color: #fde68a; } .st.alert b { color: var(--warn); }
+.st.bad { background: #fff1f2; border-color: #fecdd3; } .st.bad b { color: var(--bad); }
+
+/* ---------- Toolbar & Controls ---------- */
+.tools { display: grid; gap: 10px; margin-bottom: 14px; }
+.srch { position: relative; }
+.srch svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--mute); }
+.srch .in { padding-left: 40px; background: var(--card-bg); border-radius: 12px; }
+.flt { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.flt::-webkit-scrollbar { display: none; }
+.flt select {
+  flex: 1; min-width: 115px; padding: 9px 12px; border: 1.5px solid var(--line);
+  border-radius: 12px; background: var(--card-bg); font-size: 13px; color: #334155; font-weight: 500;
+}
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 13.5px; min-height: 42px;
+  background: linear-gradient(135deg, var(--acc) 0%, var(--acc-hover) 100%); color: #fff;
+  box-shadow: 0 4px 12px var(--acc-glow); transition: all 0.2s;
+}
+.btn:active { transform: scale(0.98); }
+.btn.sec { background: var(--card-bg); color: #334155; border: 1.5px solid var(--line); box-shadow: none; }
+.btn.bad { background: var(--bad); color: #fff; box-shadow: 0 4px 12px rgba(225, 29, 72, 0.2); }
+.btn.sm { min-height: 32px; padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+
+/* ---------- Clean Product Items (คลิกเพื่อเบิกจ่ายด้านใน ไม่เกะกะ) ---------- */
+.list { display: grid; gap: 8px; }
+.head { display: none; }
+.row {
+  background: var(--card-bg); border-radius: var(--r); padding: 12px 14px;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 10px;
+  border: 1px solid var(--line); box-shadow: var(--shadow-sm); position: relative;
+  transition: all 0.2s ease; cursor: pointer;
+}
+.row:hover { border-color: var(--acc); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.row::before {
+  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3.5px;
+  border-radius: 0 4px 4px 0; background: var(--ok);
+}
+.row.low::before { background: var(--warn); }
+.row.out::before { background: var(--bad); }
+
+.c-name b { display: block; font-weight: 600; font-size: 14.5px; color: var(--ink); }
+.c-name small { color: var(--mute); font-size: 11.5px; }
+.c-qty { text-align: right; }
+.c-qty b { font-size: 18px; font-weight: 700; color: var(--ink); }
+.c-loc { font-size: 12px; color: var(--mute); }
+
+.meter { display: block; height: 4px; background: #fff0f4; border-radius: 9px; overflow: hidden; margin: 4px 0 2px; }
+.meter u { display: block; height: 100%; background: var(--ok); border-radius: 9px; }
+.low .meter u { background: var(--warn); }
+.out .meter u { background: var(--bad); }
+
+.pill { display: inline-flex; align-items: center; padding: 1.5px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; }
+.p-ok { background: var(--ok-bg); color: var(--ok); }
+.p-low { background: var(--warn-bg); color: var(--warn); }
+.p-out { background: var(--bad-bg); color: var(--bad); }
+
+.empty { background: var(--card-bg); border-radius: var(--r); padding: 32px 20px; text-align: center; color: var(--mute); border: 1px dashed var(--line); }
+.empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+
+.fab {
+  position: fixed; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 35;
+  border-radius: 999px; padding: 12px 20px; box-shadow: 0 8px 20px var(--acc-glow);
+}
+
+/* ---------- Cards & Dashboard Grid ---------- */
+.card { background: var(--card-bg); border-radius: var(--r); padding: 12px 14px; border: 1px solid var(--line); display: flex; gap: 10px; align-items: center; justify-content: space-between; box-shadow: var(--shadow-sm); }
+.card .t { min-width: 0; }
+.card .t b { display: block; font-weight: 600; color: var(--ink); }
+.amt { font-weight: 700; white-space: nowrap; font-size: 14px; }
+.amt.in { color: var(--ok); } .amt.out { color: var(--bad); }
+
+.sect { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 12px; }
+.sect h2 { font-size: 17px; font-weight: 700; color: var(--ink); }
+
+.dash-grid { display: grid; gap: 12px; }
+.dash-card { background: var(--card-bg); border-radius: var(--r); padding: 16px; border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.dash-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+
+/* ---------- Custom Sheet / Modal (Smooth Slide Up) ---------- */
+.ov { position: fixed; inset: 0; z-index: 50; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: #fff; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+  border-radius: 24px 24px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+}
+@keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.sheet h3 { font-size: 18px; font-weight: 700; margin-bottom: 14px; color: #0f172a; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; background: #fff0f4; padding: 3px; border-radius: 12px; }
+.seg label { text-align: center; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; }
+.seg span { display: block; padding: 9px 4px; border-radius: 10px; font-weight: 600; font-size: 12.5px; color: var(--mute); transition: 0.2s; }
+.seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 2px 5px rgba(0,0,0,0.06); }
+
+.acts { display: flex; gap: 8px; margin-top: 10px; }
+.acts .btn { flex: 1; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 20px); background: #0f172a; color: #fff; padding: 10px 20px;
+  border-radius: 99px; opacity: 0; pointer-events: none; transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1); z-index: 60;
+  font-size: 13px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); max-width: 90%; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--bad); }
+
+/* ---------- Responsive Desktop view ---------- */
+@media(min-width: 860px) {
+  .nav, .fab-m { display: none; }
+  .dtabs { display: flex; }
+  main { padding: 22px 24px 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .st b { font-size: 24px; }
+  .tools { grid-template-columns: 1fr auto auto; align-items: center; }
+  .flt { overflow: visible; } .flt select { min-width: 135px; flex: none; }
+  .head, .row { grid-template-columns: 2.4fr 1fr 1fr; gap: 14px; align-items: center; }
+  .head { display: grid; padding: 0 16px; font-size: 11.5px; color: var(--mute); font-weight: 600; margin-bottom: 6px; }
+  .row { padding: 12px 16px; }
+  .c-qty { text-align: left; }
+  .fab { position: static; box-shadow: none; border-radius: 12px; padding: 11px 18px; }
+  .ov { align-items: center; }
+  .sheet { border-radius: 24px; }
+  .toast { bottom: 28px; }
+}
+@media(max-width:680px){#app .top{padding-left:12px;padding-right:12px;gap:8px}.brand{gap:7px;font-size:14px}.brand-badge{width:28px;height:28px}.me{gap:4px;padding-left:7px}.me-info{font-size:10px}.me-info span{font-size:8px}.me-btn{width:28px;height:28px}#login{min-height:100dvh;padding:calc(12px + env(safe-area-inset-top,0px)) 12px calc(12px + env(safe-area-inset-bottom,0px))}.login-wrap{width:100%}.lg .in{min-height:46px}.pad button{min-height:42px}}
+/* ---------- Matching pastel sushi theme inside the app ---------- */
+:root{--bg:#fff7f5;--bg-app:#fff7f5;--card-bg:#fffefd;--card-border:#f3e2e8;--ink:#634c5b;--mute:#927d8c;--line:#f0dfe5;--acc:#e78fa9;--acc-hover:#d87593;--acc-light:#fff0f4;--acc-glow:rgba(231,143,169,.2);--warn:#bd8549;--warn-bg:#fff5df;--bad:#c96f83;--bad-bg:#fff0f3;--ok:#78a993;--ok-bg:#edf7f1;--r:18px;--shadow-sm:0 3px 12px rgba(150,102,124,.06);--shadow-md:0 10px 24px rgba(150,102,124,.11)}
+body[data-theme="indigo"]{--acc:#a392c9;--acc-hover:#8978b5;--acc-light:#f3effb;--acc-glow:rgba(163,146,201,.2)}body[data-theme="emerald"]{--acc:#e8b77e;--acc-hover:#d59d60;--acc-light:#fff5e8;--acc-glow:rgba(232,183,126,.22)}body[data-theme="ruby"]{--acc:#df839e;--acc-hover:#cf6d8b;--acc-light:#fff0f4;--acc-glow:rgba(223,131,158,.2)}
+html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradient(ellipse at 0% 0%,rgba(255,220,231,.38),transparent 35%),radial-gradient(ellipse at 100% 100%,rgba(226,233,255,.45),transparent 36%),var(--bg-app)}
+#app{position:relative;isolation:isolate}#app main{position:relative;z-index:1}#app::before,#app::after{position:fixed;z-index:0;pointer-events:none;opacity:.09;filter:saturate(.82)}#app::before{content:"🍙";right:16px;top:86px;font-size:42px;transform:rotate(12deg)}#app::after{content:"🍣";left:13px;bottom:96px;font-size:34px;transform:rotate(-12deg)}.theme-opt{transition:transform .18s ease,box-shadow .18s ease;box-shadow:0 3px 8px rgba(125,83,105,.1)}.theme-opt:hover{transform:scale(1.08)}.theme-opt.active{outline:3px solid rgba(133,89,111,.28);outline-offset:2px;transform:scale(1.06)}.top{background:rgba(255,249,250,.94);color:#634c5b;border-bottom:1px solid #f2dfe6;box-shadow:0 4px 18px rgba(146,105,127,.08)}.brand small{color:#a18495}.brand-badge{background:linear-gradient(135deg,#ffdce6,#ffedce);border:1px solid #fff;color:#bd6f88;box-shadow:0 4px 10px rgba(190,132,153,.12)}
+.dtabs button{color:#987f8e}.dtabs button:hover,.dtabs button.on{background:#ffeaf0;color:#795263}.me{background:#fff0f4;border-color:#f4dce5}.me-info b{color:#634c5b}.me-info span{color:#987f8e}.me-btn{background:#fff;color:#bd6f88;border:1px solid #f3dce4}.me-btn:hover{background:#ffe5ed}
+.nav{background:rgba(255,250,251,.96);border-color:#f0dce4;box-shadow:0 12px 30px rgba(143,96,117,.18)}.nav button{color:#a48796}.nav button.on{color:#785064;background:#ffe8ef}.nav button.on::after{background:var(--acc);box-shadow:0 0 8px var(--acc)}
+.st,.row,.card,.dash-card,.empty{background:rgba(255,254,253,.96);border-color:#f1e1e6;box-shadow:var(--shadow-sm)}.row:hover{border-color:#e8a2b7;box-shadow:var(--shadow-md)}.row::before{background:var(--ok)}.row.low::before{background:#e9b970}.row.out::before{background:#df8b9e}.meter{background:#f8eaf0}.meter u{background:#90b9a5}.low .meter u{background:#e9b970}.out .meter u{background:#df8b9e}
+.st.alert{background:#fff8e9;border-color:#f2dfb9}.st.alert b{color:#bd8549}.st.bad{background:#fff1f4;border-color:#f2d4dc}.st.bad b{color:#c96f83}.p-ok{background:#edf7f1;color:#67917e}.p-low{background:#fff5df;color:#aa773e}.p-out{background:#fff0f3;color:#bd647a}
+.flt select,.in{background:#fffdfc;border-color:#f0dfe5;color:#634c5b}.flt select:focus,.in:focus{border-color:var(--acc);box-shadow:0 0 0 4px var(--acc-glow)}.srch .in{background:#fffdfc}.btn{background:linear-gradient(135deg,var(--acc),var(--acc-hover));color:#fff;box-shadow:0 5px 14px var(--acc-glow)}.btn.sec{background:#fffdfc;color:#765a69;border-color:#f0dfe5}.btn.bad{background:#cf788b;color:#fff}.fab{box-shadow:0 8px 20px var(--acc-glow)}
+.pill{border:1px solid rgba(255,255,255,.65)}.sect h2{color:#634c5b}.sect h2::before{content:'🍣';font-size:15px;margin-right:7px;vertical-align:1px}.dash-card h3{color:#634c5b}.amt.in{color:#6e9d87}.amt.out{color:#c96f83}
+.ov{background:rgba(92,63,79,.34);backdrop-filter:blur(5px)}.sheet{background:#fffaf9;border:1px solid #f6e2e7;box-shadow:0 -10px 34px rgba(143,96,117,.16)}.sheet h3{color:#634c5b}.seg{background:#fff0f4}.seg span{color:#927d8c}.seg input:checked+span{background:#fff;color:#795263;box-shadow:0 2px 7px rgba(173,120,143,.12)}.toast{background:#765263;box-shadow:0 10px 24px rgba(111,76,94,.2)}.toast.err{background:#c96f83}
+@media(max-width:680px){main{padding-left:12px;padding-right:12px}.stats{gap:8px}.st{padding:12px;border-radius:16px}.sect h2{font-size:16px}}
+/* ---------- Smooth page and sheet transitions ---------- */
+@keyframes pageSlideForward{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pageSlideBack{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
+#main.page-next{animation:pageSlideForward .34s cubic-bezier(.22,.75,.25,1) both}
+#main.page-prev{animation:pageSlideBack .34s cubic-bezier(.22,.75,.25,1) both}
+.filter-stat{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+.filter-stat:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(180,119,145,.13)}
+.filter-stat.selected{border-color:#e7a0b5;box-shadow:0 0 0 2px rgba(231,143,169,.18),var(--shadow-sm)}
+.ov{animation:overlayFadeIn .26s ease both;transition:opacity .22s ease}
+@keyframes overlayFadeIn{from{opacity:0}to{opacity:1}}
+.sheet{animation:slideUp .34s cubic-bezier(.2,.75,.25,1) both;transition:transform .22s cubic-bezier(.4,0,.7,.4),opacity .22s ease}
+.ov.closing{opacity:0;pointer-events:none}
+.sheet.closing{transform:translateY(36px);opacity:0;animation:none}
+.history-list{display:grid;gap:10px}.history-item{display:grid;grid-template-columns:44px minmax(0,1fr) auto;align-items:center;gap:11px;padding:13px;border:1px solid #f1e1e6;border-radius:17px;background:rgba(255,254,253,.96);box-shadow:var(--shadow-sm)}.history-icon{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:#fff0f4;font-size:19px}.history-icon.in{background:#edf7f1}.history-icon.out{background:#fff0f3}.history-main{min-width:0;display:grid;gap:3px}.history-title{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.history-title b{font-size:14px;color:#634c5b}.history-main small,.history-result small{font-size:11px;color:#987f8e}.history-time{color:#b092a0!important}.history-badge{border-radius:99px;padding:3px 8px;font-size:10px;font-weight:600;background:#fff0f4;color:#a7657e}.history-badge.in{background:#edf7f1;color:#648f7a}.history-badge.out{background:#fff0f3;color:#bc647a}.history-result{min-width:76px;display:grid;justify-items:end;gap:2px;text-align:right}.history-result strong{font-size:17px;color:#795263}.history-result strong.in{color:#6e9d87}.history-result strong.out{color:#c96f83}.history-result span{font-size:11px;color:#795263;font-weight:600;white-space:nowrap}.history-result span i{font-style:normal;color:#b092a0;padding:0 2px}.operator-note{margin:4px 0 10px;padding:9px 11px;border-radius:12px;background:#fff0f4;color:#876b7b;font-size:12px}.operator-note b{color:#765263}
+.select-tools{display:flex;align-items:stretch;gap:5px}.select-tools select{flex:1;min-width:0}.icon-tool{width:39px;min-width:39px;border:1px solid #f0dfe5;border-radius:11px;background:#fff8f8;color:#9a7184;font-size:18px;line-height:1;box-shadow:0 2px 6px rgba(150,102,124,.06);transition:transform .16s ease,background .16s ease}.icon-tool:hover{transform:translateY(-1px);background:#ffeaf0}.icon-tool.add-tool{font-size:23px;color:#bd6f88}.settings-hint{font-size:12px;color:var(--mute);margin-bottom:12px}.permissions-card{grid-column:1/-1}.permission-list{display:grid;gap:9px}.permission-user{padding:12px;border:1px solid #f0dfe5;border-radius:14px;background:#fffdfc}.permission-heading{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:9px;color:#634c5b}.owner-tag{padding:3px 8px;border-radius:99px;background:#fff2d8;color:#96713e;font-size:10px;font-weight:600}.permission-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:7px}.permission-option{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:#fff7f8;font-size:11px;color:#765a69}.permission-option input{accent-color:var(--acc);width:15px;height:15px}.permission-option input:disabled{opacity:.55}
+@media(prefers-reduced-motion:reduce){#main.page-next,#main.page-prev,.ov,.sheet{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+@media(max-width:460px){.history-item{grid-template-columns:36px minmax(0,1fr) auto;gap:8px;padding:10px}.history-icon{width:36px;height:36px;border-radius:12px;font-size:17px}.history-result{min-width:58px}.history-result strong{font-size:15px}.history-main small{font-size:10px}.history-title b{font-size:13px}.select-tools{gap:4px}.icon-tool{width:35px;min-width:35px}}
 </style>
 </head>
-<body>
+<body data-theme="teal">
 
-<!-- LOGIN -->
+<!-- LOGIN SCREEN -->
 <section id="login">
-  <form class="lg" id="lgForm" autocomplete="off">
-    <h1>ระบบจัดการสต็อกสินค้า</h1>
-    <p>เข้าสู่ระบบด้วยชื่อผู้ใช้และ PIN 6 หลัก</p>
-    <label class="fld"><span>ชื่อผู้ใช้ (ภาษาอังกฤษ)</span>
-      <input class="in" id="lgUser" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="เช่น admin"></label>
-    <div class="fld"><span>PIN 6 หลัก</span></div>
-    <div class="dots" id="dots"><i></i><i></i><i></i><i></i><i></i><i></i></div>
-    <div class="msg" id="lgMsg"></div>
-    <div class="pad" id="pad"></div>
-    <div class="hint hide" id="lgHint">ครั้งแรกใช้งาน: ผู้ใช้ <b>admin</b> / PIN <b>123456</b> ระบบจะให้เปลี่ยน PIN ทันทีหลังเข้าสู่ระบบ</div>
-  </form>
-</section>
-
-<!-- APP -->
+  <div class="login-wrap">
+    <div class="login-story" aria-hidden="true">
+      <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไขหวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
+      <div class="story-copy"><span class="eyebrow">สดใหม่ทุกวัน</span><h2>ของสดดี<br>เริ่มต้นที่การจัดการที่ดี</h2><p>ดูแลวัตถุดิบทุกชิ้น ให้พร้อมสำหรับซูชิคำต่อไป</p></div>
+      <div class="sushi-friends" aria-hidden="true"><span class="sushi-friend">🍣<i>•ᴗ•</i></span><span class="sushi-friend">🍙<i>•ᴗ•</i></span><span class="sushi-friend">🍤</span></div>
+      <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
+      <div class="story-foot"><span>ไขหวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
+    </div>
+    <form class="lg" id="lgForm" autocomplete="on">
+      <div class="lg-header">
+        <div class="lg-icon" aria-hidden="true" style="font-size:27px">🍣</div>
+        <span class="eyebrow">ระบบจัดการวัตถุดิบ</span>
+        <h1>เข้าสู่ระบบคลังวัตถุดิบ</h1>
+        <p>ลงชื่อเข้าใช้เพื่อจัดการวัตถุดิบของร้าน</p>
+      </div>
+      <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" id="lgUser" name="username" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="เช่น เจ้าของร้าน" required></label>
+      <label class="fld"><span>รหัสลับ 6 หลัก</span><input class="in" id="lgPinInput" name="pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" placeholder="กรอกรหัส 6 หลัก" style="letter-spacing:5px;text-align:center;font-size:18px"></label>
+      <div class="dots" id="dots" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="msg" id="lgMsg" role="alert" aria-live="polite"></div>
+      <div class="pad" id="pad" aria-label="แป้นตัวเลข"></div>
+      <button type="submit" class="btn login-submit">เข้าสู่ระบบ <span aria-hidden="true">→</span></button>
+      <div class="hint hide" id="lgHint">เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>เจ้าของร้าน</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ</div>
+      <p class="login-note">สำหรับใช้งานภายในร้าน · ข้อมูลบันทึกไว้ในอุปกรณ์นี้</p>
+    </form>
+  </div>
+</section><!-- MAIN APP SHELL -->
 <div id="app" class="hide">
   <header class="top">
-    <div class="brand">สต็อกสินค้า<small id="clock"></small></div>
+    <div class="brand">
+      <div class="brand-badge">🍣</div>
+      <div>
+        ไขหวานบ้านซูชิ
+        <small id="clock">กำลังโหลดเวลา...</small>
+      </div>
+    </div>
     <nav class="dtabs" id="dtabs"></nav>
-    <div class="me"><span><b id="meName"></b> · <span id="meRole"></span></span>
-      <button id="btnPin" title="เปลี่ยน PIN" aria-label="เปลี่ยน PIN"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
-      <button id="btnOut" title="ออกจากระบบ" aria-label="ออกจากระบบ"><svg viewBox="0 0 24 24"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
+    <div class="me">
+      <div class="me-info">
+        <b id="meName">---</b>
+        <span id="meRole">---</span>
+      </div>
+      <button class="me-btn" id="btnPin" title="เปลี่ยน รหัส"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
+      <button class="me-btn" id="btnOut" title="ออกจากระบบ"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
     </div>
   </header>
+
   <main id="main"></main>
+
+  <!-- LUXURY MOBILE BOTTOM TAB BAR -->
   <nav class="nav" id="nav"></nav>
 </div>
+
 <div id="modal"></div>
 <div class="toast" id="toast"></div>
 
 <script>
-const $=s=>document.querySelector(s);
-const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const store={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v??d}catch{return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}};
-const sess={get(){try{return sessionStorage.getItem('inv_u')}catch{return null}},set(v){try{v?sessionStorage.setItem('inv_u',v):sessionStorage.removeItem('inv_u')}catch{}}};
-const baht=n=>'฿'+Number(n).toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
-const num=n=>Number(n).toLocaleString('th-TH');
-const ROLE={admin:'ผู้ดูแล',staff:'พนักงานคลัง',viewer:'ดูอย่างเดียว'};
-const CATS=['อิเล็กทรอนิกส์','เสื้อผ้า','อาหาร/เครื่องดื่ม','เครื่องเขียน','อื่นๆ'];
-const UNITS=['ชิ้น','กล่อง','แพ็ค','ขวด','ชุด','กิโลกรัม'];
-const I={
- plus:'<path d="M12 5v14M5 12h14"/>',search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
- box:'<path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/>',log:'<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
- users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
- dl:'<path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/>'
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const store = {
+  get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
-const ic=n=>`<svg viewBox="0 0 24 24">${I[n]}</svg>`;
 
-/* ---------- Data ---------- */
-let U=store.get('inv_users',null),P=store.get('inv_products',null),L=store.get('inv_log',[]);
-let me=null,tab='stock',F={q:'',cat:'',st:'',sort:'name'};
-async function hash(s){try{const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode('inv:'+s));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}catch{let h=5381;for(const c of 'inv:'+s)h=((h*33)^c.charCodeAt(0))>>>0;return'f'+h}}
-const save=()=>{store.set('inv_users',U);store.set('inv_products',P);store.set('inv_log',L.slice(0,500))};
-async function init(){
-  if(!U){U=[{name:'admin',pin:await hash('123456'),role:'admin',active:true,must:true}]}
-  if(!P){P=[
-    {id:'P-1001',name:'เมาส์ไร้สาย Ergonomic',cat:'อิเล็กทรอนิกส์',unit:'ชิ้น',cost:380,price:590,qty:15,min:5,loc:'ชั้น A1'},
-    {id:'P-1002',name:'สมุดโน้ตปกแข็ง A5',cat:'เครื่องเขียน',unit:'เล่ม',cost:70,price:120,qty:4,min:10,loc:'ชั้น B2'},
-    {id:'P-1003',name:'เสื้อยืด Cotton 100%',cat:'เสื้อผ้า',unit:'ตัว',cost:150,price:290,qty:0,min:8,loc:'ชั้น C1'}]}
+const sess = {
+  get() { try { return localStorage.getItem('inv_persistent_user'); } catch { return null; } },
+  set(v) { try { v ? localStorage.setItem('inv_persistent_user', v) : localStorage.removeItem('inv_persistent_user'); } catch {} }
+};
+
+const num = n => Number(n).toLocaleString('th-TH');
+const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 'หัวหน้างาน', staff: 'พนักงานคลัง', viewer: 'ผู้ดูข้อมูล' };
+let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
+let CATS = store.get('inv_categories', ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ']);
+let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
+const defaultPermissions = role => role === 'admin'
+  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true }
+  : role === 'supervisor'
+    ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
+    : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
+      : { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false };
+
+const I = {
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/>',
+  log: '<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
+  users: '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5a6.5 6.5 0 0 1 3.5 5.5"/>',
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/>',
+  settings: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c0 .69.41 1.32 1.05 1.51H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+  dl: '<path d="M12 4v11m-4-4 4 4 4-4M5 20h14"/>'
+};
+const ic = n => `<svg viewBox="0 0 24 24">${I[n] || ''}</svg>`;
+
+/* ---------- Data Store & Theme Init ---------- */
+let U = store.get('inv_users', null);
+let P = store.get('inv_products', null);
+let L = store.get('inv_log', []);
+let currentTheme = store.get('inv_theme', 'teal');
+document.body.setAttribute('data-theme', currentTheme);
+
+let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', st: '', sort: 'name' };
+
+async function hash(s) {
+  try {
+    const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('inv:' + s));
+    return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
+  } catch {
+    let h = 5381; for (const c of 'inv:' + s) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return 'f' + h;
+  }
+}
+
+const save = () => {
+  store.set('inv_users', U); store.set('inv_products', P); store.set('inv_log', L.slice(0, 500));
+  store.set('inv_roles', ROLE); store.set('inv_categories', CATS); store.set('inv_units', UNITS);
+};
+
+async function init() {
+  if (!U) { U = [{ name: 'เจ้าของร้าน', pin: await hash('123456'), role: 'admin', active: true, must: true }]; }
+  else {
+    const firstAdmin = U.find(u => u.name === 'admin' && u.must);
+    if (firstAdmin) { firstAdmin.name = 'เจ้าของร้าน'; sess.set(null); }
+  }
+  const owner = U.find(u => u.owner) || U.find(u => u.role === 'admin');
+  if (owner) owner.owner = true;
+  U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
+  if (!P) {
+    P = [
+      { id: 'P-1001', name: 'ข้าวญี่ปุ่น', cat: 'ข้าวและเส้น', unit: 'กิโลกรัม', qty: 12, min: 5, loc: 'ชั้นวัตถุดิบแห้ง A1' },
+      { id: 'P-1002', name: 'ปลาแซลมอนสด', cat: 'ปลาและอาหารทะเล', unit: 'กิโลกรัม', qty: 3, min: 4, loc: 'ตู้เย็น 1' },
+      { id: 'P-1003', name: 'ปลาทูน่าสด', cat: 'ปลาและอาหารทะเล', unit: 'กิโลกรัม', qty: 2, min: 3, loc: 'ตู้เย็น 1' },
+      { id: 'P-1004', name: 'สาหร่ายโนริ', cat: 'สาหร่ายและเครื่องปรุง', unit: 'แพ็ค', qty: 8, min: 3, loc: 'ชั้นวัตถุดิบแห้ง A2' },
+      { id: 'P-1005', name: 'น้ำส้มสายชูข้าว', cat: 'สาหร่ายและเครื่องปรุง', unit: 'ขวด', qty: 6, min: 2, loc: 'ชั้นวัตถุดิบแห้ง B1' },
+      { id: 'P-1006', name: 'แตงกวาญี่ปุ่น', cat: 'ผักและผลไม้', unit: 'กิโลกรัม', qty: 4, min: 2, loc: 'ตู้เย็น 2' },
+      { id: 'P-1007', name: 'วาซาบิ', cat: 'สาหร่ายและเครื่องปรุง', unit: 'หลอด', qty: 0, min: 2, loc: 'ตู้เย็น 2' },
+      { id: 'P-1008', name: 'กล่องซูชิ', cat: 'บรรจุภัณฑ์', unit: 'แพ็ค', qty: 10, min: 4, loc: 'ชั้นบรรจุภัณฑ์ C1' }
+    ];
+  }
+  P.forEach(product => { delete product.cost; delete product.price; });
   save();
 }
 
-/* ---------- Login ---------- */
-let pin='',lock=store.get('inv_lock',{n:0,until:0});
-$('#pad').innerHTML=[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map(k=>`<button type="button" data-k="${k}" aria-label="${k==='⌫'?'ลบ':k==='C'?'ล้าง':k}">${k}</button>`).join('');
-const drawDots=e=>{document.querySelectorAll('#dots i').forEach((d,i)=>d.classList.toggle('on',i<pin.length));$('#dots').classList.toggle('err',!!e)};
-function press(k){
-  if(k==='C')pin='';else if(k==='⌫')pin=pin.slice(0,-1);else if(pin.length<6)pin+=k;
-  $('#lgMsg').textContent='';drawDots();
-  if(pin.length===6)tryLogin();
+function checkSaturdayAutoLogout() {
+  const now = new Date();
+  if (now.getDay() === 0 && now.getHours() === 0 && now.getMinutes() === 0) {
+    if (me) { toast('🔒 ออกจากระบบอัตโนมัติตามกำหนดเวลา (เที่ยงคืนวันเสาร์)', true); setTimeout(() => logout(), 1500); }
+  }
 }
-$('#pad').addEventListener('click',e=>{const b=e.target.closest('button');if(b)press(b.dataset.k)});
-$('#lgUser').addEventListener('input',e=>{e.target.value=e.target.value.replace(/[^A-Za-z0-9_]/g,'')});
-document.addEventListener('keydown',e=>{
-  if($('#login').classList.contains('hide')||document.activeElement===$('#lgUser'))return;
-  if(/^\d$/.test(e.key))press(e.key);else if(e.key==='Backspace')press('⌫')});
-$('#lgForm').addEventListener('submit',e=>{e.preventDefault();if(pin.length===6)tryLogin()});
-async function tryLogin(){
-  const name=$('#lgUser').value.trim().toLowerCase(),msg=$('#lgMsg');
-  const fail=t=>{msg.textContent=t;pin='';drawDots(true);setTimeout(()=>drawDots(),500)};
-  if(Date.now()<lock.until)return fail(`ลองผิดหลายครั้ง รออีก ${Math.ceil((lock.until-Date.now())/1000)} วินาที`);
-  if(!name)return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
-  const u=U.find(x=>x.name===name),h=await hash(pin);
-  if(!u||u.pin!==h){
-    lock.n++;if(lock.n>=5){lock={n:0,until:Date.now()+30000};store.set('inv_lock',lock);return fail('ลองผิด 5 ครั้ง ล็อกการเข้าสู่ระบบ 30 วินาที')}
-    store.set('inv_lock',lock);return fail(`ชื่อผู้ใช้หรือ PIN ไม่ถูกต้อง (เหลือ ${5-lock.n} ครั้ง)`)}
-  if(!u.active)return fail('บัญชีนี้ถูกปิดใช้งาน ติดต่อผู้ดูแลระบบ');
-  lock={n:0,until:0};store.set('inv_lock',lock);sess.set(u.name);enter(u);
-}
-function enter(u){
-  me=u;pin='';drawDots();$('#lgUser').value='';
-  $('#login').classList.add('hide');$('#app').classList.remove('hide');
-  $('#meName').textContent=u.name;$('#meRole').textContent=ROLE[u.role];
-  tab='stock';build();
-  if(u.must)pinModal(true);
-}
-function logout(){sess.set(null);me=null;closeModal();$('#app').classList.add('hide');$('#login').classList.remove('hide');showHint()}
-function showHint(){$('#lgHint').classList.toggle('hide',!U.some(u=>u.name==='admin'&&u.must))}
-$('#btnOut').onclick=logout;$('#btnPin').onclick=()=>pinModal(false);
 
-/* ---------- Permissions ---------- */
-const can={edit:()=>me.role!=='viewer',del:()=>me.role==='admin',users:()=>me.role==='admin'};
+/* ---------- Login System ---------- */
+let lock = store.get('inv_lock', { n: 0, until: 0 });
+$('#pad').innerHTML = [1, 2, 3, 4, 5, 6, 7, 8, 9, 'ล้าง', 0, '⌫'].map(k => `<button type="button" data-k="${k}">${k}</button>`).join('');
 
-/* ---------- Shell ---------- */
-function tabs(){return[['stock','สต็อก','box'],['log','ประวัติ','log'],...(can.users()?[['users','ผู้ใช้','users']]:[])]}
-function build(){
-  $('#nav').innerHTML=tabs().map(t=>`<button data-t="${t[0]}">${ic(t[2])}${t[1]}</button>`).join('');
-  $('#dtabs').innerHTML=tabs().map(t=>`<button data-t="${t[0]}">${t[1]}</button>`).join('');
+const drawDots = pinVal => {
+  document.querySelectorAll('#dots i').forEach((d, i) => d.classList.toggle('on', i < (pinVal ? pinVal.length : 0)));
+  $('#dots').classList.toggle('err', false);
+};
+
+function press(k) {
+  const pinInput = $('#lgPinInput'); let val = pinInput.value;
+  if (k === 'ล้าง') val = ''; else if (k === '⌫') val = val.slice(0, -1); else if (val.length < 6) val += k;
+  pinInput.value = val; $('#lgMsg').textContent = ''; drawDots(val);
+  if (val.length === 6) tryLogin();
+}
+
+$('#pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) press(b.dataset.k); });
+$( '#lgUser' ).addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\p{L}0-9_]/gu, ''); });
+$('#lgPinInput').addEventListener('input', e => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+  drawDots(e.target.value); $('#lgMsg').textContent = '';
+  if (e.target.value.length === 6) tryLogin();
+});
+$('#lgForm').addEventListener('submit', e => { e.preventDefault(); if ($('#lgPinInput').value.length === 6) tryLogin(); });
+
+async function tryLogin() {
+  const name = $('#lgUser').value.trim().toLowerCase(), pinVal = $('#lgPinInput').value, msg = $('#lgMsg');
+  const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; drawDots(''); };
+  if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock.until - Date.now()) / 1000)} วิ`);
+  if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
+  if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
+  
+  const u = U.find(x => x.name === name), h = await hash(pinVal);
+  if (!u || u.pin !== h) {
+    lock.n++;
+    if (lock.n >= 5) { lock = { n: 0, until: Date.now() + 30000 }; store.set('inv_lock', lock); return fail('ลองผิด 5 ครั้ง ล็อก 30 วินาที'); }
+    store.set('inv_lock', lock); return fail(`รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
+  }
+  if (!u.active) return fail('บัญชีนี้ถูกปิดใช้งาน');
+  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); sess.set(u.name); enter(u);
+}
+
+function enter(u) {
+  me = u; $('#lgPinInput').value = ''; drawDots(''); $('#lgUser').value = '';
+  $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role];
+  tab = 'stock'; build(); if (u.must) pinModal(true);
+}
+
+function logout() {
+  sess.set(null); me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
+}
+function showHint() { const first = U.find(u => u.must); $('#lgHint').classList.toggle('hide', !first); if (first) $('#lgHint').innerHTML = `เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>${esc(first.name)}</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ`; }
+$('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false);
+
+const can = {
+  edit: () => !!me?.permissions?.editStock,
+  del: () => !!me?.permissions?.deleteStock,
+  delUsers: () => !!me?.permissions?.deleteUsers,
+  users: () => !!me?.permissions?.manageUsers,
+  lists: () => !!me?.permissions?.manageLists,
+  permissions: () => !!(me?.owner || me?.permissions?.managePermissions)
+};
+
+/* ---------- Shell & Tabs Configuration ---------- */
+function tabs() {
+  return [
+    ['stock', 'สต็อก', 'box'],
+    ['dashboard', 'แดชบอร์ด', 'dashboard'],
+    ['log', 'ประวัติ', 'log'],
+    ...(can.users() ? [['users', 'ผู้ใช้', 'users']] : []),
+    ['settings', 'ตั้งค่า', 'settings']
+  ];
+}
+
+function build() {
+  if (tab === 'users' && !can.users()) tab = 'settings';
+  $('#nav').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
+  $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
   render();
 }
-document.addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b&&me){tab=b.dataset.t;render()}});
-function render(){
-  document.querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===tab));
-  $('#main').innerHTML=tab==='stock'?stockView():tab==='log'?logView():usersView();
-  if(tab==='stock')bindStock();window.scrollTo(0,0);
-}
-setInterval(()=>{$('#clock').textContent=new Date().toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})},1000);
 
-/* ---------- Stock ---------- */
-const status=p=>p.qty<=0?'out':p.qty<=p.min?'low':'ok';
-const STX={ok:'ปกติ',low:'ใกล้หมด',out:'หมดสต็อก'};
-function filtered(){
-  const q=F.q.toLowerCase();
-  let l=P.filter(p=>(!q||[p.name,p.id,p.cat,p.loc].some(x=>String(x||'').toLowerCase().includes(q)))&&(!F.cat||p.cat===F.cat)&&(!F.st||status(p)===F.st));
-  const s={name:(a,b)=>a.name.localeCompare(b.name,'th'),qty:(a,b)=>a.qty-b.qty,value:(a,b)=>b.qty*b.price-a.qty*a.price};
-  return l.sort(s[F.sort]);
+document.addEventListener('click', e => {
+  const button = e.target.closest('[data-t]');
+  if (!button || !me) return;
+  const availableTabs = tabs().map(item => item[0]);
+  pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
+  tab = button.dataset.t;
+  render(true);
+});
+
+function render(animatePage = false) {
+  if (tab === 'users' && !can.users()) tab = 'settings';
+  const main = $('#main');
+  main.classList.remove('page-next', 'page-prev');
+  document.querySelectorAll('[data-t]').forEach(button => button.classList.toggle('on', button.dataset.t === tab));
+  if (tab === 'stock') main.innerHTML = stockView();
+  else if (tab === 'dashboard') main.innerHTML = dashboardView();
+  else if (tab === 'log') main.innerHTML = logView();
+  else if (tab === 'users') main.innerHTML = usersView();
+  else if (tab === 'settings') main.innerHTML = settingsView();
+  if (animatePage) {
+    void main.offsetWidth;
+    main.classList.add(`page-${pageDirection}`);
+  }
+  if (tab === 'stock') bindStock();
+  if (tab === 'settings') bindSettings();
+  if (animatePage) window.scrollTo({ top: 0, behavior: 'smooth' });
+  else window.scrollTo(0, 0);
 }
-function stockView(){
-  const tq=P.reduce((s,p)=>s+p.qty,0),tv=P.reduce((s,p)=>s+p.qty*p.price,0),tc=P.reduce((s,p)=>s+p.qty*p.cost,0);
-  const low=P.filter(p=>status(p)==='low').length,out=P.filter(p=>status(p)==='out').length;
-  return`<div class="stats">
-   <div class="st"><small>สินค้าทั้งหมด</small><b>${P.length}</b><small>${num(tq)} หน่วยในคลัง</small></div>
-   <div class="st"><small>มูลค่าสต็อก (ราคาขาย)</small><b>${baht(tv)}</b><small>ต้นทุน ${baht(tc)}</small></div>
-   <div class="st ${low?'alert':''}"><small>ใกล้หมด</small><b>${low}</b><small>ต่ำกว่าหรือเท่ากับขั้นต่ำ</small></div>
-   <div class="st ${out?'bad':''}"><small>หมดสต็อก</small><b>${out}</b><small>ต้องสั่งเพิ่ม</small></div></div>
-  <div class="tools">
-   <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อ รหัส หมวดหมู่ หรือที่เก็บ" value="${esc(F.q)}"></div>
-   <div class="flt">
-    <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c=>`<option ${F.cat===c?'selected':''}>${c}</option>`).join('')}</select>
-    <select id="fs" aria-label="สถานะ"><option value="">ทุกสถานะ</option>${Object.entries(STX).map(([k,v])=>`<option value="${k}" ${F.st===k?'selected':''}>${v}</option>`).join('')}</select>
-    <select id="fo" aria-label="เรียงลำดับ">${[['name','เรียงตามชื่อ'],['qty','จำนวนน้อยสุดก่อน'],['value','มูลค่าสูงสุดก่อน']].map(o=>`<option value="${o[0]}" ${F.sort===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>
-   </div>
-   <div style="display:flex;gap:8px"><button class="btn sec" id="exp">${ic('dl')}CSV</button>${can.edit()?`<button class="btn fab" id="add">${ic('plus')}เพิ่มสินค้า</button>`:''}</div>
+
+setInterval(() => {
+  $('#clock').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+  checkSaturdayAutoLogout();
+}, 1000);
+
+/* ---------- Stock View (คลิกที่รายการเพื่อเบิกจ่ายด้านใน) ---------- */
+const status = p => p.qty <= 0 ? 'out' : p.qty <= p.min ? 'low' : 'ok';
+const STX = { ok: 'ปกติ', low: 'ใกล้หมด', out: 'หมดสต็อก' };
+
+function filtered() {
+  const q = F.q.toLowerCase();
+  const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat) && (!F.st || status(p) === F.st));
+  const sorters = { name: (a, b) => a.name.localeCompare(b.name, 'th'), qty: (a, b) => a.qty - b.qty };
+  return list.sort(sorters[F.sort] || sorters.name);
+}
+
+function stockView() {
+  const inStock = P.filter(p => p.qty > 0).length;
+  const low = P.filter(p => status(p) === 'low').length;
+  const out = P.filter(p => status(p) === 'out').length;
+  const allSelected = !F.st;
+
+  return `<div class="stats">
+   <button class="st filter-stat ${allSelected ? 'selected' : ''}" type="button" data-stock-filter="all" aria-label="แสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${P.length}</b><small>รายการวัตถุดิบ</small></button>
+   <div class="st"><small>มีวัตถุดิบในคลัง</small><b>${inStock}</b><small>รายการพร้อมใช้</small></div>
+   <button class="st alert filter-stat ${F.st === 'low' ? 'selected' : ''}" type="button" data-stock-filter="low" aria-label="แสดงวัตถุดิบใกล้หมด"><small>ใกล้หมด</small><b>${low}</b><small>แตะเพื่อดูรายการ</small></button>
+   <button class="st bad filter-stat ${F.st === 'out' ? 'selected' : ''}" type="button" data-stock-filter="out" aria-label="แสดงวัตถุดิบหมดสต็อก"><small>หมดสต็อก</small><b>${out}</b><small>แตะเพื่อดูรายการ</small></button>
   </div>
-  <div class="head"><span>สินค้า</span><span>ที่เก็บ</span><span>คงเหลือ</span><span>ราคาขาย / ทุน</span><span>จัดการ</span></div>
+  <div class="tools">
+   <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อ, รหัส, หมวดหมู่..." value="${esc(F.q)}"></div>
+   <div class="flt">
+    <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+    <select id="fs" aria-label="สถานะ"><option value="">ทุกสถานะ</option>${Object.entries(STX).map(([k, v]) => `<option value="${k}" ${F.st === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
+    <select id="fo" aria-label="เรียงลำดับ">${[['name', 'เรียงตามชื่อ'], ['qty', 'จำนวนน้อยสุด']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+   </div>
+   <div style="display:flex;gap:8px">
+    <button class="btn sec" id="exp">${ic('dl')} ส่งออก</button>
+    ${can.edit() ? `<button class="btn fab" id="add">${ic('plus')} เพิ่มวัตถุดิบ</button>` : ''}
+   </div>
+  </div>
+  <div class="head"><span>วัตถุดิบ</span><span>ที่เก็บ</span><span>คงเหลือ</span></div>
   <div class="list" id="list">${rows()}</div>`;
 }
-function rows(){
-  const l=filtered();
-  if(!l.length)return`<div class="empty"><b>ไม่พบสินค้า</b>${P.length?'ลองเปลี่ยนคำค้นหาหรือตัวกรอง':'กดปุ่ม "เพิ่มสินค้า" เพื่อเริ่มต้น'}</div>`;
-  return l.map(p=>{const s=status(p),w=Math.min(100,Math.round(p.qty/Math.max(p.min*3,1)*100));
-   return`<article class="row ${s}">
+
+function rows() {
+  const list = filtered();
+  if (!list.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
+  return list.map(p => {
+    const state = status(p);
+    const width = Math.min(100, Math.round((p.qty / Math.max(p.min * 3, 1)) * 100));
+    return `<article class="row ${state}" data-id="${esc(p.id)}">
     <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.id)} · ${esc(p.cat)}</small></div>
-    <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><i class="meter"><u style="width:${w}%"></u></i><span class="pill p-${s}">${STX[s]}</span> <small>ขั้นต่ำ ${p.min}</small></div>
-    <div class="c-loc">${esc(p.loc||'-')}</div>
-    <div class="c-price">${baht(p.price)}<br><small>ทุน ${baht(p.cost)}</small></div>
-    <div class="c-act">${can.edit()?`<button class="btn sm" data-mv="${p.id}">รับ/จ่าย</button><button class="btn sm sec" data-ed="${p.id}">แก้ไข</button>`:''}${can.del()?`<button class="btn sm sec" style="color:var(--bad)" data-dl="${p.id}">ลบ</button>`:''}</div>
-   </article>`}).join('');
-}
-function bindStock(){
-  const re=()=>{$('#list').innerHTML=rows()};
-  $('#q').oninput=e=>{F.q=e.target.value;re()};
-  $('#fc').onchange=e=>{F.cat=e.target.value;re()};$('#fs').onchange=e=>{F.st=e.target.value;re()};$('#fo').onchange=e=>{F.sort=e.target.value;re()};
-  $('#exp').onclick=exportCSV;if($('#add'))$('#add').onclick=()=>prodModal();
-  $('#list').onclick=e=>{const b=e.target.closest('button');if(!b)return;const d=b.dataset;
-   if(d.mv)mvModal(d.mv);if(d.ed)prodModal(d.ed);if(d.dl)delProd(d.dl)};
-}
-function exportCSV(){
-  const h=['รหัส','ชื่อสินค้า','หมวดหมู่','หน่วย','ต้นทุน','ราคาขาย','คงเหลือ','ขั้นต่ำ','ที่เก็บ','สถานะ'];
-  const r=P.map(p=>[p.id,p.name,p.cat,p.unit,p.cost,p.price,p.qty,p.min,p.loc,STX[status(p)]].map(v=>`"${String(v??'').replace(/"/g,'""')}"`).join(','));
-  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+[h.join(','),...r].join('\n')],{type:'text/csv'}));
-  a.download='stock-'+new Date().toISOString().slice(0,10)+'.csv';a.click();toast('ส่งออกไฟล์ CSV แล้ว');
+    <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><i class="meter"><u style="width:${width}%"></u></i><span class="pill p-${state}">${STX[state]}</span></div>
+    <div class="c-loc">📍 ${esc(p.loc || '-')}</div>
+   </article>`;
+  }).join('');
 }
 
-/* ---------- Modals ---------- */
-function openModal(html){$('#modal').innerHTML=`<div class="ov" id="ov"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
-  $('#ov').onmousedown=e=>{if(e.target.id==='ov'&&!$('#ov').dataset.lock)closeModal()};setTimeout(()=>{const f=$('#modal input:not([type=radio]),#modal select');f&&f.focus()},50)}
-function closeModal(){$('#modal').innerHTML=''}
-function toast(t,err){const e=$('#toast');e.textContent=t;e.className='toast show'+(err?' err':'');clearTimeout(toast.t);toast.t=setTimeout(()=>e.className='toast',2600)}
-const fv=(f,n)=>f.elements[n].value.trim();
-function addLog(type,p,amt,before,after,note){L.unshift({ts:Date.now(),user:me.name,type,pid:p.id,pname:p.name,amt,before,after,note:note||''})}
+function bindStock() {
+  const refreshList = () => { $('#list').innerHTML = rows(); };
+  $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
+  $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
+  $('#fs').onchange = e => { F.st = e.target.value; render(); };
+  $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
+  document.querySelectorAll('[data-stock-filter]').forEach(button => {
+    button.onclick = () => { F.q = ''; F.cat = ''; F.st = button.dataset.stockFilter === 'all' ? '' : button.dataset.stockFilter; render(); };
+  });
+  $('#exp').onclick = exportCSV;
+  if ($('#add')) $('#add').onclick = () => prodModal();
+  $('#list').onclick = e => {
+    const row = e.target.closest('.row');
+    if (row) itemDetailModal(row.dataset.id);
+  };
+}
 
-function prodModal(id){
-  const p=id?P.find(x=>x.id===id):{name:'',cat:'',unit:'ชิ้น',cost:'',price:'',qty:0,min:5,loc:''};
-  openModal(`<h3>${id?'แก้ไขสินค้า':'เพิ่มสินค้าใหม่'}</h3>
-  <form id="pf">
-   <label class="fld"><span>ชื่อสินค้า *</span><input class="in" name="name" required value="${esc(p.name)}"></label>
-   <div class="g2"><label class="fld"><span>หมวดหมู่ *</span><select class="in" name="cat" required><option value="">เลือก</option>${CATS.map(c=>`<option ${p.cat===c?'selected':''}>${c}</option>`).join('')}</select></label>
-   <label class="fld"><span>หน่วยนับ</span><input class="in" name="unit" list="ul" value="${esc(p.unit)}"><datalist id="ul">${UNITS.map(u=>`<option>${u}`).join('')}</datalist></label></div>
-   <div class="g2"><label class="fld"><span>ต้นทุน/หน่วย (฿) *</span><input class="in" name="cost" type="number" min="0" step="0.01" inputmode="decimal" required value="${p.cost}"></label>
-   <label class="fld"><span>ราคาขาย/หน่วย (฿) *</span><input class="in" name="price" type="number" min="0" step="0.01" inputmode="decimal" required value="${p.price}"></label></div>
-   <div class="g2">${id?'':`<label class="fld"><span>จำนวนเริ่มต้น *</span><input class="in" name="qty" type="number" min="0" step="1" inputmode="numeric" required value="${p.qty}"></label>`}
-   <label class="fld"><span>จำนวนขั้นต่ำ (แจ้งเตือน)</span><input class="in" name="min" type="number" min="0" step="1" inputmode="numeric" value="${p.min}"></label></div>
-   <label class="fld"><span>ที่เก็บ</span><input class="in" name="loc" placeholder="เช่น ชั้น A1" value="${esc(p.loc||'')}"></label>
-   ${id?'<small>การเพิ่มหรือลดจำนวน ให้ใช้ปุ่ม "รับ/จ่าย" เพื่อให้มีประวัติ</small>':''}
-   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">${id?'บันทึกการแก้ไข':'เพิ่มสินค้า'}</button></div>
+function exportCSV() {
+  const headers = ['รหัส', 'ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ที่เก็บ', 'สถานะ'];
+  const rows = P.map(p => [p.id, p.name, p.cat, p.unit, p.qty, p.min, p.loc, STX[status(p)]].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(new Blob(['\ufeff' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv' }));
+  link.download = 'รายการวัตถุดิบ-' + new Date().toISOString().slice(0, 10) + '.csv';
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  toast('ส่งออกรายการวัตถุดิบสำเร็จ');
+}
+
+/* ---------- Dashboard View (สรุปข้อมูลการเบิกจ่าย เติมของ และสถิติ) ---------- */
+function dashboardView() {
+  const totalItems = P.length;
+  const inStockItems = P.filter(p => p.qty > 0).length;
+  const lowCount = P.filter(p => status(p) === 'low').length;
+  const outCountItems = P.filter(p => status(p) === 'out').length;
+  const categoryCount = new Set(P.map(p => p.cat)).size;
+  const inCount = L.filter(x => x.type === 'in').length;
+  const outCount = L.filter(x => x.type === 'out').length;
+  const adjustCount = L.filter(x => x.type === 'adjust').length;
+
+  return `<div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>ข้อมูลวัตถุดิบและการเคลื่อนไหวในคลัง</small></div>
+  <div class="stats">
+    <div class="st"><small>วัตถุดิบทั้งหมด</small><b>${totalItems}</b><small>รายการ</small></div>
+    <div class="st"><small>มีวัตถุดิบในคลัง</small><b>${inStockItems}</b><small>รายการพร้อมใช้</small></div>
+    <div class="st ${lowCount ? 'alert' : ''}"><small>ใกล้หมด</small><b>${lowCount}</b><small>รายการ</small></div>
+    <div class="st ${outCountItems ? 'bad' : ''}"><small>หมดสต็อก</small><b>${outCountItems}</b><small>รายการ</small></div>
+  </div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>🍱 ภาพรวมหมวดหมู่</h3>
+      <div style="background:#fff7f8;padding:12px;border-radius:12px;border:1px solid var(--line);"><small>หมวดหมู่ที่ใช้งาน</small><b style="display:block;font-size:20px;color:var(--acc);">${categoryCount} หมวดหมู่</b></div>
+    </div>
+    <div class="dash-card">
+      <h3>📈 สรุปการเคลื่อนไหว</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px;text-align:center;">
+        <div style="background:var(--ok-bg);padding:12px;border-radius:12px;color:var(--ok);"><small style="color:var(--ok)">รับเข้า</small><b style="font-size:20px;display:block">${inCount}</b> ครั้ง</div>
+        <div style="background:var(--bad-bg);padding:12px;border-radius:12px;color:var(--bad);"><small style="color:var(--bad)">เบิกจ่าย</small><b style="font-size:20px;display:block">${outCount}</b> ครั้ง</div>
+        <div style="background:#fff0f4;padding:12px;border-radius:12px;color:var(--ink);"><small style="color:var(--mute)">ปรับยอด</small><b style="font-size:20px;display:block">${adjustCount}</b> ครั้ง</div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h3>🍣 รายการเคลื่อนไหวล่าสุด</h3>
+      <div style="display:grid;gap:8px;margin-top:8px;">
+        ${L.slice(0, 4).map(x => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff7f8;border-radius:10px;font-size:13px;"><div><b>${esc(x.pname)}</b> <small>(${x.type === 'in' ? 'รับเข้า' : x.type === 'out' ? 'เบิกจ่าย' : x.type === 'delete' ? 'ลบรายการ' : 'ปรับยอด'})</small></div><div class="amt ${x.type === 'in' ? 'in' : 'out'}">${x.type === 'in' ? '+' : '-'}${num(Math.abs(x.amt || 0))}</div></div>`).join('') || '<small style="color:var(--mute)">ยังไม่มีประวัติการทำรายการ</small>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- Settings View ---------- */
+function settingsView() {
+  return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>🎨 เลือกธีมสีพาสเทล</h3>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกสีพาสเทลที่ชอบสำหรับปุ่มและสัญลักษณ์</p>
+      <div class="theme-picker" id="themePicker" style="display:flex;gap:10px;margin-top:10px;">
+        <div class="theme-opt ${currentTheme==='teal'?'active':''}" data-th="teal" style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:#ed9eb6;display:grid;place-items:center;color:#704858;border:2px solid #fff;" title="สีชมพูกุหลาบ">✓</div>
+        <div class="theme-opt ${currentTheme==='indigo'?'active':''}" data-th="indigo" style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:#b7a8dc;display:grid;place-items:center;color:#594a76;border:2px solid #fff;" title="สีม่วงลาเวนเดอร์">✓</div>
+        <div class="theme-opt ${currentTheme==='emerald'?'active':''}" data-th="emerald" style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:#f5c995;display:grid;place-items:center;color:#765431;border:2px solid #fff;" title="สีพีช">✓</div>
+        <div class="theme-opt ${currentTheme==='ruby'?'active':''}" data-th="ruby" style="width:36px;height:36px;border-radius:50%;cursor:pointer;background:#a8c9e8;display:grid;place-items:center;color:#425a75;border:2px solid #fff;" title="สีฟ้าพาสเทล">✓</div>
+      </div>
+    </div>
+    <div class="dash-card">
+      <h3>💾 จัดการข้อมูลสำรอง</h3>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">สำรองข้อมูลหรือกู้คืนรายการสินค้าทั้งหมดในเครื่อง</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn sm sec" id="backupBtn">📥 สำรองข้อมูล</button>
+        <button class="btn sm sec" id="restoreBtn">📤 นำเข้าข้อมูล</button>
+        <input type="file" id="restoreFile" accept=".json" class="hide">
+      </div>
+    </div>
+    ${can.permissions() ? `<div class="dash-card permissions-card">
+      <h3>🔐 สิทธิ์ผู้ใช้งาน</h3>
+      <p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
+      <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
+        <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
+        <div class="permission-grid">${[
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์']
+        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${user.permissions?.[key] ? 'checked' : ''} ${user.owner ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
+      </section>`).join('')}</div>
+    </div>` : ''}
+  </div>`;
+}
+
+function bindSettings() {
+  $('#themePicker').onclick = e => {
+    const opt = e.target.closest('.theme-opt'); if (!opt) return;
+    currentTheme = opt.dataset.th;
+    document.body.setAttribute('data-theme', currentTheme);
+    store.set('inv_theme', currentTheme);
+    document.querySelectorAll('.theme-opt').forEach(o => o.classList.toggle('active', o === opt));
+    toast('เปลี่ยนธีมสีเรียบร้อย');
+  };
+
+  $('#backupBtn').onclick = () => {
+    const data = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    a.download = 'stock-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.click(); toast('สำรองข้อมูลไฟล์ JSON สำเร็จ');
+  };
+
+  $('#restoreBtn').onclick = () => $('#restoreFile').click();
+  $('#restoreFile').onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      try {
+        const parsed = JSON.parse(ev.target.result);
+        if (Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
+          P = parsed.products.map(product => { delete product.cost; delete product.price; return product; }); U = parsed.users; L = parsed.log || [];
+          ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
+          const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
+          U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
+          me = U.find(user => user.name === me.name && user.active);
+          if (!me) { logout(); return toast('บัญชีนี้ไม่มีในข้อมูลสำรอง กรุณาเข้าสู่ระบบใหม่', 1); }
+          $('#meRole').textContent = ROLE[me.role] || me.role; save(); build(); toast('กู้คืนข้อมูลสำเร็จ');
+        } else { toast('รูปแบบไฟล์ไม่ถูกต้อง', 1); }
+      } catch { toast('ไม่สามารถอ่านไฟล์ JSON ได้', 1); }
+    };
+    reader.readAsText(file);
+  };
+  const permissionList = $('#permissionList');
+  if (permissionList) permissionList.onchange = e => {
+    const input = e.target.closest('[data-permission]'); if (!input || !can.permissions()) return;
+    const user = U.find(item => item.name === input.dataset.user);
+    if (!user || user.owner) return;
+    user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}), [input.dataset.permission]: input.checked };
+    save();
+    if (user.name === me.name) {
+      $('#meRole').textContent = ROLE[me.role] || me.role;
+      build();
+      toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
+    } else toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
+  };
+}
+
+function optionCollection(kind) {
+  if (kind === 'roles') return Object.keys(ROLE).map(key => ({ key, label: ROLE[key] }));
+  return (kind === 'categories' ? CATS : UNITS).map(label => ({ key: label, label }));
+}
+function optionTitle(kind) { return kind === 'categories' ? 'หมวดหมู่วัตถุดิบ' : kind === 'units' ? 'หน่วยนับ' : 'ตำแหน่งผู้ใช้'; }
+function resumeOptionEditor(context, draft = context?.draft || {}) {
+  if (context?.type === 'product') prodModal(context.id, draft);
+  else if (context?.type === 'user') userModal(context.name, draft);
+  else if (tab === 'users') build(); else render();
+}
+function optionsManager(kind, context = null) {
+  if (!can.lists()) return toast('ไม่มีสิทธิ์แก้ไขรายการนี้', 1);
+  const options = optionCollection(kind);
+  openModal(`<h3>แก้ไข${optionTitle(kind)}</h3><form id="optionForm">
+    <label class="fld"><span>เลือกรายการ</span><select class="in" name="selected">${options.map(item => `<option value="${esc(item.key)}">${esc(item.label)}</option>`).join('')}</select></label>
+    <label class="fld"><span>ชื่อที่แสดง</span><input class="in" name="label" required maxlength="32" value="${esc(options[0]?.label || '')}"></label>
+    <div class="acts"><button type="button" class="btn sec" id="deleteOption">ลบ</button><button type="button" class="btn sec" onclick="closeModal()">ปิด</button><button class="btn">บันทึกชื่อ</button></div>
   </form>`);
-  $('#pf').onsubmit=e=>{e.preventDefault();const f=e.target;
-   const d={name:fv(f,'name'),cat:f.elements.cat.value,unit:fv(f,'unit')||'ชิ้น',cost:+f.elements.cost.value,price:+f.elements.price.value,min:Math.max(0,parseInt(f.elements.min.value)||0),loc:fv(f,'loc')};
-   if(id){Object.assign(p,d);addLog('edit',p,0,p.qty,p.qty,'แก้ไขข้อมูลสินค้า');toast('บันทึกการแก้ไขแล้ว')}
-   else{let n;do{n='P-'+(1000+Math.floor(Math.random()*9000))}while(P.some(x=>x.id===n));
-    const np={id:n,qty:Math.max(0,parseInt(f.elements.qty.value)||0),...d};P.unshift(np);addLog('create',np,np.qty,0,np.qty,'เพิ่มสินค้าใหม่');toast('เพิ่มสินค้าแล้ว')}
-   save();closeModal();render()};
+  const form = $('#optionForm');
+  form.elements.selected.onchange = () => { const item = options.find(entry => entry.key === form.elements.selected.value); form.elements.label.value = item?.label || ''; };
+  form.onsubmit = e => {
+    e.preventDefault();
+    const key = form.elements.selected.value, oldLabel = kind === 'roles' ? ROLE[key] : key, label = fv(form, 'label');
+    if (!label) return toast('กรุณากรอกชื่อ', 1);
+    if (options.some(item => item.label.toLocaleLowerCase() === label.toLocaleLowerCase() && item.key !== key)) return toast('ชื่อนี้มีอยู่แล้ว', 1);
+    if (kind === 'roles') ROLE[key] = label;
+    else {
+      const list = kind === 'categories' ? CATS : UNITS;
+      list[list.indexOf(key)] = label;
+      P.forEach(product => { if (kind === 'categories' ? product.cat === oldLabel : product.unit === oldLabel) product[kind === 'categories' ? 'cat' : 'unit'] = label; });
+    }
+    if (context?.type === 'product') { if (kind === 'categories' && context.draft.cat === oldLabel) context.draft.cat = label; if (kind === 'units' && context.draft.unit === oldLabel) context.draft.unit = label; }
+    save(); $('#meRole').textContent = ROLE[me.role] || me.role; closeModal(); resumeOptionEditor(context); toast('บันทึกชื่อเรียบร้อย');
+  };
+  $('#deleteOption').onclick = () => {
+    const key = form.elements.selected.value, label = kind === 'roles' ? ROLE[key] : key;
+    if (kind === 'roles') {
+      if (DEFAULT_ROLES[key]) return toast('ตำแหน่งหลักลบไม่ได้', 1);
+      if (U.some(user => user.role === key)) return toast('ยังมีบัญชีใช้ตำแหน่งนี้อยู่', 1);
+      delete ROLE[key];
+    } else {
+      const list = kind === 'categories' ? CATS : UNITS;
+      if (P.some(product => kind === 'categories' ? product.cat === label : product.unit === label)) return toast('ยังมีวัตถุดิบใช้รายการนี้อยู่', 1);
+      if (list.length <= 1) return toast('ต้องเหลือรายการอย่างน้อย 1 รายการ', 1);
+      list.splice(list.indexOf(key), 1);
+    }
+    if (context?.type === 'product') { if (kind === 'categories' && context.draft.cat === label) context.draft.cat = ''; if (kind === 'units' && context.draft.unit === label) context.draft.unit = ''; }
+    if (context?.type === 'user' && kind === 'roles' && context.draft.role === key) context.draft.role = 'staff';
+    save(); closeModal(); resumeOptionEditor(context); toast('ลบรายการแล้ว');
+  };
 }
-function mvModal(id){
-  const p=P.find(x=>x.id===id);
-  openModal(`<h3>รับ/จ่ายสินค้า</h3><p style="margin-bottom:12px"><b>${esc(p.name)}</b><br><small>คงเหลือ ${num(p.qty)} ${esc(p.unit)}</small></p>
-  <form id="mf"><div class="seg">
-   <label><input type="radio" name="t" value="in" checked><span>รับเข้า</span></label>
-   <label><input type="radio" name="t" value="out"><span>จ่ายออก</span></label>
-   <label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
+function addOption(kind, context = null) {
+  if (!can.lists()) return toast('ไม่มีสิทธิ์เพิ่มรายการนี้', 1);
+  openModal(`<h3>เพิ่ม${optionTitle(kind)}</h3><form id="newOptionForm"><label class="fld"><span>ชื่อใหม่</span><input class="in" name="label" required maxlength="32" autofocus></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">เพิ่มรายการ</button></div></form>`);
+  $('#newOptionForm').onsubmit = e => {
+    e.preventDefault(); const label = fv(e.target, 'label');
+    const options = optionCollection(kind);
+    if (options.some(item => item.label.toLocaleLowerCase() === label.toLocaleLowerCase())) return toast('ชื่อนี้มีอยู่แล้ว', 1);
+    if (kind === 'roles') { const key = 'role_' + Date.now().toString(36); ROLE[key] = label; if (context?.type === 'user') context.draft.role = key; }
+    else { (kind === 'categories' ? CATS : UNITS).push(label); if (context?.type === 'product') context.draft[kind === 'categories' ? 'cat' : 'unit'] = label; }
+    save(); closeModal(); resumeOptionEditor(context); toast('เพิ่มรายการแล้ว');
+  };
+}
+
+/* ---------- Modals (คลิกเข้ามาเบิก-จ่าย และจัดการด้านใน) ---------- */
+function openModal(html) {
+  $('#modal').innerHTML = `<div class="ov" id="ov"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  $('#ov').onmousedown = e => { if (e.target.id === 'ov' && !$('#ov').dataset.lock) closeModal(); };
+}
+function closeModal() {
+  const overlay = $('#ov');
+  if (!overlay || overlay.dataset.closing) return;
+  overlay.dataset.closing = 'true';
+  overlay.classList.add('closing');
+  const sheet = overlay.querySelector('.sheet');
+  if (sheet) sheet.classList.add('closing');
+  setTimeout(() => { if (overlay.isConnected) overlay.remove(); }, 230);
+}
+
+function toast(t, err) {
+  const e = $('#toast'); e.textContent = t; e.className = 'toast show' + (err ? ' err' : '');
+  clearTimeout(toast.t); toast.t = setTimeout(() => e.className = 'toast', 2600);
+}
+const fv = (f, n) => f.elements[n].value.trim();
+function addLog(type, p, amt, before, after) {
+  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type, pid: p.id, pname: p.name, unit: p.unit || '', amt, before, after });
+}
+
+/* Modal จัดการสินค้าภายในเมื่อคลิกที่แถวสินค้า */
+function itemDetailModal(id) {
+  const p = P.find(x => x.id === id);
+  if (!p) return;
+  const canMove = can.edit();
+  openModal(`<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
+  <div style="background:#fff7f8;padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);">
+    <div>รหัส: <b>${esc(p.id)}</b> | หมวดหมู่: <b>${esc(p.cat)}</b></div>
+    <div>คงเหลือ: <b style="font-size:16px;color:var(--acc);">${num(p.qty)}</b> ${esc(p.unit)} (ขั้นต่ำ: ${p.min})</div>
+    <div>สถานะ: <b>${STX[status(p)]}</b> | ที่เก็บ: <b>${esc(p.loc || '-')}</b></div>
+  </div>
+  ${canMove ? `<form id="mf">
+   <div class="seg"><label><input type="radio" name="t" value="in" checked><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out"><span>เบิกจ่าย (-)</span></label><label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
    <label class="fld"><span id="ml">จำนวนที่รับเข้า</span><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" required></label>
-   <label class="fld"><span>หมายเหตุ (เช่น เลขใบสั่งซื้อ, ขายหน้าร้าน)</span><input class="in" name="note" maxlength="80"></label>
-   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึกรายการ</button></div></form>`);
-  const lab={in:'จำนวนที่รับเข้า',out:'จำนวนที่จ่ายออก',adjust:'ยอดคงเหลือที่นับได้จริง'};
-  $('#mf').onchange=e=>{if(e.target.name==='t')$('#ml').textContent=lab[e.target.value]};
-  $('#mf').onsubmit=e=>{e.preventDefault();const f=e.target,t=f.elements.t.value,n=parseInt(f.elements.n.value);
-   if(isNaN(n)||n<0)return toast('จำนวนไม่ถูกต้อง',1);
-   if(t!=='adjust'&&n===0)return toast('จำนวนต้องมากกว่า 0',1);
-   if(t==='out'&&n>p.qty)return toast(`จ่ายออกเกินคงเหลือ (มี ${p.qty})`,1);
-   const b=p.qty;p.qty=t==='in'?b+n:t==='out'?b-n:n;
-   addLog(t,p,t==='adjust'?p.qty-b:n,b,p.qty,fv(f,'note'));save();closeModal();render();
-   toast(p.qty<=p.min?`บันทึกแล้ว — ${p.name} ${p.qty?'ใกล้หมด':'หมดสต็อก'}`:'บันทึกรายการแล้ว')};
-}
-function delProd(id){
-  const p=P.find(x=>x.id===id);
-  openModal(`<h3>ลบสินค้า?</h3><p style="margin-bottom:16px">ลบ <b>${esc(p.name)}</b> (คงเหลือ ${num(p.qty)} ${esc(p.unit)}) ออกจากระบบ การลบไม่สามารถย้อนกลับได้</p>
-  <div class="acts"><button class="btn sec" onclick="closeModal()">ไม่ลบ</button><button class="btn bad" id="dy">ลบสินค้า</button></div>`);
-  $('#dy').onclick=()=>{addLog('delete',p,0,p.qty,0,'ลบสินค้า');P=P.filter(x=>x.id!==id);save();closeModal();render();toast('ลบสินค้าแล้ว')};
-}
-
-/* ---------- Log ---------- */
-const LT={in:['รับเข้า','in','+'],out:['จ่ายออก','out','-'],adjust:['ปรับยอด','','±'],create:['เพิ่มสินค้า','',''],edit:['แก้ไข','',''],delete:['ลบสินค้า','out','']};
-function logView(){
-  const l=L.slice(0,150);
-  return`<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>ล่าสุด ${l.length} รายการ</small></div>`+
-  (l.length?`<div class="list">${l.map(x=>{const t=LT[x.type];return`<div class="card"><div class="t"><b>${esc(x.pname)}</b>
-   <small>${t[0]} · ${esc(x.user)} · ${new Date(x.ts).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'})}${x.note?' · '+esc(x.note):''}</small></div>
-   <div style="text-align:right"><span class="amt ${t[1]}">${t[2]}${x.amt?num(Math.abs(x.amt)):''}</span><br><small>${x.before} → ${x.after}</small></div></div>`}).join('')}</div>`
-  :`<div class="empty"><b>ยังไม่มีประวัติ</b>เมื่อรับหรือจ่ายสินค้า รายการจะแสดงที่นี่</div>`);
+   <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
+   <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
+  </form>` : ''}
+  ${can.del() ? `<div class="acts"><button type="button" class="btn bad" id="deleteProduct">ลบวัตถุดิบ</button></div>` : ''}
+  ${!canMove && !can.del() ? `<div class="operator-note">บัญชีนี้สามารถดูข้อมูลได้อย่างเดียว</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ปิด</button></div>` : ''}`);
+  if (can.del()) $('#deleteProduct').onclick = () => {
+    openModal(`<h3>ลบวัตถุดิบนี้หรือไม่</h3><p style="margin-bottom:12px;color:var(--mute)">ยืนยันลบ “${esc(p.name)}” ออกจากรายการสต็อกหรือไม่</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn bad" id="confirmDeleteProduct">ยืนยันลบ</button></div>`);
+    $('#confirmDeleteProduct').onclick = () => { addLog('delete', p, p.qty, p.qty, 0); P = P.filter(product => product.id !== id); save(); closeModal(); render(); toast('ลบวัตถุดิบแล้ว'); };
+  };
+  if (!canMove) return;
+  const labels = { in: 'จำนวนที่รับเข้าเพิ่ม', out: 'จำนวนที่ต้องการเบิกจ่ายออก', adjust: 'ยอดนับจริงในคลัง' };
+  $('#mf').onchange = e => { if (e.target.name === 't') $('#ml').textContent = labels[e.target.value]; };
+  if ($('#editProdBtn')) $('#editProdBtn').onclick = () => { closeModal(); prodModal(id); };
+  $('#mf').onsubmit = e => {
+    e.preventDefault();
+    const form = e.target, type = form.elements.t.value, amount = parseInt(form.elements.n.value, 10);
+    if (isNaN(amount) || amount < 0) return toast('จำนวนไม่ถูกต้อง', 1);
+    if (type !== 'adjust' && amount === 0) return toast('จำนวนต้องมากกว่า 0', 1);
+    if (type === 'out' && amount > p.qty) return toast(`วัตถุดิบไม่พอเบิก (คงเหลือ ${p.qty})`, 1);
+    const before = p.qty;
+    p.qty = type === 'in' ? before + amount : type === 'out' ? before - amount : amount;
+    addLog(type, p, type === 'adjust' ? p.qty - before : amount, before, p.qty);
+    save(); closeModal(); render();
+    toast(p.qty <= p.min ? `บันทึกแล้ว — ${p.name} ใกล้หมดสต็อก` : 'บันทึกการเคลื่อนไหวเรียบร้อย');
+  };
 }
 
-/* ---------- Users ---------- */
-function usersView(){
-  return`<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')}เพิ่มผู้ใช้</button></div>
-  <div class="list ucard">${U.map(u=>`<div class="card"><div class="t"><b>${esc(u.name)}${u.name===me.name?' (คุณ)':''}</b>
-   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active?'':'<span class="pill p-out">ปิดใช้งาน</span>'}</div>
-   <div style="display:flex;gap:6px"><button class="btn sm sec" data-ue="${u.name}">แก้ไข</button>${u.name!==me.name?`<button class="btn sm sec" style="color:var(--bad)" data-ud="${u.name}">ลบ</button>`:''}</div></div>`).join('')}</div>
-  <p style="margin-top:14px;max-width:760px"><small>ผู้ดูแล: ทำได้ทุกอย่างรวมถึงลบสินค้าและจัดการผู้ใช้ · พนักงานคลัง: เพิ่ม/แก้ไขสินค้า รับ-จ่ายสต็อก · ดูอย่างเดียว: ดูข้อมูลและส่งออก CSV เท่านั้น</small></p>`;
+function prodModal(id, draft = {}) {
+  const target = id ? P.find(x => x.id === id) : null;
+  if (id && !target) return;
+  const p = target ? { ...target, ...draft } : { name: '', cat: '', unit: 'กิโลกรัม', qty: 0, min: 1, loc: '', ...draft };
+  if (!p) return;
+  openModal(`<h3>${id ? 'แก้ไขวัตถุดิบ' : 'เพิ่มวัตถุดิบใหม่'}</h3>
+  <form id="pf">
+   <label class="fld"><span>ชื่อวัตถุดิบ *</span><input class="in" name="name" required value="${esc(p.name)}"></label>
+   <div class="g2">
+     <label class="fld"><span>หมวดหมู่ *</span><div class="select-tools"><select class="in" name="cat" required><option value="">เลือกหมวดหมู่</option>${CATS.map(c => `<option ${p.cat === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select>${can.lists() ? `<button type="button" class="icon-tool" id="editCats" aria-label="แก้ไขหมวดหมู่">✎</button><button type="button" class="icon-tool add-tool" id="addCat" aria-label="เพิ่มหมวดหมู่">+</button>` : ''}</div></label>
+     <label class="fld"><span>หน่วยนับ</span><div class="select-tools"><select class="in" name="unit">${[...new Set([...UNITS, p.unit].filter(Boolean))].map(u => `<option ${p.unit === u ? 'selected' : ''}>${esc(u)}</option>`).join('')}</select>${can.lists() ? `<button type="button" class="icon-tool" id="editUnits" aria-label="แก้ไขหน่วยนับ">✎</button><button type="button" class="icon-tool add-tool" id="addUnit" aria-label="เพิ่มหน่วยนับ">+</button>` : ''}</div></label>
+   </div>
+   <div class="g2">
+     ${id ? '' : `<label class="fld"><span>จำนวนเริ่มต้น *</span><input class="in" name="qty" type="number" min="0" step="1" inputmode="numeric" required value="${p.qty || 0}"></label>`}
+     <label class="fld"><span>แจ้งเตือนเมื่อเหลือต่ำกว่า</span><input class="in" name="min" type="number" min="0" step="1" inputmode="numeric" value="${p.min ?? 1}"></label>
+   </div>
+   <label class="fld"><span>ที่เก็บในร้าน</span><input class="in" name="loc" placeholder="เช่น ตู้เย็น 1 หรือชั้น A1" value="${esc(p.loc || '')}"></label>
+   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">${id ? 'บันทึก' : 'เพิ่มวัตถุดิบ'}</button></div>
+  </form>`);
+  const captureProductDraft = () => { const f = $('#pf'); return { name: fv(f, 'name'), cat: f.elements.cat.value, unit: f.elements.unit.value, qty: f.elements.qty ? f.elements.qty.value : p.qty, min: f.elements.min.value, loc: fv(f, 'loc') }; };
+  if ($('#editCats')) $('#editCats').onclick = () => optionsManager('categories', { type: 'product', id, draft: captureProductDraft() });
+  if ($('#addCat')) $('#addCat').onclick = () => addOption('categories', { type: 'product', id, draft: captureProductDraft() });
+  if ($('#editUnits')) $('#editUnits').onclick = () => optionsManager('units', { type: 'product', id, draft: captureProductDraft() });
+  if ($('#addUnit')) $('#addUnit').onclick = () => addOption('units', { type: 'product', id, draft: captureProductDraft() });
+  $('#pf').onsubmit = e => {
+    e.preventDefault();
+    const form = e.target;
+    const data = { name: fv(form, 'name'), cat: form.elements.cat.value, unit: fv(form, 'unit') || 'กิโลกรัม', min: Math.max(0, parseInt(form.elements.min.value, 10) || 0), loc: fv(form, 'loc') };
+    if (id) {
+      Object.assign(target, data);
+      delete target.cost; delete target.price;
+      addLog('edit', target, 0, target.qty, target.qty);
+      toast('บันทึกการแก้ไขแล้ว');
+    } else {
+      let newId;
+      do { newId = 'P-' + (1000 + Math.floor(Math.random() * 9000)); } while (P.some(item => item.id === newId));
+      const product = { id: newId, qty: Math.max(0, parseInt(form.elements.qty.value, 10) || 0), ...data };
+      P.unshift(product);
+      addLog('create', product, product.qty, 0, product.qty);
+      toast('เพิ่มวัตถุดิบแล้ว');
+    }
+    save(); closeModal(); render();
+  };
 }
-document.addEventListener('click',e=>{
-  if(!me||tab!=='users')return;const b=e.target.closest('button');if(!b)return;
-  if(b.id==='nu')userModal();if(b.dataset.ue)userModal(b.dataset.ue);if(b.dataset.ud)delUser(b.dataset.ud)});
-function userModal(name){
-  const u=name?U.find(x=>x.name===name):{name:'',role:'staff',active:true};
-  openModal(`<h3>${name?'แก้ไขผู้ใช้':'เพิ่มผู้ใช้ใหม่'}</h3><form id="uf">
-   <label class="fld"><span>ชื่อผู้ใช้ (a-z, 0-9, _ ความยาว 3-20)</span><input class="in" name="name" required pattern="[A-Za-z0-9_]{3,20}" ${name?'readonly':''} autocapitalize="none" value="${esc(u.name)}"></label>
-   <label class="fld"><span>${name?'PIN ใหม่ (เว้นว่างถ้าไม่เปลี่ยน)':'PIN 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name?'':'required'} placeholder="••••••"></label>
-   <label class="fld"><span>ตำแหน่ง</span><select class="in" name="role">${Object.entries(ROLE).map(([k,v])=>`<option value="${k}" ${u.role===k?'selected':''}>${v}</option>`).join('')}</select></label>
-   <label class="fld" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="act" ${u.active?'checked':''}><span style="margin:0">เปิดใช้งานบัญชี</span></label>
+
+function logView() {
+  const l = L.slice(0, 150);
+  const LT = { in: ['รับเข้า', 'in', '📥', 'เพิ่มเข้าคลัง'], out: ['เบิกจ่าย', 'out', '📤', 'นำออกจากคลัง'], adjust: ['ปรับยอด', '', '🧮', 'ตรวจนับ'], create: ['เพิ่มวัตถุดิบ', '', '🍣', 'สร้างรายการ'], edit: ['แก้ไขข้อมูล', '', '✏️', 'ปรับรายละเอียด'], delete: ['ลบวัตถุดิบ', 'out', '🗑️', 'นำรายการออก'] };
+  return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>รายการล่าสุด ${l.length} รายการ · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
+  (l.length ? `<div class="history-list">${l.map(x => {
+    const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
+    const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
+    const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
+    const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    return `<article class="history-item"><div class="history-icon ${t[1]}">${t[2]}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.pid || '')} · ${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small></div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
+  }).join('')}</div>` : `<div class="empty"><b>ยังไม่มีประวัติ</b>รายการจะปรากฏที่นี่เมื่อมีการทำรายการ</div>`);
+}
+
+function usersView() {
+  return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
+  <div class="list">${U.map(u => `<div class="card"><div class="t"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b>
+  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}</div>
+  <div style="display:flex;gap:6px">${can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+}
+
+document.addEventListener('click', e => {
+  if (!me || tab !== 'users') return; const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'nu') userModal(); if (b.dataset.ue) userModal(b.dataset.ue); if (b.dataset.ud) delUser(b.dataset.ud);
+});
+
+function userModal(name, draft = {}) {
+  const target = name ? U.find(x => x.name === name) : null;
+  const u = target ? { ...target, ...draft } : { name: '', role: 'staff', active: true, ...draft };
+  if (name && !target || (name && target.name !== me.name && ['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์แก้ไขบัญชีตำแหน่งนี้', 1);
+  const roleOptions = Object.entries(ROLE).filter(([key]) => can.permissions() || (!['admin', 'supervisor'].includes(key) || key === u.role));
+  openModal(`<h3>${name ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}</h3><form id="uf">
+   <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required pattern="[\p{L}0-9_]{3,20}" ${name ? 'readonly' : ''} value="${esc(u.name)}"></label>
+   <label class="fld"><span>${name ? 'รหัส ใหม่ (เว้นว่าง)' : 'รหัส 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name ? '' : 'required'} placeholder="••••••" value="${esc(u.pinInput || '')}"></label>
+   <label class="fld"><span>ตำแหน่ง</span><div class="select-tools"><select class="in" name="role" ${u.owner ? 'disabled' : ''}>${roleOptions.map(([k, v]) => `<option value="${esc(k)}" ${u.role === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>${can.lists() ? `<button type="button" class="icon-tool" id="editRoles" aria-label="แก้ไขตำแหน่ง">✎</button><button type="button" class="icon-tool add-tool" id="addRole" aria-label="เพิ่มตำแหน่ง">+</button>` : ''}</div></label>
+   <label class="fld" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="act" ${u.active ? 'checked' : ''} ${u.owner ? 'disabled' : ''}><span style="margin:0">เปิดใช้งาน</span></label>
    <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
-  $('#uf').onsubmit=async e=>{e.preventDefault();const f=e.target,n=fv(f,'name').toLowerCase(),pn=f.elements.pin.value;
-   if(!name&&U.some(x=>x.name===n))return toast('ชื่อผู้ใช้นี้มีอยู่แล้ว',1);
-   if(pn&&!/^\d{6}$/.test(pn))return toast('PIN ต้องเป็นตัวเลข 6 หลัก',1);
-   const role=f.elements.role.value,act=f.elements.act.checked;
-   const admins=U.filter(x=>x.role==='admin'&&x.active&&x.name!==name).length+(role==='admin'&&act?1:0);
-   if(admins<1)return toast('ต้องมีผู้ดูแลที่เปิดใช้งานอย่างน้อย 1 คน',1);
-   if(name){Object.assign(u,{role,active:act});if(pn){u.pin=await hash(pn);u.must=false}if(u.name===me.name){me=u;$('#meRole').textContent=ROLE[role]}}
-   else U.push({name:n,pin:await hash(pn),role,active:act,must:false});
-   save();closeModal();render();toast('บันทึกผู้ใช้แล้ว');if(u.name===me.name&&role!=='admin')build()};
-}
-function delUser(name){
-  if(U.filter(x=>x.role==='admin'&&x.name!==name).length<1)return toast('ลบไม่ได้ ต้องมีผู้ดูแลอย่างน้อย 1 คน',1);
-  openModal(`<h3>ลบผู้ใช้ ${esc(name)}?</h3><p style="margin-bottom:16px">ผู้ใช้นี้จะเข้าสู่ระบบไม่ได้อีก</p><div class="acts"><button class="btn sec" onclick="closeModal()">ไม่ลบ</button><button class="btn bad" id="dy">ลบผู้ใช้</button></div>`);
-  $('#dy').onclick=()=>{U=U.filter(x=>x.name!==name);save();closeModal();render();toast('ลบผู้ใช้แล้ว')};
+
+  const captureUserDraft = () => { const f = $('#uf'); return { name: fv(f, 'name'), role: f.elements.role.value, pinInput: f.elements.pin.value, active: f.elements.act.checked }; };
+  if ($('#editRoles')) $('#editRoles').onclick = () => optionsManager('roles', { type: 'user', name, draft: captureUserDraft() });
+  if ($('#addRole')) $('#addRole').onclick = () => addOption('roles', { type: 'user', name, draft: captureUserDraft() });
+
+  $('#uf').onsubmit = async e => {
+    e.preventDefault(); const f = e.target, n = fv(f, 'name').toLowerCase(), pn = f.elements.pin.value;
+    if (!name && U.some(x => x.name === n)) return toast('ชื่อผู้ใช้ซ้ำ', 1);
+    if (pn && !/^\d{6}$/.test(pn)) return toast('รหัส ต้องเป็นตัวเลข 6 หลัก', 1);
+    const role = f.elements.role.value, act = f.elements.act.checked;
+    if (U.filter(x => x.role === 'admin' && x.active && x.name !== name).length + (role === 'admin' && act ? 1 : 0) < 1) return toast('ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
+    if (name) { const oldRole = target.role; Object.assign(target, { role: target.owner ? oldRole : role, active: act }); if (!target.owner && role !== oldRole) target.permissions = defaultPermissions(role); if (pn) { target.pin = await hash(pn); target.must = false; } if (target.name === me.name) me = target; }
+    else U.push({ name: n, pin: await hash(pn), role, active: act, must: false, permissions: defaultPermissions(role) });
+    save(); $('#meRole').textContent = ROLE[me.role] || me.role; closeModal(); build(); toast('บันทึกผู้ใช้แล้ว');
+  };
 }
 
-/* ---------- Change own PIN ---------- */
-function pinModal(force){
-  openModal(`<h3>${force?'ตั้ง PIN ใหม่ก่อนใช้งาน':'เปลี่ยน PIN'}</h3>${force?'<p style="margin-bottom:12px"><small>บัญชีนี้ยังใช้ PIN เริ่มต้น กรุณาตั้ง PIN 6 หลักของคุณเอง</small></p>':''}
-  <form id="pn">${force?'':'<label class="fld"><span>PIN ปัจจุบัน</span><input class="in" name="old" inputmode="numeric" pattern="\\d{6}" maxlength="6" required></label>'}
-   <label class="fld"><span>PIN ใหม่ 6 หลัก</span><input class="in" name="n1" inputmode="numeric" pattern="\\d{6}" maxlength="6" required></label>
-   <label class="fld"><span>ยืนยัน PIN ใหม่</span><input class="in" name="n2" inputmode="numeric" pattern="\\d{6}" maxlength="6" required></label>
-   <div class="acts">${force?'':'<button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button>'}<button class="btn">บันทึก PIN</button></div></form>`);
-  if(force)$('#ov').dataset.lock=1;
-  $('#pn').onsubmit=async e=>{e.preventDefault();const f=e.target,n1=f.elements.n1.value;
-   if(!force&&await hash(f.elements.old.value)!==me.pin)return toast('PIN ปัจจุบันไม่ถูกต้อง',1);
-   if(n1!==f.elements.n2.value)return toast('PIN ใหม่ทั้งสองช่องไม่ตรงกัน',1);
-   if(n1==='123456'||/^(\d)\1{5}$/.test(n1))return toast('PIN เดาง่ายเกินไป เลือกเลขอื่น',1);
-   me.pin=await hash(n1);me.must=false;save();closeModal();toast('เปลี่ยน PIN เรียบร้อยแล้ว')};
+function delUser(name) {
+  if (!can.delUsers()) return toast('ไม่มีสิทธิ์ลบบัญชีผู้ใช้', 1);
+  const target = U.find(user => user.name === name);
+  if (!target || target.owner || (['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์ลบบัญชีตำแหน่งนี้', 1);
+  if (U.filter(x => x.role === 'admin' && x.name !== name).length < 1) return toast('ลบไม่ได้ ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
+  openModal(`<h3>ลบผู้ใช้ ${esc(name)}?</h3><div class="acts"><button class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn bad" id="dy">ลบ</button></div>`);
+  $('#dy').onclick = () => { U = U.filter(x => x.name !== name); save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว'); };
 }
 
-/* ---------- Start ---------- */
-(async()=>{
-  await init();showHint();drawDots();
-  const s=sess.get(),u=s&&U.find(x=>x.name===s&&x.active);
-  if(u)enter(u);
+function pinModal(force) {
+  openModal(`<h3>${force ? 'กำหนด รหัส ใหม่' : 'เปลี่ยน รหัส'}</h3>
+  <form id="pn">${force ? '' : '<label class="fld"><span>รหัส ปัจจุบัน</span><input class="in" name="old" inputmode="numeric" maxlength="6" required></label>'}
+   <label class="fld"><span>รหัส ใหม่ 6 หลัก</span><input class="in" name="n1" inputmode="numeric" maxlength="6" required></label>
+   <label class="fld"><span>ยืนยัน รหัส ใหม่</span><input class="in" name="n2" inputmode="numeric" maxlength="6" required></label>
+   <div class="acts">${force ? '' : '<button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button>'}<button class="btn">บันทึก</button></div></form>`);
+  if (force) $('#ov').dataset.lock = 1;
+  $('#pn').onsubmit = async e => {
+    e.preventDefault(); const f = e.target, n1 = f.elements.n1.value;
+    if (!force && await hash(f.elements.old.value) !== me.pin) return toast('รหัส ปัจจุบันไม่ถูกต้อง', 1);
+    if (n1 !== f.elements.n2.value) return toast('รหัส ใหม่ไม่ตรงกัน', 1);
+    me.pin = await hash(n1); me.must = false; save(); closeModal(); toast('เปลี่ยน รหัส สำเร็จ');
+  };
+}
+
+(async () => {
+  await init(); showHint(); drawDots('');
+  const s = sess.get(), u = s && U.find(x => x.name === s && x.active);
+  if (u) { enter(u); checkSaturdayAutoLogout(); }
 })();
 </script>
 </body>
