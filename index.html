@@ -524,7 +524,7 @@ function press(k) {
 }
 
 $('#pad').addEventListener('click', e => { const b = e.target.closest('button'); if (b) press(b.dataset.k); });
-$( '#lgUser' ).addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\p{L}0-9_]/gu, ''); });
+$( '#lgUser' ).addEventListener('input', e => { e.target.value = e.target.value.replace(/[^\p{L}\p{M}0-9_]/gu, ''); });
 $('#lgPinInput').addEventListener('input', e => {
   e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
   drawDots(e.target.value); $('#lgMsg').textContent = '';
@@ -1058,7 +1058,7 @@ function userModal(name, draft = {}) {
   if (name && !target || (name && target.name !== me.name && ['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์แก้ไขบัญชีตำแหน่งนี้', 1);
   const roleOptions = Object.entries(ROLE).filter(([key]) => can.permissions() || (!['admin', 'supervisor'].includes(key) || key === u.role));
   openModal(`<h3>${name ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}</h3><form id="uf">
-   <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required pattern="[\p{L}0-9_]{3,20}" ${name ? 'readonly' : ''} value="${esc(u.name)}"></label>
+   <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required pattern="[\p{L}\p{M}0-9_]{3,20}" ${name ? 'readonly' : ''} value="${esc(u.name)}"></label>
    <label class="fld"><span>${name ? 'รหัส ใหม่ (เว้นว่าง)' : 'รหัส 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name ? '' : 'required'} placeholder="••••••" value="${esc(u.pinInput || '')}"></label>
    <label class="fld"><span>ตำแหน่ง</span><div class="select-tools"><select class="in" name="role" ${u.owner ? 'disabled' : ''}>${roleOptions.map(([k, v]) => `<option value="${esc(k)}" ${u.role === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>${can.lists() ? `<button type="button" class="icon-tool" id="editRoles" aria-label="แก้ไขตำแหน่ง">✎</button><button type="button" class="icon-tool add-tool" id="addRole" aria-label="เพิ่มตำแหน่ง">+</button>` : ''}</div></label>
    <label class="fld" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="act" ${u.active ? 'checked' : ''} ${u.owner ? 'disabled' : ''}><span style="margin:0">เปิดใช้งาน</span></label>
@@ -1126,6 +1126,7 @@ function pinModal(force) {
 </script>
 </body>
 </html>
+
 
 
 
