@@ -350,7 +350,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
       <div class="msg" id="lgMsg" role="alert" aria-live="polite"></div>
       <div class="pad" id="pad" aria-label="แป้นตัวเลข"></div>
       <button type="submit" class="btn login-submit">เข้าสู่ระบบ <span aria-hidden="true">→</span></button>
-      <div class="hint hide" id="lgHint">เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>เจ้าของร้าน</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ</div>
+      <div class="hint hide" id="lgHint">เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่</div>
       <p class="login-note">สำหรับใช้งานภายในร้าน · ข้อมูลบันทึกไว้ในฐานข้อมูลกลางของร้าน</p>
     </form>
   </div>
@@ -565,7 +565,7 @@ function logout() {
   const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
   sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
-function showHint(firstLogin = U.some(u => u.must)) { $('#lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) $('#lgHint').innerHTML = `เริ่มต้นใช้งานครั้งแรก: ผู้ใช้ <b>เจ้าของร้าน</b> / รหัส <b>123456</b><br>ระบบจะให้ตั้งรหัสใหม่หลังเข้าสู่ระบบ`; }
+function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false);
 
 async function refreshCloudState() {
@@ -1126,4 +1126,6 @@ function pinModal(force) {
 </script>
 </body>
 </html>
+
+
 
