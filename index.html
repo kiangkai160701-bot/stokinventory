@@ -832,6 +832,7 @@ async function refreshPresence() {
 }
 function startPresence() {
   clearInterval(presenceTimer);
+  updateOnlineUsers([me?.name].filter(Boolean));
   refreshPresence();
   presenceTimer = setInterval(refreshPresence, 15000);
 }
@@ -915,6 +916,7 @@ function render(animatePage = false) {
   else if (tab === 'users') main.innerHTML = usersView();
   else if (tab === 'settings') main.innerHTML = settingsView();
   updatePageMascots();
+  if (tab === 'users') { updateOnlineUsers([...onlineUsers]); refreshPresence(); }
   if (animatePage) {
     void main.offsetWidth;
     main.classList.add(`page-${pageDirection}`);
