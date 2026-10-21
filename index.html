@@ -197,7 +197,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 }
 .row.low::before { background: var(--warn); }
 .row.out::before { background: var(--bad); }
-.c-name { padding-left: 28px; }
+.c-name { padding-left: 0; }
 .drag-handle {
   position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
   width: 28px; height: 38px; display: grid; place-items: center;
@@ -422,7 +422,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
   .list{gap:6px}
   .row{grid-template-columns:minmax(0,1fr) 148px;gap:2px 8px;align-items:center;padding:8px 11px 7px;border-radius:15px}
   .row::before{top:8px;bottom:8px}
-  .c-name{min-width:0;padding-left:25px}
+  .c-name{min-width:0;padding-left:0}
   .c-name b{font-size:13.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .c-name small{font-size:10px;line-height:1.2}
   .c-qty{display:grid;grid-template-columns:5ch auto 1fr;grid-template-rows:auto 4px;align-items:center;column-gap:5px;row-gap:3px;width:148px;min-width:0;white-space:nowrap}
@@ -472,7 +472,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 /* Mobile spacing refinements for stock, themes, and history filters */
 @media(max-width:680px){
   .row .drag-handle{left:6px;width:27px}
-  .row .c-name{padding-left:32px}
+  .row .c-name{padding-left:0}
   .tools>div:last-child{display:flex!important;justify-content:flex-end;align-items:center;gap:8px;position:static}
   .tools .fab{position:static;right:auto;bottom:auto;z-index:auto;width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:18px;box-shadow:0 4px 12px var(--acc-glow)}
   .tools #exp{min-height:42px;padding:9px 13px}
@@ -980,9 +980,7 @@ function rows() {
   return list.map(p => {
     const state = status(p);
     const width = Math.min(100, Math.round((p.qty / Math.max(p.min * 3, 1)) * 100));
-    const canReorder = false;
     return `<article class="row ${state}" data-id="${esc(p.id)}">
-    <button type="button" class="drag-handle" data-drag-handle aria-label="แตะค้างแล้วลากเพื่อจัดลำดับ" title="แตะค้างแล้วลากเพื่อจัดลำดับ" ${canReorder ? '' : 'disabled'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small></div>
     <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><i class="meter"><u style="width:${width}%"></u></i><span class="pill p-${state}">${STX[state]}</span></div>
     <div class="c-loc">📍 ${esc(p.loc || '-')}</div>
