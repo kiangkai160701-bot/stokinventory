@@ -549,6 +549,43 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .c-qty .meter{display:none!important}
 @media(max-width:680px){.history-title{gap:6px}.history-badge{padding:2px 8px!important}.history-icon svg{width:19px;height:19px}.c-qty{grid-template-columns:5ch auto 1fr;grid-template-rows:auto auto;column-gap:5px;row-gap:5px;width:148px;min-width:0}.c-qty .stock-dots{gap:4px;margin-top:6px;margin-bottom:4px}}
 
+/* Clearer stock levels, tidy history cards, and stronger shop heading */
+.brand-title{font-size:19px;letter-spacing:.1px}
+.stock-dot{width:9px;height:9px;flex-basis:9px}
+.c-qty .stock-dots{gap:5px;min-height:14px;margin:7px 0 6px;padding:2px 0}
+.c-qty .pill{font-size:11.5px;padding:2px 9px}
+.history-list{gap:9px}
+.history-item{grid-template-columns:44px minmax(0,1fr) auto;gap:13px;padding:13px 15px;background:linear-gradient(110deg,var(--card-bg),var(--theme-wash))!important;border-radius:15px;box-shadow:0 3px 10px rgba(100,70,85,.045)}
+.history-item:has(.history-icon.in){border-left:3px solid var(--ok)!important}
+.history-item:has(.history-icon.out){border-left:3px solid var(--bad)!important}
+.history-item:has(.history-icon.adjust){border-left:3px solid var(--acc)!important}
+.history-icon{width:40px;height:40px;border:1px solid var(--line);border-radius:13px}
+.history-title{gap:8px;margin-bottom:1px}
+.history-title b{font-size:14.5px}
+.history-main{gap:4px}
+.history-main small{line-height:1.35}
+.history-result{min-width:88px;gap:3px}
+.history-result strong{min-width:5ch;padding:4px 8px;border-radius:9px;text-align:center;background:var(--theme-soft);font-size:16px;line-height:1.2}
+.history-result strong.in{background:var(--ok-bg)}.history-result strong.out{background:var(--bad-bg)}
+.history-result span{font-size:11.5px;font-variant-numeric:tabular-nums}
+.recent-movement .amt{background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important;min-width:5ch;text-align:right}
+@media(max-width:680px){
+  .brand-title{font-size:14.5px}
+  .stock-dot{width:8px;height:8px;flex-basis:8px}
+  .c-qty .stock-dots{gap:4px;min-height:13px;margin:7px 0 5px;padding:2px 0}
+  .c-qty .pill{font-size:10px;padding:2px 7px}
+  .history-list{gap:8px}
+  .history-item{grid-template-columns:38px minmax(0,1fr) auto;gap:9px;padding:10px 11px;border-radius:13px}
+  .history-icon{width:34px;height:34px;border-radius:11px}
+  .history-icon svg{width:19px;height:19px}
+  .history-title{gap:6px}.history-title b{font-size:13.5px}
+  .history-badge{font-size:10px!important;padding:2px 7px!important}
+  .history-main{gap:3px}.history-main small,.history-result small{font-size:10px;line-height:1.3}
+  .history-result{min-width:66px;gap:2px}.history-result strong{font-size:14px;padding:3px 6px;border-radius:8px}
+  .history-result span{font-size:10px}
+  .recent-movement .amt{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important}
+}
+
 </style>
 </head>
 <body data-theme="teal">
