@@ -468,6 +468,24 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .chart-stick.out{background:var(--bad)}
 .chart-day small{font-size:9px;color:var(--mute)}
 @media(max-width:380px){.dash-chart{padding:9px}.chart-pie-wrap{gap:6px}.chart-pie{width:70px;height:70px}.chart-pie::before{inset:11px}.chart-legend{font-size:9px}.history-filter small{width:100%;margin-left:0}}
+
+/* Mobile spacing refinements for stock, themes, and history filters */
+@media(max-width:680px){
+  .row .drag-handle{left:6px;width:27px}
+  .row .c-name{padding-left:32px}
+  .tools>div:last-child{display:flex!important;justify-content:flex-end;align-items:center;gap:8px;position:static}
+  .tools .fab{position:static;right:auto;bottom:auto;z-index:auto;width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:18px;box-shadow:0 4px 12px var(--acc-glow)}
+  .tools #exp{min-height:42px;padding:9px 13px}
+  .theme-picker{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important;margin-top:9px!important}
+  .theme-opt{min-height:43px!important;padding:4px 3px!important;border-radius:11px!important;gap:1px;font-size:9px}
+  .theme-opt .theme-emoji{font-size:17px;line-height:1}
+  .theme-opt .theme-label{font-size:9px;line-height:1.1}
+  .history-filter{gap:6px;padding:7px 9px;margin-bottom:9px;border-radius:11px}
+  .history-filter label{font-size:11px}
+  .history-filter input{width:126px;max-width:40vw;min-height:31px;height:31px;padding:4px 7px;border-radius:8px;font-size:12px}
+  .history-filter button{min-height:31px;height:31px;padding:4px 8px;border-radius:8px;font-size:11px}
+  .history-filter small{display:none}
+}
 </style>
 </head>
 <body data-theme="teal">
