@@ -416,6 +416,23 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .list.is-reordering .row:not(.is-dragging){transition-duration:.18s!important}
 @media(max-width:680px){.brand-badge{width:32px;height:32px;font-size:14px}}
 @media(prefers-reduced-motion:reduce){#main.page-next,#main.page-prev,.ov,.sheet{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Compact stock rows for mobile without hiding useful details */
+@media(max-width:680px){
+  .list{gap:6px}
+  .row{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 11px 7px;border-radius:15px}
+  .row::before{top:8px;bottom:8px}
+  .c-name{min-width:0;padding-left:25px}
+  .c-name b{font-size:13.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .c-name small{font-size:10px;line-height:1.2}
+  .c-qty{display:flex;align-items:center;gap:5px;min-width:max-content;white-space:nowrap}
+  .c-qty b{font-size:15.5px;line-height:1.2}
+  .c-qty>small{font-size:10px}
+  .c-qty .meter{width:30px;height:4px;margin:0}
+  .c-qty .pill{font-size:9px;padding:1px 6px}
+  .c-loc{grid-column:1/-1;padding-left:25px;font-size:10.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-placeholder{min-height:52px}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -1297,5 +1314,4 @@ function pinModal(force) {
 </script>
 </body>
 </html>
-
 
