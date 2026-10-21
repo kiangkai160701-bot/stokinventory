@@ -680,6 +680,8 @@ async function refreshCloudState() {
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
 }
 setInterval(refreshCloudState, 2000);
+window.addEventListener('focus', refreshCloudState);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCloudState(); });
 
 const can = {
   edit: () => !!me?.permissions?.editStock,
