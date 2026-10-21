@@ -486,6 +486,13 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
   .history-filter button{min-height:31px;height:31px;padding:4px 8px;border-radius:8px;font-size:11px}
   .history-filter small{display:none}
 }
+
+/* Supplier label and quick quantity stepper */
+.quantity-stepper{display:grid;grid-template-columns:48px minmax(0,1fr) 48px;gap:8px;align-items:center}
+.quantity-stepper button{height:46px;border:1px solid var(--line);border-radius:13px;background:var(--theme-soft);color:var(--acc);font-size:24px;font-weight:600;line-height:1;cursor:pointer;touch-action:manipulation;transition:transform .16s ease,background .16s ease}
+.quantity-stepper button:active{transform:scale(.94);background:var(--theme-wash)}
+.quantity-stepper input{min-width:0;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+@media(max-width:680px){.quantity-stepper{grid-template-columns:50px minmax(0,1fr) 50px;gap:9px}.quantity-stepper button{height:48px}}
 </style>
 </head>
 <body data-theme="teal">
@@ -891,7 +898,7 @@ function stockView() {
     ${can.edit() ? `<button class="btn fab" id="add" aria-label="เพิ่มวัตถุดิบ" title="เพิ่มวัตถุดิบ">${ic('plus')}<span class="fab-label"> เพิ่มวัตถุดิบ</span></button>` : ''}
    </div>
   </div>
-  <div class="head"><span>วัตถุดิบ</span><span>ที่เก็บ</span><span>คงเหลือ</span></div>
+  <div class="head"><span>วัตถุดิบ</span><span>ซัพพลายเออร์</span><span>คงเหลือ</span></div>
   <div class="list" id="list">${rows()}</div>`;
 }
 
@@ -933,7 +940,7 @@ function bindStock() {
 function bindStockReorder(){const list=$('#list');if(!list)return;let drag=null,frame=0;const animateRows=before=>{const deltas=[];for(const [row,top] of before){if(!row.isConnected||row.classList.contains('is-dragging'))continue;const delta=top-row.getBoundingClientRect().top;if(Math.abs(delta)>1)deltas.push([row,delta])}if(!deltas.length)return;for(const [row,delta] of deltas){row.style.transition='none';row.style.transform='translate3d(0,'+delta+'px,0)'}requestAnimationFrame(()=>{for(const [row] of deltas){row.style.transition='';row.style.transform=''}})};const placePlaceholder=y=>{if(!drag?.placeholder)return;const siblings=[...list.children].filter(row=>row!==drag.row&&row!==drag.placeholder);const before=new Map(siblings.map(row=>[row,row.getBoundingClientRect().top]));const next=siblings.find(row=>{const box=row.getBoundingClientRect();return y<box.top+box.height/2})||null;if(drag.placeholder.nextElementSibling===next)return;list.insertBefore(drag.placeholder,next);animateRows(before)};const scheduleFrame=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;if(!drag?.active)return;const y=drag.lastY,edge=76;let speed=0;if(y<edge)speed=-Math.min(15,Math.ceil((edge-y)*.22));else if(y>innerHeight-edge)speed=Math.min(15,Math.ceil((y-(innerHeight-edge))*.22));if(speed)window.scrollBy(0,speed);drag.row.style.transform='translate3d(0,'+(drag.lastY-drag.startY)+'px,0)';placePlaceholder(drag.lastY);if(speed)scheduleFrame()})};const restore=row=>{row.classList.remove('is-dragging');for(const key of ['position','left','top','width','height','margin','zIndex','pointerEvents','transform','transition','willChange'])row.style[key]=''};list.querySelectorAll('[data-drag-handle]').forEach(handle=>{handle.onclick=e=>e.stopPropagation();handle.onpointerdown=e=>{if(handle.disabled||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();e.stopPropagation();const row=handle.closest('.row');if(!row)return;drag={row,handle,pointerId:e.pointerId,startY:e.clientY,lastY:e.clientY,active:false,placeholder:null,originalOrder:[...list.querySelectorAll('.row')].map(item=>item.dataset.id)};try{handle.setPointerCapture(e.pointerId)}catch(_){}};handle.onpointermove=e=>{if(!drag||e.pointerId!==drag.pointerId)return;drag.lastY=e.clientY;if(!drag.active&&Math.abs(drag.lastY-drag.startY)<5)return;if(!drag.active){const box=drag.row.getBoundingClientRect();drag.placeholder=document.createElement('div');drag.placeholder.className='row-placeholder';drag.placeholder.style.height=box.height+'px';drag.placeholder.setAttribute('aria-hidden','true');list.insertBefore(drag.placeholder,drag.row);Object.assign(drag.row.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',margin:'0',zIndex:'1000',pointerEvents:'none',transition:'none',willChange:'transform'});drag.row.classList.add('is-dragging');list.classList.add('is-reordering');drag.active=true}e.preventDefault();scheduleFrame()};const finish=e=>{if(!drag||e.pointerId!==drag.pointerId)return;if(frame){cancelAnimationFrame(frame);frame=0}const current=drag,commit=e.type==='pointerup'&&current.active;if(current.active){placePlaceholder(current.lastY);if(commit&&current.placeholder?.parentElement===list)list.insertBefore(current.row,current.placeholder);current.placeholder?.remove();restore(current.row);list.classList.remove('is-reordering')}drag=null;if(commit){const order=[...list.querySelectorAll('.row')].map(row=>row.dataset.id),byId=new Map(P.map(product=>[product.id,product]));if(order.length===P.length&&order.some((id,index)=>id!==P[index]?.id)){P=order.map(id=>byId.get(id)).filter(Boolean);save();toast('บันทึกลำดับวัตถุดิบแล้ว')}}else if(current.active){const rowsById=new Map([...list.querySelectorAll('.row')].map(row=>[row.dataset.id,row]));for(const id of current.originalOrder)if(rowsById.has(id))list.appendChild(rowsById.get(id))}};handle.onpointerup=finish;handle.onpointercancel=finish})}
 
 function exportCSV() {
-  const headers = ['ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ที่เก็บ', 'สถานะ'];
+  const headers = ['ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ซัพพลายเออร์', 'สถานะ'];
   const rows = P.map(p => [p.name, p.cat, p.unit, p.qty, p.min, p.loc, STX[status(p)]].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob(['\ufeff' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv' }));
@@ -1186,11 +1193,11 @@ function itemDetailModal(id) {
   <div style="background:#fff7f8;padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);">
     <div>หมวดหมู่: <b>${esc(p.cat)}</b></div>
     <div>คงเหลือ: <b style="font-size:16px;color:var(--acc);">${num(p.qty)}</b> ${esc(p.unit)} (ขั้นต่ำ: ${p.min})</div>
-    <div>สถานะ: <b>${STX[status(p)]}</b> | ที่เก็บ: <b>${esc(p.loc || '-')}</b></div>
+    <div>สถานะ: <b>${STX[status(p)]}</b> | ซัพพลายเออร์: <b>${esc(p.loc || '-')}</b></div>
   </div>
   ${canMove ? `<form id="mf">
    <div class="seg"><label><input type="radio" name="t" value="in" checked><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out"><span>เบิกจ่าย (-)</span></label><label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
-   <label class="fld"><span id="ml">จำนวนที่รับเข้า</span><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" required></label>
+   <label class="fld"><span id="ml">จำนวนที่รับเข้า</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
    <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
   </form>` : ''}
@@ -1203,6 +1210,14 @@ function itemDetailModal(id) {
   if (!canMove) return;
   const labels = { in: 'จำนวนที่รับเข้าเพิ่ม', out: 'จำนวนที่ต้องการเบิกจ่ายออก', adjust: 'ยอดนับจริงในคลัง' };
   $('#mf').onchange = e => { if (e.target.name === 't') $('#ml').textContent = labels[e.target.value]; };
+  $('#mf').querySelectorAll('[data-quantity-step]').forEach(button => {
+    button.onclick = () => {
+      const input = $('#mf').elements.n, step = Number(button.dataset.quantityStep) || 0;
+      const current = Number.parseInt(input.value, 10) || 0;
+      input.value = Math.max(Number(input.min) || 0, current + step);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+  });
   if ($('#editProdBtn')) $('#editProdBtn').onclick = () => { closeModal(); prodModal(id); };
   $('#mf').onsubmit = e => {
     e.preventDefault();
@@ -1234,7 +1249,7 @@ function prodModal(id, draft = {}) {
      ${id ? '' : `<label class="fld"><span>จำนวนเริ่มต้น *</span><input class="in" name="qty" type="number" min="0" step="1" inputmode="numeric" required value="${p.qty || 0}"></label>`}
      <label class="fld"><span>แจ้งเตือนเมื่อเหลือต่ำกว่า</span><input class="in" name="min" type="number" min="0" step="1" inputmode="numeric" value="${p.min ?? 1}"></label>
    </div>
-   <label class="fld"><span>ที่เก็บในร้าน</span><input class="in" name="loc" placeholder="เช่น ตู้เย็น 1 หรือชั้น A1" value="${esc(p.loc || '')}"></label>
+   <label class="fld"><span>ซัพพลายเออร์ / แหล่งจัดซื้อ</span><input class="in" name="loc" placeholder="เช่น ตลาดมหาชัย หรือผู้จำหน่ายปลา" value="${esc(p.loc || '')}"></label>
    <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">${id ? 'บันทึก' : 'เพิ่มวัตถุดิบ'}</button></div>
   </form>`);
   const captureProductDraft = () => { const f = $('#pf'); return { name: fv(f, 'name'), cat: f.elements.cat.value, unit: f.elements.unit.value, qty: f.elements.qty ? f.elements.qty.value : p.qty, min: f.elements.min.value, loc: fv(f, 'loc') }; };
