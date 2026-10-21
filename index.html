@@ -182,7 +182,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .btn.sm { min-height: 32px; padding: 5px 10px; font-size: 12px; border-radius: 8px; }
 
 /* ---------- Clean Product Items (คลิกเพื่อเบิกจ่ายด้านใน ไม่เกะกะ) ---------- */
-.list { display: grid; gap: 8px; }
+.list { display: grid; gap: 8px; } .list.is-reordering { user-select: none; -webkit-user-select: none; } .row-placeholder { min-height: 82px; border: 2px dashed var(--acc); border-radius: var(--r); background: var(--acc-light); opacity: .78; }
 .head { display: none; }
 .row {
   background: var(--card-bg); border-radius: var(--r); padding: 12px 14px;
@@ -208,7 +208,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .drag-handle:not(:disabled):hover { color: var(--acc-hover); background: var(--acc-light); }
 .drag-handle:active { cursor: grabbing; }
 .drag-handle:disabled { opacity: .32; cursor: not-allowed; }
-.row.is-dragging { opacity: .55; z-index: 2; border-color: var(--acc); box-shadow: 0 12px 28px var(--theme-shadow); }
+.row.is-dragging { opacity: .98; z-index: 1000; border-color: var(--acc); box-shadow: 0 16px 34px var(--theme-shadow); cursor: grabbing; will-change: transform; } .row.is-dragging .drag-handle { color: var(--acc-hover); background: var(--acc-light); cursor: grabbing; } .list.is-reordering .row:not(.is-dragging) { transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease; }
 .row.drop-target { outline: 2px dashed var(--acc); outline-offset: 2px; }
 
 .c-name b { display: block; font-weight: 600; font-size: 14.5px; color: var(--ink); }
@@ -831,46 +831,7 @@ function bindStock() {
   };
 }
 
-function bindStockReorder() {
-  const list = $('#list');
-  if (!list) return;
-  let dragged = null;
-  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
-    handle.onclick = e => e.stopPropagation();
-    handle.onpointerdown = e => {
-      if (handle.disabled) return;
-      e.preventDefault(); e.stopPropagation();
-      dragged = handle.closest('.row');
-      dragged.classList.add('is-dragging');
-      handle.setPointerCapture(e.pointerId);
-    };
-    handle.onpointermove = e => {
-      if (!dragged) return;
-      const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.row');
-      if (!target || target === dragged || target.parentElement !== list) return;
-      const box = target.getBoundingClientRect();
-      list.insertBefore(dragged, e.clientY < box.top + box.height / 2 ? target : target.nextSibling);
-      list.querySelectorAll('.row').forEach(row => row.classList.toggle('drop-target', row === target));
-    };
-    const finish = e => {
-      if (!dragged) return;
-      const moved = dragged;
-      moved.classList.remove('is-dragging');
-      list.querySelectorAll('.row').forEach(row => row.classList.remove('drop-target'));
-      dragged = null;
-      if (e.type === 'pointerup') {
-        const order = [...list.querySelectorAll('.row')].map(row => row.dataset.id);
-        const byId = new Map(P.map(product => [product.id, product]));
-        if (order.length === P.length && order.some((id, index) => id !== P[index]?.id)) {
-          P = order.map(id => byId.get(id)).filter(Boolean);
-          save(); toast('บันทึกลำดับวัตถุดิบแล้ว');
-        }
-      } else render();
-    };
-    handle.onpointerup = finish;
-    handle.onpointercancel = finish;
-  });
-}
+function bindStockReorder(){const list=$('#list');if(!list)return;let drag=null,frame=0;const animateRows=before=>{const deltas=[];for(const [row,top] of before){if(!row.isConnected||row.classList.contains('is-dragging'))continue;const delta=top-row.getBoundingClientRect().top;if(Math.abs(delta)>1)deltas.push([row,delta])}if(!deltas.length)return;for(const [row,delta] of deltas){row.style.transition='none';row.style.transform='translate3d(0,'+delta+'px,0)'}requestAnimationFrame(()=>{for(const [row] of deltas){row.style.transition='';row.style.transform=''}})};const placePlaceholder=y=>{if(!drag?.placeholder)return;const siblings=[...list.children].filter(row=>row!==drag.row&&row!==drag.placeholder);const before=new Map(siblings.map(row=>[row,row.getBoundingClientRect().top]));const next=siblings.find(row=>{const box=row.getBoundingClientRect();return y<box.top+box.height/2})||null;if(drag.placeholder.nextElementSibling===next)return;list.insertBefore(drag.placeholder,next);animateRows(before)};const scheduleFrame=()=>{if(frame)return;frame=requestAnimationFrame(()=>{frame=0;if(!drag?.active)return;const y=drag.lastY,edge=76;let speed=0;if(y<edge)speed=-Math.min(15,Math.ceil((edge-y)*.22));else if(y>innerHeight-edge)speed=Math.min(15,Math.ceil((y-(innerHeight-edge))*.22));if(speed)window.scrollBy(0,speed);drag.row.style.transform='translate3d(0,'+(drag.lastY-drag.startY)+'px,0)';placePlaceholder(drag.lastY);if(speed)scheduleFrame()})};const restore=row=>{row.classList.remove('is-dragging');for(const key of ['position','left','top','width','height','margin','zIndex','pointerEvents','transform','transition','willChange'])row.style[key]=''};list.querySelectorAll('[data-drag-handle]').forEach(handle=>{handle.onclick=e=>e.stopPropagation();handle.onpointerdown=e=>{if(handle.disabled||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;e.preventDefault();e.stopPropagation();const row=handle.closest('.row');if(!row)return;drag={row,handle,pointerId:e.pointerId,startY:e.clientY,lastY:e.clientY,active:false,placeholder:null,originalOrder:[...list.querySelectorAll('.row')].map(item=>item.dataset.id)};try{handle.setPointerCapture(e.pointerId)}catch(_){}};handle.onpointermove=e=>{if(!drag||e.pointerId!==drag.pointerId)return;drag.lastY=e.clientY;if(!drag.active&&Math.abs(drag.lastY-drag.startY)<5)return;if(!drag.active){const box=drag.row.getBoundingClientRect();drag.placeholder=document.createElement('div');drag.placeholder.className='row-placeholder';drag.placeholder.style.height=box.height+'px';drag.placeholder.setAttribute('aria-hidden','true');list.insertBefore(drag.placeholder,drag.row);Object.assign(drag.row.style,{position:'fixed',left:box.left+'px',top:box.top+'px',width:box.width+'px',height:box.height+'px',margin:'0',zIndex:'1000',pointerEvents:'none',transition:'none',willChange:'transform'});drag.row.classList.add('is-dragging');list.classList.add('is-reordering');drag.active=true}e.preventDefault();scheduleFrame()};const finish=e=>{if(!drag||e.pointerId!==drag.pointerId)return;if(frame){cancelAnimationFrame(frame);frame=0}const current=drag,commit=e.type==='pointerup'&&current.active;if(current.active){placePlaceholder(current.lastY);if(commit&&current.placeholder?.parentElement===list)list.insertBefore(current.row,current.placeholder);current.placeholder?.remove();restore(current.row);list.classList.remove('is-reordering')}drag=null;if(commit){const order=[...list.querySelectorAll('.row')].map(row=>row.dataset.id),byId=new Map(P.map(product=>[product.id,product]));if(order.length===P.length&&order.some((id,index)=>id!==P[index]?.id)){P=order.map(id=>byId.get(id)).filter(Boolean);save();toast('บันทึกลำดับวัตถุดิบแล้ว')}}else if(current.active){const rowsById=new Map([...list.querySelectorAll('.row')].map(row=>[row.dataset.id,row]));for(const id of current.originalOrder)if(rowsById.has(id))list.appendChild(rowsById.get(id))}};handle.onpointerup=finish;handle.onpointercancel=finish})}
 
 function exportCSV() {
   const headers = ['รหัส', 'ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ที่เก็บ', 'สถานะ'];
