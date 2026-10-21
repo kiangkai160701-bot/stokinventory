@@ -405,6 +405,17 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
   .fab .fab-label{display:none}
 }
 @media(max-width:380px){.ov:has(#pf) .sheet{padding-left:14px;padding-right:14px}.ov:has(#pf) .g2{grid-template-columns:1fr;gap:0}.ov:has(#pf) .acts{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}}
+
+/* Smoother motion and slightly larger logo mark */
+.brand-badge{width:34px;height:34px;font-size:15px}
+#main.page-next,#main.page-prev{animation-duration:.5s;animation-timing-function:cubic-bezier(.2,.82,.25,1)}
+.ov{animation-duration:.38s;transition-duration:.34s}
+.sheet{animation-duration:.52s;animation-timing-function:cubic-bezier(.18,.86,.25,1);transition-duration:.36s;transition-timing-function:cubic-bezier(.25,.8,.25,1)}
+.toast{transition-duration:.32s}
+.row,.btn,.filter-stat,.icon-tool,.theme-opt,.dtabs button,.me-btn,.nav button,.seg span{transition-duration:.3s!important;transition-timing-function:cubic-bezier(.2,.82,.25,1)!important}
+.list.is-reordering .row:not(.is-dragging){transition-duration:.18s!important}
+@media(max-width:680px){.brand-badge{width:32px;height:32px;font-size:14px}}
+@media(prefers-reduced-motion:reduce){#main.page-next,#main.page-prev,.ov,.sheet{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1286,6 +1297,5 @@ function pinModal(force) {
 </script>
 </body>
 </html>
-
 
 
