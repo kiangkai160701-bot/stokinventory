@@ -420,16 +420,16 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 /* Compact stock rows for mobile without hiding useful details */
 @media(max-width:680px){
   .list{gap:6px}
-  .row{grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 11px 7px;border-radius:15px}
+  .row{grid-template-columns:minmax(0,1fr) 148px;gap:2px 8px;align-items:center;padding:8px 11px 7px;border-radius:15px}
   .row::before{top:8px;bottom:8px}
   .c-name{min-width:0;padding-left:25px}
   .c-name b{font-size:13.5px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .c-name small{font-size:10px;line-height:1.2}
-  .c-qty{display:flex;align-items:center;gap:5px;min-width:max-content;white-space:nowrap}
-  .c-qty b{font-size:15.5px;line-height:1.2}
-  .c-qty>small{font-size:10px}
-  .c-qty .meter{width:30px;height:4px;margin:0}
-  .c-qty .pill{font-size:9px;padding:1px 6px}
+  .c-qty{display:grid;grid-template-columns:5ch auto 1fr;grid-template-rows:auto 4px;align-items:center;column-gap:5px;row-gap:3px;width:148px;min-width:0;white-space:nowrap}
+  .c-qty b{grid-column:1;grid-row:1;width:5ch;text-align:right;font-size:15.5px;line-height:1.2;font-variant-numeric:tabular-nums}
+  .c-qty>small{grid-column:2;grid-row:1;font-size:10px}
+  .c-qty .meter{grid-column:1/-1;grid-row:2;width:100%;height:4px;margin:0}
+  .c-qty .pill{grid-column:3;grid-row:1;justify-self:end;font-size:9px;padding:1px 6px}
   .c-loc{grid-column:1/-1;padding-left:25px;font-size:10.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row-placeholder{min-height:52px}
 }
@@ -505,9 +505,12 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .user-online-badge{display:inline-flex;align-items:center;gap:5px;color:var(--ok);font-size:10px;font-weight:600;white-space:nowrap}
 .user-online-badge[hidden]{display:none}
 .user-online-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
+.user-online-badge[hidden]{display:inline-flex}
 .history-icon{line-height:1;overflow:hidden}
 .history-icon svg{width:19px;height:19px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.history-icon.in{color:var(--ok)}.history-icon.out{color:var(--bad)}
+.history-icon.in{color:var(--ok)}.history-icon.out{color:var(--bad)}.history-icon.adjust{background:var(--theme-soft);color:var(--acc)}
+.recent-movements{display:grid;gap:8px;margin-top:8px}.recent-movement{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:10px;padding:8px 10px;background:var(--theme-wash);border-radius:10px;font-size:13px}.recent-movement-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.recent-movement .amt{min-width:5ch;text-align:right;font-variant-numeric:tabular-nums;justify-self:end}
+@media(min-width:681px){.row .c-qty{justify-self:end;text-align:right}.row .c-loc{justify-self:start}}
 @media(max-width:680px){
  .tools{grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:8px}
  .tools>.srch{grid-column:1;grid-row:1;min-width:0}
@@ -725,7 +728,7 @@ function applyTheme(id) {
 }
 applyTheme(currentTheme);
 
-let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', st: '', sort: 'manual' };
+let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', sort: 'name' };
 
 async function hash(s) {
   try {
@@ -816,8 +819,8 @@ function updateOnlineUsers(users = []) {
   onlineUsers = new Set(users.map(name => String(name).trim().toLowerCase()).filter(Boolean));
   document.querySelectorAll('[data-online-user]').forEach(badge => {
     const online = onlineUsers.has(badge.dataset.onlineUser.toLowerCase());
-    badge.hidden = !online;
-    badge.textContent = online ? 'กำลังใช้งาน' : '';
+    badge.hidden = false;
+    badge.textContent = online ? 'กำลังใช้งาน' : 'Offline';
   });
 }
 async function refreshPresence() {
@@ -938,35 +941,36 @@ const STX = { ok: 'ปกติ', low: 'ใกล้หมด', out: 'หมด�
 
 function filtered() {
   const q = F.q.toLowerCase();
-  const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat) && (!F.st || status(p) === F.st));
-  const sorters = { name: (a, b) => a.name.localeCompare(b.name, 'th'), qty: (a, b) => a.qty - b.qty };
-  return F.sort === 'manual' ? list : list.sort(sorters[F.sort] || sorters.name);
+  const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat));
+  const byName = (a, b) => a.name.localeCompare(b.name, 'th');
+  const byCategory = (a, b) => a.cat.localeCompare(b.cat, 'th') || byName(a, b);
+  const statusRank = { out: 0, low: 1, ok: 2 };
+  const sorters = { name: byName, 'name-desc': (a, b) => byName(b, a), category: byCategory, 'category-desc': (a, b) => byCategory(b, a), 'qty-asc': (a, b) => a.qty - b.qty || byName(a, b), 'qty-desc': (a, b) => b.qty - a.qty || byName(a, b), 'low-first': (a, b) => statusRank[status(a)] - statusRank[status(b)] || a.qty - b.qty || byName(a, b) };
+  return list.sort(sorters[F.sort] || sorters.name);
 }
 
 function stockView() {
   const inStock = P.filter(p => p.qty > 0).length;
   const low = P.filter(p => status(p) === 'low').length;
   const out = P.filter(p => status(p) === 'out').length;
-  const allSelected = !F.st;
 
   return `<div class="stats">
-   <button class="st filter-stat ${allSelected ? 'selected' : ''}" type="button" data-stock-filter="all" aria-label="แสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${P.length}</b><small>รายการวัตถุดิบ</small></button>
+   <div class="st"><small>วัตถุดิบทั้งหมด</small><b>${P.length}</b><small>รายการวัตถุดิบ</small></div>
    <div class="st"><small>มีวัตถุดิบในคลัง</small><b>${inStock}</b><small>รายการพร้อมใช้</small></div>
-   <button class="st alert filter-stat ${F.st === 'low' ? 'selected' : ''}" type="button" data-stock-filter="low" aria-label="แสดงวัตถุดิบใกล้หมด"><small>ใกล้หมด</small><b>${low}</b><small>แตะเพื่อดูรายการ</small></button>
-   <button class="st bad filter-stat ${F.st === 'out' ? 'selected' : ''}" type="button" data-stock-filter="out" aria-label="แสดงวัตถุดิบหมดสต็อก"><small>หมดสต็อก</small><b>${out}</b><small>แตะเพื่อดูรายการ</small></button>
+   <div class="st alert"><small>ใกล้หมด</small><b>${low}</b><small>รายการ</small></div>
+   <div class="st bad"><small>หมดสต็อก</small><b>${out}</b><small>รายการ</small></div>
   </div>
   <div class="tools">
    <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อหรือหมวดหมู่..." value="${esc(F.q)}"></div>
    <div class="flt">
     <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-    <select id="fs" aria-label="สถานะ"><option value="">ทุกสถานะ</option>${Object.entries(STX).map(([k, v]) => `<option value="${k}" ${F.st === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
-    <select id="fo" aria-label="เรียงลำดับ">${[['manual', 'ลำดับที่จัดเอง'], ['name', 'เรียงตามชื่อ'], ['qty', 'จำนวนน้อยสุด']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+    <select id="fo" aria-label="เรียงลำดับ">${[['name', 'ชื่อวัตถุดิบ ก–ฮ'], ['name-desc', 'ชื่อวัตถุดิบ ฮ–ก'], ['category', 'หมวดหมู่ ก–ฮ'], ['category-desc', 'หมวดหมู่ ฮ–ก'], ['qty-asc', 'คงเหลือ น้อยไปมาก'], ['qty-desc', 'คงเหลือ มากไปน้อย'], ['low-first', 'หมดและใกล้หมดก่อน']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
    </div>
    <div class="stock-actions" style="display:flex;gap:8px">
     ${can.edit() ? `<button class="btn fab" id="add" aria-label="เพิ่มวัตถุดิบ" title="เพิ่มวัตถุดิบ">${ic('plus')}<span class="fab-label"> เพิ่มวัตถุดิบ</span></button>` : ''}
    </div>
   </div>
-  <div class="head"><span>วัตถุดิบ</span><span>ซัพพลายเออร์</span><span>คงเหลือ</span></div>
+  <div class="head"><span>วัตถุดิบ</span><span>คงเหลือ</span><span>ซัพพลายเออร์</span></div>
   <div class="list" id="list">${rows()}</div>`;
 }
 
@@ -976,7 +980,7 @@ function rows() {
   return list.map(p => {
     const state = status(p);
     const width = Math.min(100, Math.round((p.qty / Math.max(p.min * 3, 1)) * 100));
-    const canReorder = F.sort === 'manual' && !F.q && !F.cat && !F.st;
+    const canReorder = false;
     return `<article class="row ${state}" data-id="${esc(p.id)}">
     <button type="button" class="drag-handle" data-drag-handle aria-label="แตะค้างแล้วลากเพื่อจัดลำดับ" title="แตะค้างแล้วลากเพื่อจัดลำดับ" ${canReorder ? '' : 'disabled'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small></div>
@@ -990,11 +994,7 @@ function bindStock() {
   const refreshList = () => { $('#list').innerHTML = rows(); };
   $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
   $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
-  $('#fs').onchange = e => { F.st = e.target.value; render(); };
   $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
-  document.querySelectorAll('[data-stock-filter]').forEach(button => {
-    button.onclick = () => { F.q = ''; F.cat = ''; F.st = button.dataset.stockFilter === 'all' ? '' : button.dataset.stockFilter; render(); };
-  });
   if ($('#add')) $('#add').onclick = () => prodModal();
   bindStockReorder();
   $('#list').onclick = e => {
@@ -1065,8 +1065,8 @@ function dashboardView() {
     </div>
     <div class="dash-card">
       <h3>🍣 รายการเคลื่อนไหวล่าสุด</h3>
-      <div style="display:grid;gap:8px;margin-top:8px;">
-        ${L.slice(0, 4).map(x => `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff7f8;border-radius:10px;font-size:13px;"><div><b>${esc(x.pname)}</b> <small>(${x.type === 'in' ? 'รับเข้า' : x.type === 'out' ? 'เบิกจ่าย' : x.type === 'delete' ? 'ลบรายการ' : 'ปรับยอด'})</small></div><div class="amt ${x.type === 'in' ? 'in' : 'out'}">${x.type === 'in' ? '+' : '-'}${num(Math.abs(x.amt || 0))}</div></div>`).join('') || '<small style="color:var(--mute)">ยังไม่มีประวัติการทำรายการ</small>'}
+      <div class="recent-movements">
+        ${L.slice(0, 4).map(x => `<div class="recent-movement"><div class="recent-movement-name"><b>${esc(x.pname)}</b> <small>(${x.type === 'in' ? 'รับเข้า' : x.type === 'out' ? 'เบิกจ่าย' : x.type === 'delete' ? 'ลบรายการ' : 'ปรับยอด'})</small></div><div class="amt ${x.type === 'in' ? 'in' : 'out'}">${x.type === 'in' ? '+' : '-'}${num(Math.abs(x.amt || 0))}</div></div>`).join('') || '<small style="color:var(--mute)">ยังไม่มีประวัติการทำรายการ</small>'}
       </div>
     </div>
   </div>`;
@@ -1352,12 +1352,12 @@ function logView() {
   const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
   const dateFilter = new URLSearchParams(location.search).get('historyDate') || '';
   const l = L.filter(x => !dateFilter || localDateKey(x.ts) === dateFilter).slice(0, 300);
-  const LT = { in: ['รับเข้า', 'in', '📥', 'เพิ่มเข้าคลัง'], out: ['เบิกจ่าย', 'out', '📤', 'นำออกจากคลัง'], adjust: ['ปรับยอด', '', '🧮', 'ตรวจนับ'], create: ['เพิ่มวัตถุดิบ', '', '🍣', 'สร้างรายการ'], edit: ['แก้ไขข้อมูล', '', '✏️', 'ปรับรายละเอียด'], delete: ['ลบวัตถุดิบ', 'out', '🗑️', 'นำรายการออก'] };
+  const LT = { in: ['รับเข้า', 'in', '📥', 'เพิ่มเข้าคลัง'], out: ['เบิกจ่าย', 'out', '📤', 'นำออกจากคลัง'], adjust: ['ปรับยอด', 'adjust', '🧮', 'ตรวจนับ'], create: ['เพิ่มวัตถุดิบ', '', '🍣', 'สร้างรายการ'], edit: ['แก้ไขข้อมูล', '', '✏️', 'ปรับรายละเอียด'], delete: ['ลบวัตถุดิบ', 'out', '🗑️', 'นำรายการออก'] };
   return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>${dateFilter ? 'รายการวันที่เลือก' : 'รายการล่าสุด'} ${l.length} รายการ · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
   `<div class="history-filter"><label for="historyDate">📅 เลือกวันที่</label><input id="historyDate" type="date" value="${dateFilter}" aria-label="เลือกวันที่กรองประวัติ"><button type="button" id="clearHistoryDate">แสดงทั้งหมด</button><small>${dateFilter ? 'กรองตามวันที่ที่เลือก' : 'แสดงย้อนหลังได้สูงสุด 300 รายการ'}</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
-    const movementIcon = x.type === 'in' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v9M12 12V7m-3 3 3-3 3 3"/></svg>' : x.type === 'out' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v6m-3-3 3 3 3-3"/></svg>' : t[2];
+    const movementIcon = x.type === 'in' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4zM8 10V6h8v4m-4-5v10m-3-3 3 3 3-3"/></svg>' : x.type === 'out' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4zM8 10V6h8v4m-4 7V3m-3 3 3-3 3 3"/></svg>' : x.type === 'adjust' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v3h3v15H4V6h3zM8 11h8M8 15h5m-5 4 2 2 4-4"/></svg>' : t[2];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
     const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
@@ -1379,7 +1379,7 @@ document.addEventListener('click', e => {
 
 function usersView() {
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
-  <div class="list">${U.map(u => `<div class="card"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}" hidden></span></div>
+  <div class="list">${U.map(u => `<div class="card"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}</div>
   <div style="display:flex;gap:6px">${can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
