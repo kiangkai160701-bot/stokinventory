@@ -530,6 +530,25 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
  .recent-movement-name small{font-size:9px}.recent-movement .amt{font-size:12px}
  .c-loc{padding-left:0}
 }
+/* Refined history badges/icons and segmented stock-level indicator */
+.history-title{justify-content:flex-start;gap:7px}
+.history-badge{display:inline-flex!important;align-items:center;justify-content:center;width:max-content!important;flex:0 0 auto;padding:3px 9px!important;line-height:1.35;white-space:nowrap;border:1px solid color-mix(in srgb,var(--ok) 20%,transparent)}
+.history-badge.in{background:var(--ok-bg)!important;color:var(--ok)!important;border-color:color-mix(in srgb,var(--ok) 24%,transparent)}
+.history-badge.out{background:var(--bad-bg)!important;color:var(--bad)!important;border-color:color-mix(in srgb,var(--bad) 22%,transparent)}
+.history-icon{display:grid;place-items:center;justify-self:center;align-self:center;overflow:hidden}
+.history-icon svg{display:block;width:20px;height:20px;margin:0;transform:none!important;flex:none}
+.c-qty{display:grid;grid-template-columns:5ch auto auto;grid-template-rows:auto auto;align-items:center;column-gap:6px;row-gap:4px}
+.c-qty>b{grid-column:1;grid-row:1;width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.c-qty>small{grid-column:2;grid-row:1}
+.c-qty>.pill{grid-column:3;grid-row:1;justify-self:end}
+.c-qty .stock-dots{grid-column:1/-1;grid-row:2;justify-self:end;display:flex;align-items:center;justify-content:flex-end;gap:4px;min-height:11px;margin:5px 0 4px;padding:1px 0}
+.stock-dot{display:block;width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:var(--line);box-shadow:inset 0 0 0 1px rgba(80,55,70,.06);transition:background-color .2s,transform .2s,box-shadow .2s}
+.stock-dots.ok .stock-dot.on{background:var(--ok);box-shadow:0 1px 4px color-mix(in srgb,var(--ok) 30%,transparent)}
+.stock-dots.low .stock-dot.on{background:var(--warn);box-shadow:0 1px 4px color-mix(in srgb,var(--warn) 30%,transparent)}
+.stock-dots.out .stock-dot.on{background:var(--bad);box-shadow:0 1px 4px color-mix(in srgb,var(--bad) 30%,transparent)}
+.c-qty .meter{display:none!important}
+@media(max-width:680px){.history-title{gap:6px}.history-badge{padding:2px 8px!important}.history-icon svg{width:19px;height:19px}.c-qty{grid-template-columns:5ch auto auto;grid-template-rows:auto auto;row-gap:5px}.c-qty .stock-dots{gap:4px;margin-top:6px;margin-bottom:4px}}
+
 </style>
 </head>
 <body data-theme="teal">
@@ -991,10 +1010,11 @@ function rows() {
   if (!list.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
   return list.map(p => {
     const state = status(p);
-    const width = Math.min(100, Math.round((p.qty / Math.max(p.min * 3, 1)) * 100));
+    const level = Math.max(1, Math.min(5, Math.ceil((p.qty / Math.max(p.min * 3, 1)) * 5)));
+    const dots = Array.from({ length: 5 }, (_, i) => `<i class="stock-dot${i < level ? ' on' : ''}" aria-hidden="true"></i>`).join('');
     return `<article class="row ${state}" data-id="${esc(p.id)}">
     <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small></div>
-    <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><i class="meter"><u style="width:${width}%"></u></i><span class="pill p-${state}">${STX[state]}</span></div>
+    <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><span class="stock-dots ${state}" role="img" aria-label="${STX[state]} · ${p.qty} ${esc(p.unit)}">${dots}</span><span class="pill p-${state}">${STX[state]}</span></div>
     <div class="c-loc">📍 ${esc(p.loc || '-')}</div>
    </article>`;
   }).join('');
@@ -1367,7 +1387,7 @@ function logView() {
   `<div class="history-filter"><label for="historyDate">📅 เลือกวันที่</label><input id="historyDate" type="date" value="${dateFilter}" aria-label="เลือกวันที่กรองประวัติ"><button type="button" id="clearHistoryDate">แสดงทั้งหมด</button><small>${dateFilter ? 'กรองตามวันที่ที่เลือก' : 'แสดงย้อนหลังได้สูงสุด 300 รายการ'}</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
-    const movementIcon = x.type === 'in' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4zM8 10V6h8v4M12 3v9m-3-3 3 3 3-3"/></svg>' : x.type === 'out' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10h16v10H4zM8 10V6h8v4M12 17V8m-3 3 3-3 3 3"/></svg>' : x.type === 'adjust' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v3h3v15H4V6h3zM8 11h8M8 15h5m-5 4 2 2 4-4"/></svg>' : t[2];
+    const movementIcon = x.type === 'in' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.5h15v9h-15zM8 10.5V7h8v3.5M12 2.5v9m-3-3 3 3 3-3"/></svg>' : x.type === 'out' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 10.5h15v9h-15zM8 10.5V7h8v3.5M12 17V8m-3 3 3-3 3 3"/></svg>' : x.type === 'adjust' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v3h3v15H4V6h3zM8 11h8M8 15h5m-5 4 2 2 4-4"/></svg>' : t[2];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
     const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
