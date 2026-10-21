@@ -537,8 +537,8 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .history-badge.out{background:var(--bad-bg)!important;color:var(--bad)!important;border-color:color-mix(in srgb,var(--bad) 22%,transparent)}
 .history-icon{display:grid;place-items:center;justify-self:center;align-self:center;overflow:hidden}
 .history-icon svg{display:block;width:20px;height:20px;margin:0;transform:none!important;flex:none}
-.c-qty{display:grid;grid-template-columns:5ch auto auto;grid-template-rows:auto auto;align-items:center;column-gap:6px;row-gap:4px}
-.c-qty>b{grid-column:1;grid-row:1;width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+.c-qty{display:grid;grid-template-columns:5ch auto auto;grid-template-rows:auto auto;align-items:center;column-gap:8px;row-gap:4px;min-width:145px;width:max-content}
+.c-qty>b{grid-column:1;grid-row:1;width:5ch;text-align:right;justify-self:end;font-variant-numeric:tabular-nums}
 .c-qty>small{grid-column:2;grid-row:1}
 .c-qty>.pill{grid-column:3;grid-row:1;justify-self:end}
 .c-qty .stock-dots{grid-column:1/-1;grid-row:2;justify-self:end;display:flex;align-items:center;justify-content:flex-end;gap:4px;min-height:11px;margin:5px 0 4px;padding:1px 0}
@@ -547,7 +547,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .stock-dots.low .stock-dot.on{background:var(--warn);box-shadow:0 1px 4px color-mix(in srgb,var(--warn) 30%,transparent)}
 .stock-dots.out .stock-dot.on{background:var(--bad);box-shadow:0 1px 4px color-mix(in srgb,var(--bad) 30%,transparent)}
 .c-qty .meter{display:none!important}
-@media(max-width:680px){.history-title{gap:6px}.history-badge{padding:2px 8px!important}.history-icon svg{width:19px;height:19px}.c-qty{grid-template-columns:5ch auto auto;grid-template-rows:auto auto;row-gap:5px}.c-qty .stock-dots{gap:4px;margin-top:6px;margin-bottom:4px}}
+@media(max-width:680px){.history-title{gap:6px}.history-badge{padding:2px 8px!important}.history-icon svg{width:19px;height:19px}.c-qty{grid-template-columns:5ch auto 1fr;grid-template-rows:auto auto;column-gap:5px;row-gap:5px;width:148px;min-width:0}.c-qty .stock-dots{gap:4px;margin-top:6px;margin-bottom:4px}}
 
 </style>
 </head>
