@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>ไขหวานบ้านซูชิ | ระบบจัดการสต็อกวัตถุดิบ</title>
+<title>ไข่หวานบ้านซูชิ | ระบบจัดการสต็อกวัตถุดิบ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -357,11 +357,11 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
 <section id="login">
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
-      <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไขหวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
+      <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
       <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span>สาขาพันท้ายนรสิงห์</span></h2></div>
       <div class="sushi-friends" aria-hidden="true"><span class="sushi-friend">🍣<i>•ᴗ•</i></span><span class="sushi-friend">🍙<i>•ᴗ•</i></span><span class="sushi-friend">🍤</span></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
-      <div class="story-foot"><span>ไขหวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
+      <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
     </div>
     <form class="lg" id="lgForm" autocomplete="on">
       <div class="lg-header">
@@ -382,7 +382,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
     <div class="brand">
       <div class="brand-badge">🍣</div>
       <div>
-        ไขหวานบ้านซูชิ
+        ไข่หวานบ้านซูชิ
         <small id="clock">กำลังโหลดเวลา...</small>
       </div>
     </div>
@@ -413,8 +413,39 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
 const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
 const cloudTokenStore = {
-  get() { try { return sessionStorage.getItem('inv_cloud_session'); } catch { return null; } },
-  set(v) { try { v ? sessionStorage.setItem('inv_cloud_session', v) : sessionStorage.removeItem('inv_cloud_session'); } catch {} }
+  key: 'inv_cloud_session',
+  nextSaturdayMidnight(from = new Date()) {
+    const date = new Date(from);
+    const daysUntilSaturday = (6 - date.getDay() + 7) % 7 || 7;
+    date.setDate(date.getDate() + daysUntilSaturday);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  },
+  getSession() {
+    try {
+      const raw = localStorage.getItem(this.key);
+      if (!raw) return null;
+      let session;
+      try { session = JSON.parse(raw); } catch { session = { token: raw }; }
+      if (!session || typeof session.token !== 'string' || !session.token) { localStorage.removeItem(this.key); return null; }
+      // อัปเกรด token เดิมให้จำกัดอายุและกำหนดออกจากระบบคืนวันเสาร์ตามเวลาของเครื่อง
+      if (!Number.isFinite(session.expiresAt) || !Number.isFinite(session.logoutAt)) {
+        const now = Date.now();
+        session = { token: session.token, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
+        localStorage.setItem(this.key, JSON.stringify(session));
+      }
+      if (Date.now() >= session.expiresAt || Date.now() >= session.logoutAt) { localStorage.removeItem(this.key); return null; }
+      return session;
+    } catch { return null; }
+  },
+  get() { return this.getSession()?.token || null; },
+  set(v) {
+    try {
+      if (!v) { localStorage.removeItem(this.key); return; }
+      const now = Date.now();
+      localStorage.setItem(this.key, JSON.stringify({ token: v, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) }));
+    } catch {}
+  }
 };
 let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false;
 async function cloudRpc(name, args = {}) {
@@ -523,9 +554,10 @@ const save = () => {
 async function init() { U = []; P = []; L = []; syncSnapshot = null; }
 
 function checkSaturdayAutoLogout() {
-  const now = new Date();
-  if (now.getDay() === 0 && now.getHours() === 0 && now.getMinutes() === 0) {
-    if (me) { toast('🔒 ออกจากระบบอัตโนมัติตามกำหนดเวลา (เที่ยงคืนวันเสาร์)', true); setTimeout(() => logout(), 1500); }
+  const session = cloudTokenStore.getSession();
+  if (me && (!session || Date.now() >= session.logoutAt || Date.now() >= session.expiresAt)) {
+    toast('🔒 ออกจากระบบอัตโนมัติตามกำหนดเวลา (เที่ยงคืนวันเสาร์)', true);
+    setTimeout(() => logout(), 1500);
   }
 }
 
