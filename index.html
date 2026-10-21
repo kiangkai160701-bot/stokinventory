@@ -433,6 +433,41 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
   .c-loc{grid-column:1/-1;padding-left:25px;font-size:10.5px;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .row-placeholder{min-height:52px}
 }
+
+/* Compact history cards and small paired dashboard charts */
+.history-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg)}
+.history-filter label{font-size:12px;color:var(--mute);font-weight:600}
+.history-filter input{min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--ink);font:inherit}
+.history-filter button{min-height:36px;padding:6px 11px;border:1px solid var(--line);border-radius:10px;background:var(--theme-soft);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
+.history-filter small{margin-left:auto;color:var(--mute);font-size:11px}
+.history-list{gap:6px}
+.history-item{grid-template-columns:34px minmax(0,1fr) auto;gap:8px;padding:8px 10px;border-radius:13px;box-shadow:none}
+.history-icon{width:32px;height:32px;border-radius:10px;font-size:15px}
+.history-main{gap:2px}
+.history-title{gap:5px}
+.history-title b{font-size:13px}
+.history-badge{padding:2px 7px;font-size:9px}
+.history-main small,.history-result small{font-size:10px}
+.history-result{min-width:60px;gap:1px}
+.history-result strong{font-size:14px}
+.history-result span{font-size:10px}
+.dash-charts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:12px 0}
+.dash-chart{min-width:0;padding:12px;border:1px solid var(--line);border-radius:16px;background:var(--card-bg);box-shadow:var(--shadow-sm)}
+.dash-chart h3{margin:0 0 8px;font-size:12px;color:var(--ink)}
+.chart-pie-wrap{display:flex;align-items:center;justify-content:center;gap:10px;min-height:92px}
+.chart-pie{width:82px;height:82px;flex:none;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--ok) 0deg 120deg,var(--warn) 120deg 240deg,var(--bad) 240deg 360deg);position:relative}
+.chart-pie::before{content:"";position:absolute;inset:13px;border-radius:50%;background:var(--card-bg)}
+.chart-pie b{position:relative;z-index:1;font-size:15px;color:var(--ink)}
+.chart-legend{display:grid;gap:5px;font-size:10px;color:var(--mute)}
+.chart-legend span{display:flex;align-items:center;gap:5px;white-space:nowrap}
+.chart-dot{width:7px;height:7px;border-radius:50%;background:var(--dot)}
+.chart-bars{height:92px;display:flex;align-items:flex-end;justify-content:space-around;gap:5px;padding:5px 1px 0;border-bottom:1px solid var(--line)}
+.chart-day{flex:1;min-width:0;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px}
+.chart-sticks{height:65px;width:100%;display:flex;align-items:center;justify-content:center;gap:2px}
+.chart-stick{width:7px;max-height:62px;min-height:4px;border-radius:4px;background:var(--ok);position:relative;transition:height .45s cubic-bezier(.2,.75,.25,1)}
+.chart-stick.out{background:var(--bad)}
+.chart-day small{font-size:9px;color:var(--mute)}
+@media(max-width:380px){.dash-chart{padding:9px}.chart-pie-wrap{gap:6px}.chart-pie{width:70px;height:70px}.chart-pie::before{inset:11px}.chart-legend{font-size:9px}.history-filter small{width:100%;margin-left:0}}
 </style>
 </head>
 <body data-theme="teal">
@@ -900,6 +935,17 @@ function dashboardView() {
   const inCount = L.filter(x => x.type === 'in').length;
   const outCount = L.filter(x => x.type === 'out').length;
   const adjustCount = L.filter(x => x.type === 'adjust').length;
+  const chartDays = Array.from({ length: 7 }, (_, i) => {
+    const day = new Date(); day.setHours(0, 0, 0, 0); day.setDate(day.getDate() - (6 - i));
+    const next = new Date(day); next.setDate(next.getDate() + 1);
+    const logs = L.filter(x => { const ts = new Date(x.ts); return ts >= day && ts < next; });
+    return { label: day.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' }), in: logs.filter(x => x.type === 'in').length, out: logs.filter(x => x.type === 'out').length };
+  });
+  const maxMoves = Math.max(1, ...chartDays.flatMap(d => [d.in, d.out]));
+  const pieTotal = Math.max(1, totalItems);
+  const readyCount = P.filter(p => status(p) === 'ok').length;
+  const inPct = readyCount / pieTotal * 100, lowPct = lowCount / pieTotal * 100;
+  const pieA = inPct * 3.6, pieB = (inPct + lowPct) * 3.6;
 
   return `<div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>ข้อมูลวัตถุดิบและการเคลื่อนไหวในคลัง</small></div>
   <div class="stats">
@@ -907,6 +953,10 @@ function dashboardView() {
     <div class="st"><small>มีวัตถุดิบในคลัง</small><b>${inStockItems}</b><small>รายการพร้อมใช้</small></div>
     <div class="st ${lowCount ? 'alert' : ''}"><small>ใกล้หมด</small><b>${lowCount}</b><small>รายการ</small></div>
     <div class="st ${outCountItems ? 'bad' : ''}"><small>หมดสต็อก</small><b>${outCountItems}</b><small>รายการ</small></div>
+  </div>
+  <div class="dash-charts">
+    <section class="dash-chart"><h3>🍣 สถานะวัตถุดิบ</h3><div class="chart-pie-wrap"><div class="chart-pie" style="background:conic-gradient(var(--ok) 0deg ${pieA}deg,var(--warn) ${pieA}deg ${pieB}deg,var(--bad) ${pieB}deg 360deg)"><b>${totalItems}</b></div><div class="chart-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>ปกติ ${readyCount}</span><span><i class="chart-dot" style="--dot:var(--warn)"></i>ใกล้หมด ${lowCount}</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>หมด ${outCountItems}</span></div></div></section>
+    <section class="dash-chart"><h3>📊 รับเข้า · เบิกจ่าย 7 วัน</h3><div class="chart-bars">${chartDays.map(d => `<div class="chart-day"><div class="chart-sticks"><i class="chart-stick" title="รับเข้า ${d.in} ครั้ง" style="height:${Math.max(d.in ? 8 : 3, d.in / maxMoves * 62)}px"></i><i class="chart-stick out" title="เบิกจ่าย ${d.out} ครั้ง" style="height:${Math.max(d.out ? 8 : 3, d.out / maxMoves * 62)}px"></i></div><small>${d.label}</small></div>`).join('')}</div></section>
   </div>
   <div class="dash-grid">
     <div class="dash-card">
@@ -1196,17 +1246,32 @@ function prodModal(id, draft = {}) {
 }
 
 function logView() {
-  const l = L.slice(0, 150);
+  const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+  const dateFilter = new URLSearchParams(location.search).get('historyDate') || '';
+  const l = L.filter(x => !dateFilter || localDateKey(x.ts) === dateFilter).slice(0, 300);
   const LT = { in: ['รับเข้า', 'in', '📥', 'เพิ่มเข้าคลัง'], out: ['เบิกจ่าย', 'out', '📤', 'นำออกจากคลัง'], adjust: ['ปรับยอด', '', '🧮', 'ตรวจนับ'], create: ['เพิ่มวัตถุดิบ', '', '🍣', 'สร้างรายการ'], edit: ['แก้ไขข้อมูล', '', '✏️', 'ปรับรายละเอียด'], delete: ['ลบวัตถุดิบ', 'out', '🗑️', 'นำรายการออก'] };
-  return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>รายการล่าสุด ${l.length} รายการ · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
+  return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>${dateFilter ? 'รายการวันที่เลือก' : 'รายการล่าสุด'} ${l.length} รายการ · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
+  `<div class="history-filter"><label for="historyDate">📅 เลือกวันที่</label><input id="historyDate" type="date" value="${dateFilter}" aria-label="เลือกวันที่กรองประวัติ"><button type="button" id="clearHistoryDate">แสดงทั้งหมด</button><small>${dateFilter ? 'กรองตามวันที่ที่เลือก' : 'แสดงย้อนหลังได้สูงสุด 300 รายการ'}</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
     const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
     return `<article class="history-item"><div class="history-icon ${t[1]}">${t[2]}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small></div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
-  }).join('')}</div>` : `<div class="empty"><b>ยังไม่มีประวัติ</b>รายการจะปรากฏที่นี่เมื่อมีการทำรายการ</div>`);
+  }).join('')}</div>` : `<div class="empty"><b>${dateFilter ? 'ไม่พบรายการในวันที่เลือก' : 'ยังไม่มีประวัติ'}</b>${dateFilter ? 'ลองเลือกวันอื่น หรือกดแสดงทั้งหมด' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`);
 }
+
+document.addEventListener('change', e => {
+  if (e.target.id !== 'historyDate') return;
+  const url = new URL(location.href); const value = e.target.value;
+  if (value) url.searchParams.set('historyDate', value); else url.searchParams.delete('historyDate');
+  history.pushState({}, '', url); render();
+});
+document.addEventListener('click', e => {
+  if (e.target.closest('#clearHistoryDate')) {
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); history.pushState({}, '', url); render();
+  }
+});
 
 function usersView() {
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
@@ -1314,4 +1379,3 @@ function pinModal(force) {
 </script>
 </body>
 </html>
-
