@@ -907,8 +907,8 @@ function bindSettings() {
       syncQueue = syncQueue.then(async () => {
         try {
           const result = await cloudRpc('api_set_theme', { p_token: cloudToken, p_theme: currentTheme });
-          if (!result.ok) toast(result.error || 'Theme sync failed', 1);
-        } catch (error) { toast(error.message || 'Theme sync failed', 1); }
+          if (!result.ok) toast(result.error || 'บันทึกธีมส่วนกลางไม่สำเร็จ', 1);
+        } catch (error) { toast(error.message || 'บันทึกธีมส่วนกลางไม่สำเร็จ', 1); }
       });
     }
   };
