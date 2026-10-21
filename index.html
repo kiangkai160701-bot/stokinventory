@@ -197,6 +197,19 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 }
 .row.low::before { background: var(--warn); }
 .row.out::before { background: var(--bad); }
+.c-name { padding-left: 28px; }
+.drag-handle {
+  position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+  width: 28px; height: 38px; display: grid; place-items: center;
+  color: var(--mute); border-radius: 9px; cursor: grab; touch-action: none;
+  user-select: none; -webkit-user-select: none; transition: color .18s, background .18s, opacity .18s;
+}
+.drag-handle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.drag-handle:not(:disabled):hover { color: var(--acc-hover); background: var(--acc-light); }
+.drag-handle:active { cursor: grabbing; }
+.drag-handle:disabled { opacity: .32; cursor: not-allowed; }
+.row.is-dragging { opacity: .55; z-index: 2; border-color: var(--acc); box-shadow: 0 12px 28px var(--theme-shadow); }
+.row.drop-target { outline: 2px dashed var(--acc); outline-offset: 2px; }
 
 .c-name b { display: block; font-weight: 600; font-size: 14.5px; color: var(--ink); }
 .c-name small { color: var(--mute); font-size: 11.5px; }
@@ -580,7 +593,7 @@ function applyTheme(id) {
 }
 applyTheme(currentTheme);
 
-let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', st: '', sort: 'name' };
+let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', st: '', sort: 'manual' };
 
 async function hash(s) {
   try {
@@ -752,7 +765,7 @@ function filtered() {
   const q = F.q.toLowerCase();
   const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat) && (!F.st || status(p) === F.st));
   const sorters = { name: (a, b) => a.name.localeCompare(b.name, 'th'), qty: (a, b) => a.qty - b.qty };
-  return list.sort(sorters[F.sort] || sorters.name);
+  return F.sort === 'manual' ? list : list.sort(sorters[F.sort] || sorters.name);
 }
 
 function stockView() {
@@ -772,7 +785,7 @@ function stockView() {
    <div class="flt">
     <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
     <select id="fs" aria-label="สถานะ"><option value="">ทุกสถานะ</option>${Object.entries(STX).map(([k, v]) => `<option value="${k}" ${F.st === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
-    <select id="fo" aria-label="เรียงลำดับ">${[['name', 'เรียงตามชื่อ'], ['qty', 'จำนวนน้อยสุด']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+    <select id="fo" aria-label="เรียงลำดับ">${[['manual', 'ลำดับที่จัดเอง'], ['name', 'เรียงตามชื่อ'], ['qty', 'จำนวนน้อยสุด']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
    </div>
    <div style="display:flex;gap:8px">
     <button class="btn sec" id="exp">${ic('dl')} ส่งออก</button>
@@ -789,7 +802,9 @@ function rows() {
   return list.map(p => {
     const state = status(p);
     const width = Math.min(100, Math.round((p.qty / Math.max(p.min * 3, 1)) * 100));
+    const canReorder = F.sort === 'manual' && !F.q && !F.cat && !F.st;
     return `<article class="row ${state}" data-id="${esc(p.id)}">
+    <button type="button" class="drag-handle" data-drag-handle aria-label="แตะค้างแล้วลากเพื่อจัดลำดับ" title="แตะค้างแล้วลากเพื่อจัดลำดับ" ${canReorder ? '' : 'disabled'}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
     <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.id)} · ${esc(p.cat)}</small></div>
     <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><i class="meter"><u style="width:${width}%"></u></i><span class="pill p-${state}">${STX[state]}</span></div>
     <div class="c-loc">📍 ${esc(p.loc || '-')}</div>
@@ -808,10 +823,53 @@ function bindStock() {
   });
   $('#exp').onclick = exportCSV;
   if ($('#add')) $('#add').onclick = () => prodModal();
+  bindStockReorder();
   $('#list').onclick = e => {
+    if (e.target.closest('[data-drag-handle]')) return;
     const row = e.target.closest('.row');
     if (row) itemDetailModal(row.dataset.id);
   };
+}
+
+function bindStockReorder() {
+  const list = $('#list');
+  if (!list) return;
+  let dragged = null;
+  list.querySelectorAll('[data-drag-handle]').forEach(handle => {
+    handle.onclick = e => e.stopPropagation();
+    handle.onpointerdown = e => {
+      if (handle.disabled) return;
+      e.preventDefault(); e.stopPropagation();
+      dragged = handle.closest('.row');
+      dragged.classList.add('is-dragging');
+      handle.setPointerCapture(e.pointerId);
+    };
+    handle.onpointermove = e => {
+      if (!dragged) return;
+      const target = document.elementFromPoint(e.clientX, e.clientY)?.closest('.row');
+      if (!target || target === dragged || target.parentElement !== list) return;
+      const box = target.getBoundingClientRect();
+      list.insertBefore(dragged, e.clientY < box.top + box.height / 2 ? target : target.nextSibling);
+      list.querySelectorAll('.row').forEach(row => row.classList.toggle('drop-target', row === target));
+    };
+    const finish = e => {
+      if (!dragged) return;
+      const moved = dragged;
+      moved.classList.remove('is-dragging');
+      list.querySelectorAll('.row').forEach(row => row.classList.remove('drop-target'));
+      dragged = null;
+      if (e.type === 'pointerup') {
+        const order = [...list.querySelectorAll('.row')].map(row => row.dataset.id);
+        const byId = new Map(P.map(product => [product.id, product]));
+        if (order.length === P.length && order.some((id, index) => id !== P[index]?.id)) {
+          P = order.map(id => byId.get(id)).filter(Boolean);
+          save(); toast('บันทึกลำดับวัตถุดิบแล้ว');
+        }
+      } else render();
+    };
+    handle.onpointerup = finish;
+    handle.onpointercancel = finish;
+  });
 }
 
 function exportCSV() {
