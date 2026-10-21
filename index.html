@@ -493,6 +493,31 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .quantity-stepper button:active{transform:scale(.94);background:var(--theme-wash)}
 .quantity-stepper input{min-width:0;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
 @media(max-width:680px){.quantity-stepper{grid-template-columns:50px minmax(0,1fr) 50px;gap:9px}.quantity-stepper button{height:48px}}
+/* Compact stock tools, consistent quantities, mascots, and online status */
+#main{position:relative}
+#main>*:not(.page-mascots){position:relative;z-index:1}
+.page-mascots{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+.page-mascots span{position:absolute;font-size:20px;line-height:1;opacity:.25;filter:drop-shadow(0 2px 3px var(--theme-shadow,rgba(120,80,100,.15)))}
+.page-mascots span:nth-child(1){top:5px;right:13px;transform:rotate(8deg)}
+.page-mascots span:nth-child(2){top:48%;left:2px;transform:rotate(-10deg)}
+.page-mascots span:nth-child(3){right:8px;bottom:8px;transform:rotate(9deg)}
+.user-name-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.user-online-badge{display:inline-flex;align-items:center;gap:5px;color:var(--ok);font-size:10px;font-weight:600;white-space:nowrap}
+.user-online-badge[hidden]{display:none}
+.user-online-badge::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px var(--ok-bg)}
+.history-icon{line-height:1;overflow:hidden}
+.history-icon svg{width:19px;height:19px;display:block;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.history-icon.in{color:var(--ok)}.history-icon.out{color:var(--bad)}
+@media(max-width:680px){
+ .tools{grid-template-columns:minmax(0,1fr) auto;align-items:center;column-gap:8px;row-gap:8px}
+ .tools>.srch{grid-column:1;grid-row:1;min-width:0}
+ .tools>.srch .in{width:100%;min-width:0}
+ .tools>.flt{grid-column:1/-1;grid-row:2}
+ .tools>div:last-child{grid-column:2;grid-row:1;justify-content:flex-end;align-self:center}
+ .tools .fab{position:static;right:auto;bottom:auto;width:42px;height:42px;min-height:42px;padding:0;display:grid;place-items:center;border-radius:50%;font-size:18px}
+ .c-qty{justify-content:flex-end}
+ .c-qty b{flex:none;width:5ch;text-align:right;font-variant-numeric:tabular-nums}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -660,6 +685,7 @@ const defaultPermissions = role => role === 'admin'
 
 const I = {
   plus: '<path d="M12 5v14M5 12h14"/>',
+  up: '<path d="M12 20V9m-4 4 4-4 4 4M5 4h14"/>',
   search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
   box: '<path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/>',
   log: '<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
@@ -776,13 +802,45 @@ function enter(u) {
   me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
   $('#login').classList.add('hide'); $('#app').classList.remove('hide');
   $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !(u.owner || u.role === 'admin'));
-  tab = 'stock'; build(); if (u.must) pinModal(true);
+  tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
 }
 
 function logout() {
+  stopPresence();
   const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
   sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
+
+let onlineUsers = new Set(), presenceTimer = null, presenceBusy = false;
+function updateOnlineUsers(users = []) {
+  onlineUsers = new Set(users.map(name => String(name).trim().toLowerCase()).filter(Boolean));
+  document.querySelectorAll('[data-online-user]').forEach(badge => {
+    const online = onlineUsers.has(badge.dataset.onlineUser.toLowerCase());
+    badge.hidden = !online;
+    badge.textContent = online ? 'กำลังใช้งาน' : '';
+  });
+}
+async function refreshPresence() {
+  if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
+  presenceBusy = true;
+  try {
+    const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
+    if (result.ok) updateOnlineUsers(result.users || []);
+    else if (result.error?.includes('หมดเวลา')) logout();
+  } catch { /* คงสถานะล่าสุดไว้ชั่วคราวเมื่ออินเทอร์เน็ตขัดข้อง */ }
+  finally { presenceBusy = false; }
+}
+function startPresence() {
+  clearInterval(presenceTimer);
+  refreshPresence();
+  presenceTimer = setInterval(refreshPresence, 15000);
+}
+function stopPresence() {
+  clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
+  onlineUsers = new Set(); updateOnlineUsers([]);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshPresence(); });
+
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
 
@@ -838,6 +896,14 @@ document.addEventListener('click', e => {
   render(true);
 });
 
+function updatePageMascots() {
+  const main = $('#main'); if (!main || !THEMES[currentTheme]) return;
+  let decor = main.querySelector('.page-mascots');
+  if (!decor) { decor = document.createElement('div'); decor.className = 'page-mascots'; decor.setAttribute('aria-hidden', 'true'); main.prepend(decor); }
+  const friends = THEMES[currentTheme].friends || [THEMES[currentTheme].mascot || '🍣'];
+  decor.innerHTML = Array.from({ length: 3 }, (_, i) => '<span>' + friends[i % friends.length] + '</span>').join('');
+}
+
 function render(animatePage = false) {
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
@@ -848,6 +914,7 @@ function render(animatePage = false) {
   else if (tab === 'log') main.innerHTML = logView();
   else if (tab === 'users') main.innerHTML = usersView();
   else if (tab === 'settings') main.innerHTML = settingsView();
+  updatePageMascots();
   if (animatePage) {
     void main.offsetWidth;
     main.classList.add(`page-${pageDirection}`);
@@ -893,8 +960,7 @@ function stockView() {
     <select id="fs" aria-label="สถานะ"><option value="">ทุกสถานะ</option>${Object.entries(STX).map(([k, v]) => `<option value="${k}" ${F.st === k ? 'selected' : ''}>${v}</option>`).join('')}</select>
     <select id="fo" aria-label="เรียงลำดับ">${[['manual', 'ลำดับที่จัดเอง'], ['name', 'เรียงตามชื่อ'], ['qty', 'จำนวนน้อยสุด']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
    </div>
-   <div style="display:flex;gap:8px">
-    <button class="btn sec" id="exp">${ic('dl')} ส่งออก</button>
+   <div class="stock-actions" style="display:flex;gap:8px">
     ${can.edit() ? `<button class="btn fab" id="add" aria-label="เพิ่มวัตถุดิบ" title="เพิ่มวัตถุดิบ">${ic('plus')}<span class="fab-label"> เพิ่มวัตถุดิบ</span></button>` : ''}
    </div>
   </div>
@@ -927,7 +993,6 @@ function bindStock() {
   document.querySelectorAll('[data-stock-filter]').forEach(button => {
     button.onclick = () => { F.q = ''; F.cat = ''; F.st = button.dataset.stockFilter === 'all' ? '' : button.dataset.stockFilter; render(); };
   });
-  $('#exp').onclick = exportCSV;
   if ($('#add')) $('#add').onclick = () => prodModal();
   bindStockReorder();
   $('#list').onclick = e => {
@@ -1015,11 +1080,12 @@ function settingsView() {
       <div class="theme-picker" id="themePicker">${Object.values(THEMES).map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${theme.name}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${theme.name}</span></button>`).join('')}</div>
     </div>
     <div class="dash-card">
-      <h3>💾 จัดการข้อมูลสำรอง</h3>
+      <h3>จัดการข้อมูลสำรอง</h3>
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">สำรองข้อมูลหรือกู้คืนรายการสินค้าทั้งหมดในเครื่อง</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn sm sec" id="backupBtn">📥 สำรองข้อมูล</button>
-        <button class="btn sm sec" id="restoreBtn">📤 นำเข้าข้อมูล</button>
+        <button class="btn sm sec" id="backupBtn">${ic('box')} สำรองข้อมูล</button>
+        <button class="btn sm sec" id="restoreBtn">${ic('up')} นำเข้าข้อมูล</button>
+        <button class="btn sm sec" id="exportBtn">${ic('dl')} ส่งออกข้อมูล</button>
         <input type="file" id="restoreFile" accept=".json" class="hide">
       </div>
     </div>
@@ -1039,7 +1105,7 @@ function settingsView() {
 function bindSettings() {
   $('#themePicker').onclick = e => {
     const opt = e.target.closest('.theme-opt'); if (!opt) return;
-    applyTheme(opt.dataset.th);
+    applyTheme(opt.dataset.th); updatePageMascots();
     store.set('inv_theme', currentTheme);
     document.querySelectorAll('.theme-opt').forEach(o => { const selected = o.dataset.th === currentTheme; o.classList.toggle('active', selected); o.setAttribute('aria-pressed', selected); });
     toast(`เปลี่ยนเป็นธีม${THEMES[currentTheme].name}แล้ว`);
@@ -1052,6 +1118,8 @@ function bindSettings() {
       });
     }
   };
+
+  $('#exportBtn').onclick = exportCSV;
 
   $('#backupBtn').onclick = () => {
     const data = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS };
@@ -1196,8 +1264,8 @@ function itemDetailModal(id) {
     <div>สถานะ: <b>${STX[status(p)]}</b> | ซัพพลายเออร์: <b>${esc(p.loc || '-')}</b></div>
   </div>
   ${canMove ? `<form id="mf">
-   <div class="seg"><label><input type="radio" name="t" value="in" checked><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out"><span>เบิกจ่าย (-)</span></label><label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
-   <label class="fld"><span id="ml">จำนวนที่รับเข้า</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
+   <div class="seg"><label><input type="radio" name="t" value="in"><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out" checked><span>เบิกจ่าย (-)</span></label><label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
+   <label class="fld"><span id="ml">จำนวนที่ต้องการเบิกจ่ายออก</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
    <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
   </form>` : ''}
@@ -1287,10 +1355,11 @@ function logView() {
   `<div class="history-filter"><label for="historyDate">📅 เลือกวันที่</label><input id="historyDate" type="date" value="${dateFilter}" aria-label="เลือกวันที่กรองประวัติ"><button type="button" id="clearHistoryDate">แสดงทั้งหมด</button><small>${dateFilter ? 'กรองตามวันที่ที่เลือก' : 'แสดงย้อนหลังได้สูงสุด 300 รายการ'}</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
+    const movementIcon = x.type === 'in' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v9M12 12V7m-3 3 3-3 3 3"/></svg>' : x.type === 'out' ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7.5 12 3l8 4.5v9L12 21l-8-4.5zM4 7.5l8 4.5 8-4.5M12 12v6m-3-3 3 3 3-3"/></svg>' : t[2];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
     const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
-    return `<article class="history-item"><div class="history-icon ${t[1]}">${t[2]}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small></div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
+    return `<article class="history-item"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small></div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
   }).join('')}</div>` : `<div class="empty"><b>${dateFilter ? 'ไม่พบรายการในวันที่เลือก' : 'ยังไม่มีประวัติ'}</b>${dateFilter ? 'ลองเลือกวันอื่น หรือกดแสดงทั้งหมด' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`);
 }
 
@@ -1308,7 +1377,7 @@ document.addEventListener('click', e => {
 
 function usersView() {
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
-  <div class="list">${U.map(u => `<div class="card"><div class="t"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b>
+  <div class="list">${U.map(u => `<div class="card"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}" hidden></span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}</div>
   <div style="display:flex;gap:6px">${can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
