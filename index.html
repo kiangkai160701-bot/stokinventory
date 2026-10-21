@@ -499,6 +499,7 @@ function applyCloudState(state) {
   P = state.products || []; L = state.log || [];
   ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) };
   CATS = state.categories || []; UNITS = state.units || [];
+  if (state.theme) { applyTheme(state.theme); store.set('inv_theme', currentTheme); }
 }
 function migrateLegacyBrowserData(result) {
   if (result.version !== 1 || result.me?.role !== 'admin') return false;
@@ -678,7 +679,7 @@ async function refreshCloudState() {
     }
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
 }
-setInterval(refreshCloudState, 10000);
+setInterval(refreshCloudState, 2000);
 
 const can = {
   edit: () => !!me?.permissions?.editStock,
@@ -900,6 +901,14 @@ function bindSettings() {
     store.set('inv_theme', currentTheme);
     document.querySelectorAll('.theme-opt').forEach(o => { const selected = o.dataset.th === currentTheme; o.classList.toggle('active', selected); o.setAttribute('aria-pressed', selected); });
     toast(`เปลี่ยนเป็นธีม${THEMES[currentTheme].name}แล้ว`);
+    if (cloudToken) {
+      syncQueue = syncQueue.then(async () => {
+        try {
+          const result = await cloudRpc('api_set_theme', { p_token: cloudToken, p_theme: currentTheme });
+          if (!result.ok) toast(result.error || 'Theme sync failed', 1);
+        } catch (error) { toast(error.message || 'Theme sync failed', 1); }
+      });
+    }
   };
 
   $('#backupBtn').onclick = () => {
