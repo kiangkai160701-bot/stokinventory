@@ -826,11 +826,11 @@ let CATS = store.get('inv_categories', ['ปลาและอาหารทะ
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
 const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
 const defaultPermissions = role => role === 'admin'
-  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true }
+  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: true }
   : role === 'supervisor'
-    ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
-    : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
-      : { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false };
+    ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
+    : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
+      : { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false };
 
 const I = {
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -956,7 +956,7 @@ function enter(u, branch = currentBranch) {
   setCurrentBranch(branch);
   me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
   $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !(u.owner || u.role === 'admin'));
+  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess || !(u.owner || u.role === 'admin')); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
   tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
 }
 
@@ -1008,7 +1008,7 @@ async function refreshCloudState() {
     if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
     if (result.version !== syncVersion) {
       applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !(me.owner || me.role === 'admin'));
+      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess || !(me.owner || me.role === 'admin')); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
       build(); toast('ข้อมูลสต็อกอัปเดตจากเครื่องอื่นแล้ว');
     }
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
@@ -1024,6 +1024,7 @@ const can = {
   users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
   lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
   permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
+  manageBranches: () => fullAccessUser(me) || !!me?.permissions?.manageBranches,
   reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
 };
 
@@ -1520,7 +1521,7 @@ function settingsView() {
   const canViewStorage = !!(me?.owner || me?.role === 'admin');
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
-    ${me?.owner ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">ผู้ดูแลหลักจัดการได้ทุกสาขา บัญชีพนักงานถูกจำกัดให้อยู่ในสาขาที่สร้างให้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b>${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</div>`).join('')}</div></div>` : ''}
+    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">ผู้ที่ได้รับสิทธิ์นี้สามารถเพิ่มสาขาและเข้าใช้งานสาขาอื่นได้ โดยยืนยันด้วยรหัส 6 หลัก</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b>${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card">
       <h3>🍣 เลือกธีมซูชิที่ชอบ</h3>
@@ -1552,7 +1553,7 @@ function settingsView() {
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['manageBranches', 'จัดการสาขา']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div>
     </div>` : ''}
@@ -1670,8 +1671,8 @@ function bindSettings() {
 }
 
 function createBranchModal() {
-  if (!me?.owner) return toast('เฉพาะผู้ดูแลหลักเท่านั้นที่เพิ่มสาขาได้', 1);
-  openModal(`<h3>🏬 เพิ่มสาขาใหม่</h3><p class="settings-hint">สาขาใหม่จะเริ่มโดยไม่มีวัตถุดิบ ประวัติ หรือบัญชีพนักงาน ผู้ดูแลหลักจะสร้างบัญชีให้ภายหลัง</p><form id="createBranchForm"><label class="fld"><span>ชื่อสาขา</span><input class="in" name="name" maxlength="80" required placeholder="เช่น สาขา..." autocomplete="off"></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สร้างสาขา</button></div></form>`);
+  if (!can.manageBranches()) return toast('บัญชีนี้ไม่มีสิทธิ์จัดการสาขา', 1);
+  openModal(`<h3>🏬 เพิ่มสาขาใหม่</h3><p class="settings-hint">สาขาใหม่จะเริ่มโดยไม่มีวัตถุดิบ ประวัติ หรือบัญชีพนักงาน ผู้ดูแลสาขาจะสร้างบัญชีให้ภายหลัง</p><form id="createBranchForm"><label class="fld"><span>ชื่อสาขา</span><input class="in" name="name" maxlength="80" required placeholder="เช่น สาขา..." autocomplete="off"></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สร้างสาขา</button></div></form>`);
   $('#createBranchForm').onsubmit = async e => {
     e.preventDefault(); const button = e.submitter; if (button) button.disabled = true;
     try {
@@ -1683,12 +1684,20 @@ function createBranchModal() {
   };
 }
 function switchBranch(branchId) {
-  if (!me?.owner) return toast('เฉพาะผู้ดูแลหลักเท่านั้นที่สลับไปจัดการสาขาอื่นได้', 1);
+  if (!can.manageBranches()) return toast('บัญชีนี้ไม่มีสิทธิ์จัดการสาขา', 1);
   const branch = branches.find(item => String(item.id) === String(branchId)); if (!branch) return toast('ไม่พบสาขาที่เลือก', 1);
-  const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
-  sess.set(null); syncSnapshot = null; me = null; setCurrentBranch(branch); closeModal();
-  $('#app').classList.add('hide'); $('#bootScreen').classList.add('hide'); $('#login').classList.remove('hide');
-  $('#lgUser').value = ''; $('#lgPinInput').value = ''; $('#lgMsg').textContent = 'เข้าสู่ระบบด้วยบัญชี kiangkai เพื่อจัดการสาขานี้'; $('#lgBranch').value = branch.id;
+  openModal(`<h3>🏬 เข้าสาขา${esc(branch.name)}</h3><p class="settings-hint">ยืนยันตัวตนด้วยรหัสผ่าน 6 หลัก เพื่อสลับสาขาโดยไม่ออกจากระบบ</p><form id="switchBranchForm"><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" required></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">เข้าสาขานี้</button></div></form>`);
+  $('#switchBranchForm').onsubmit = async e => {
+    e.preventDefault(); const button = e.submitter, pin = e.target.elements.pin.value;
+    if (!/^\d{6}$/.test(pin)) return toast('กรุณากรอกรหัสผ่าน 6 หลัก', 1);
+    if (button) button.disabled = true;
+    try {
+      const result = await cloudRpc('api_branch_switch', { p_token: cloudToken, p_branch_id: branch.id, p_pin_hash: await hash(pin) });
+      if (!result.ok) { if (button) button.disabled = false; e.target.elements.pin.value = ''; return toast(result.error || 'เข้าสาขาไม่สำเร็จ', 1); }
+      sess.set(cloudToken, result.branch.id); setCurrentBranch(result.branch); applyCloudState(result.state); me = result.me;
+      syncSnapshot = cloneData(result.state); syncVersion = result.version; closeModal(); enter(me, result.branch); toast(`เข้าสาขา${result.branch.name}แล้ว`);
+    } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
+  };
 }
 
 async function refreshStorageUsage() {
