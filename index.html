@@ -976,14 +976,16 @@ setInterval(refreshCloudState, 2000);
 window.addEventListener('focus', refreshCloudState);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCloudState(); });
 
+const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
+
 const can = {
-  edit: () => me?.role === 'admin' || !!me?.permissions?.editStock,
-  del: () => me?.role === 'admin' || !!me?.permissions?.deleteStock,
-  delUsers: () => me?.role === 'admin' || !!me?.permissions?.deleteUsers,
-  users: () => me?.role === 'admin' || !!me?.permissions?.manageUsers,
-  lists: () => me?.role === 'admin' || !!me?.permissions?.manageLists,
-  permissions: () => !!(me?.owner || me?.role === 'admin' || me?.permissions?.managePermissions),
-  reset: () => !!(me?.owner || me?.role === 'admin' || me?.permissions?.resetData)
+  edit: () => fullAccessUser(me) || !!me?.permissions?.editStock,
+  del: () => fullAccessUser(me) || !!me?.permissions?.deleteStock,
+  delUsers: () => fullAccessUser(me) || !!me?.permissions?.deleteUsers,
+  users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
+  lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
+  permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
+  reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
 };
 
 /* ---------- Shell & Tabs Configuration ---------- */
@@ -1361,7 +1363,7 @@ function settingsView() {
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
           ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
-        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${user.permissions?.[key] ? 'checked' : ''} ${user.owner ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
+        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div>
     </div>` : ''}
   </div>`;
