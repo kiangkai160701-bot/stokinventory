@@ -47,7 +47,6 @@ values (
     'log', '[]'::jsonb,
     'roles', jsonb_build_object('admin', 'ผู้ดูแลระบบ', 'supervisor', 'หัวหน้างาน', 'staff', 'พนักงานคลัง', 'viewer', 'ผู้ดูข้อมูล'),
     'categories', jsonb_build_array('ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ'),
-    'theme', 'sakura',
     'units', jsonb_build_array('กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง')
   ),
   1
@@ -60,7 +59,7 @@ language sql immutable
 set search_path = ''
 as $$
   select jsonb_set(
-    p_data,
+    p_data - 'theme',
     '{users}',
     coalesce((select jsonb_agg(x.user_data - 'pin' order by x.position) from jsonb_array_elements(coalesce(p_data->'users', '[]'::jsonb)) with ordinality as x(user_data, position)), '[]'::jsonb)
   );
@@ -323,6 +322,12 @@ begin
     where coalesce((value->>'owner')::boolean, false) or lower(value->>'name') = 'kiangkai';
     v_data := jsonb_set(v_data, '{users}', v_user);
   end if;
+
+  v_data := jsonb_set(v_data, '{lastReset}', jsonb_build_object(
+    'scope', p_scope,
+    'user', v_name,
+    'ts', floor(extract(epoch from clock_timestamp()) * 1000)::bigint
+  ), true);
 
   update private.inventory_state
   set data = v_data, version = version + 1, updated_at = now()
