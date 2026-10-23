@@ -632,6 +632,13 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .boot-card strong{font-size:14px}.boot-card small{font-size:11px;color:var(--mute)}
 @keyframes bootSpin{to{transform:rotate(360deg)}}@keyframes bootBob{50%{transform:translateY(-3px)}}
 @media(prefers-reduced-motion:reduce){.boot-spinner,.boot-mascot{animation:none}}
+/* Inset dropdown arrows and smooth motion across the app */
+.flt select{appearance:none;-webkit-appearance:none;padding-right:38px;background-color:var(--theme-input);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23877987' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:15px 15px;background-position:right 13px center;transition:border-color .32s ease,box-shadow .32s ease,background-color .32s ease}
+#main.page-next,#main.page-prev{animation-duration:.56s;animation-timing-function:cubic-bezier(.22,.78,.22,1)}
+.ov{animation-duration:.42s;transition-duration:.36s}
+.sheet{animation-duration:.56s;animation-timing-function:cubic-bezier(.18,.82,.22,1);transition-duration:.38s;transition-timing-function:cubic-bezier(.22,.78,.22,1)}
+button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,.dtabs button,.nav button,.seg span,.icon-tool{transition-duration:.32s!important;transition-timing-function:cubic-bezier(.22,.78,.22,1)!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body data-theme="teal">
