@@ -17,6 +17,8 @@ create table if not exists private.inventory_sessions (
   username text not null,
   expires_at timestamptz not null
 );
+alter table private.inventory_sessions add column if not exists last_seen timestamptz;
+alter table private.inventory_sessions alter column last_seen set default now();
 
 create table if not exists private.inventory_login_failures (
   username text primary key,
@@ -39,7 +41,7 @@ values (
       'pin', encode(extensions.digest('inv:123456', 'sha256'), 'hex'),
       'role', 'admin', 'active', true, 'must', true, 'owner', true,
       'permissions', jsonb_build_object('editStock', true, 'manageLists', true,
-        'manageUsers', true, 'deleteUsers', true, 'deleteStock', true, 'managePermissions', true)
+        'manageUsers', true, 'deleteUsers', true, 'deleteStock', true, 'managePermissions', true, 'resetData', true)
     )),
     'products', '[]'::jsonb,
     'log', '[]'::jsonb,
@@ -175,17 +177,17 @@ begin
     or coalesce(p_base->'categories', '[]'::jsonb) is distinct from coalesce(p_data->'categories', '[]'::jsonb)
     or coalesce(p_base->'units', '[]'::jsonb) is distinct from coalesce(p_data->'units', '[]'::jsonb);
 
-  if v_products_changed and not coalesce((v_perm->>'editStock')::boolean, false) then
+  if v_user->>'role' <> 'admin' and v_products_changed and not coalesce((v_perm->>'editStock')::boolean, false) then
     return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์จัดการสต็อก');
   end if;
-  if v_users_changed and not coalesce((v_perm->>'manageUsers')::boolean, false) then
+  if v_user->>'role' <> 'admin' and v_users_changed and not coalesce((v_perm->>'manageUsers')::boolean, false) then
     return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์จัดการผู้ใช้');
   end if;
-  if v_users_changed and not coalesce((v_perm->>'deleteUsers')::boolean, false) and exists (
+  if v_user->>'role' <> 'admin' and v_users_changed and not coalesce((v_perm->>'deleteUsers')::boolean, false) and exists (
     select 1 from jsonb_array_elements(coalesce(v_data->'users','[]'::jsonb)) oldu
     where not exists(select 1 from jsonb_array_elements(coalesce(p_data->'users','[]'::jsonb)) newu where newu->>'name'=oldu->>'name')
   ) then return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์ลบผู้ใช้'); end if;
-  if v_users_changed and not coalesce((v_perm->>'managePermissions')::boolean, false) then
+  if v_user->>'role' <> 'admin' and v_users_changed and not coalesce((v_perm->>'managePermissions')::boolean, false) then
     if exists (
       select 1 from jsonb_array_elements(coalesce(p_data->'users','[]'::jsonb)) newu
       join jsonb_array_elements(coalesce(p_base->'users','[]'::jsonb)) oldu on oldu->>'name'=newu->>'name'
@@ -206,7 +208,7 @@ begin
         )
     ) then return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์กำหนดตำแหน่งหรือสิทธิ์'); end if;
   end if;
-  if v_lists_changed and not coalesce((v_perm->>'manageLists')::boolean, false) then
+  if v_user->>'role' <> 'admin' and v_lists_changed and not coalesce((v_perm->>'manageLists')::boolean, false) then
     return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์แก้ไขรายการ');
   end if;
 
@@ -223,7 +225,7 @@ begin
 
   v_next := v_data;
   if v_products_changed then
-    if not coalesce((v_perm->>'deleteStock')::boolean, false) then
+    if v_user->>'role' <> 'admin' and not coalesce((v_perm->>'deleteStock')::boolean, false) then
       if exists(select 1 from jsonb_array_elements(v_data->'products') oldp where not exists (
         select 1 from jsonb_array_elements(coalesce(p_data->'products','[]'::jsonb)) newp where newp->>'id' = oldp->>'id'
       )) then return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์ลบวัตถุดิบ'); end if;
@@ -259,7 +261,7 @@ begin
     from jsonb_array_elements(coalesce(p_data->'log','[]'::jsonb)) entry
     where not exists(select 1 from jsonb_array_elements(coalesce(p_base->'log','[]'::jsonb)) oldentry where oldentry = entry);
   if jsonb_array_length(v_add) > 0 then
-    if not coalesce((v_perm->>'editStock')::boolean, false) then
+    if v_user->>'role' <> 'admin' and not coalesce((v_perm->>'editStock')::boolean, false) then
       return jsonb_build_object('ok', false, 'error', 'บัญชีนี้ไม่มีสิทธิ์บันทึกประวัติสต็อก');
     end if;
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
@@ -409,6 +411,34 @@ begin
 end;
 $$;
 
+create or replace function public.api_presence_tick(p_token text)
+returns jsonb
+language plpgsql security definer
+set search_path = ''
+as $$
+declare
+  v_username text;
+  v_users jsonb;
+begin
+  update private.inventory_sessions
+    set last_seen = now()
+    where token_hash = encode(extensions.digest(coalesce(p_token, ''), 'sha256'), 'hex')
+      and expires_at > now()
+    returning username into v_username;
+  if v_username is null then
+    return jsonb_build_object('ok', false, 'error', 'หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่');
+  end if;
+  select coalesce(jsonb_agg(active.username order by active.username), '[]'::jsonb)
+    into v_users
+    from (
+      select distinct username
+      from private.inventory_sessions
+      where expires_at > now() and last_seen > now() - interval '50 seconds'
+    ) active;
+  return jsonb_build_object('ok', true, 'users', v_users);
+end;
+$$;
+
 revoke all on function public.api_safe_state(jsonb) from public, anon, authenticated;
 revoke all on function public.api_bootstrap_status() from public;
 revoke all on function public.api_login(text,text) from public;
@@ -419,6 +449,7 @@ revoke all on function public.api_change_pin(text,text,text) from public;
 revoke all on function public.api_update_owner_account(text,text,text,text) from public;
 revoke all on function public.api_update_username(text,text,text) from public;
 revoke all on function public.api_logout(text) from public;
+revoke all on function public.api_presence_tick(text) from public;
 grant execute on function public.api_bootstrap_status() to anon, authenticated;
 grant execute on function public.api_login(text,text) to anon, authenticated;
 grant execute on function public.api_get_state(text) to anon, authenticated;
@@ -428,5 +459,6 @@ grant execute on function public.api_change_pin(text,text,text) to anon, authent
 grant execute on function public.api_update_owner_account(text,text,text,text) to anon, authenticated;
 grant execute on function public.api_update_username(text,text,text) to anon, authenticated;
 grant execute on function public.api_logout(text) to anon, authenticated;
+grant execute on function public.api_presence_tick(text) to anon, authenticated;
 
 notify pgrst, 'reload schema';

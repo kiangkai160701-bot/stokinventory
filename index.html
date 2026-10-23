@@ -977,13 +977,13 @@ window.addEventListener('focus', refreshCloudState);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCloudState(); });
 
 const can = {
-  edit: () => !!me?.permissions?.editStock,
-  del: () => !!me?.permissions?.deleteStock,
-  delUsers: () => !!me?.permissions?.deleteUsers,
-  users: () => !!me?.permissions?.manageUsers,
-  lists: () => !!me?.permissions?.manageLists,
-  permissions: () => !!(me?.owner || me?.permissions?.managePermissions)
-  ,reset: () => !!(me?.owner || me?.permissions?.resetData)
+  edit: () => me?.role === 'admin' || !!me?.permissions?.editStock,
+  del: () => me?.role === 'admin' || !!me?.permissions?.deleteStock,
+  delUsers: () => me?.role === 'admin' || !!me?.permissions?.deleteUsers,
+  users: () => me?.role === 'admin' || !!me?.permissions?.manageUsers,
+  lists: () => me?.role === 'admin' || !!me?.permissions?.manageLists,
+  permissions: () => !!(me?.owner || me?.role === 'admin' || me?.permissions?.managePermissions),
+  reset: () => !!(me?.owner || me?.role === 'admin' || me?.permissions?.resetData)
 };
 
 /* ---------- Shell & Tabs Configuration ---------- */
@@ -1673,9 +1673,12 @@ document.addEventListener('click', e => {
 });
 
 function usersView() {
+  const activity = user => { const logs=L.filter(x=>String(x.user||'').toLowerCase()===String(user.name).toLowerCase()); const last=logs.reduce((best,x)=>Math.max(best,Number(x.ts)||0),0); const day=86400000, now=Date.now(); return {count:logs.length, recent:logs.filter(x=>now-(Number(x.ts)||0)<=30*day).length, last:last?new Date(last).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'ยังไม่มีประวัติ',ins:logs.filter(x=>x.type==='in').length,outs:logs.filter(x=>x.type==='out').length}; };
+  const summary=U.map(activity), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=U.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
+  <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${U.length}</b><small>บัญชีที่ลงทะเบียน</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติ</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุด</small></div></div>
   <div class="list">${U.map(u => `<div class="card"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
-  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}</div>
+  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs} · ล่าสุด ${activity(u).last}</small></div>
   <div style="display:flex;gap:6px">${can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
