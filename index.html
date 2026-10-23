@@ -844,7 +844,7 @@ function applyTheme(id) {
 }
 applyTheme(currentTheme);
 
-let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', sort: 'name' };
+let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', status: '', sort: 'name' };
 
 async function hash(s) {
   try {
@@ -1062,7 +1062,7 @@ const STX = { ok: 'ปกติ', low: 'ใกล้หมด', out: 'หมด�
 
 function filtered() {
   const q = F.q.toLowerCase();
-  const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat));
+  const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat) && (!F.status || status(p) === F.status));
   const byName = (a, b) => a.name.localeCompare(b.name, 'th');
   const byCategory = (a, b) => a.cat.localeCompare(b.cat, 'th') || byName(a, b);
   const statusRank = { out: 0, low: 1, ok: 2 };
@@ -1091,6 +1091,7 @@ function stockView() {
    <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อหรือหมวดหมู่..." value="${esc(F.q)}"></div>
    <div class="flt">
     <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
+    <select id="fs" aria-label="สถานะวัตถุดิบ"><option value="">ทุกสถานะ</option><option value="out" ${F.status === 'out' ? 'selected' : ''}>หมดสต็อก</option><option value="low" ${F.status === 'low' ? 'selected' : ''}>ใกล้หมด</option></select>
     <select id="fo" aria-label="เรียงลำดับ">${[['name', 'ชื่อวัตถุดิบ ก–ฮ'], ['name-desc', 'ชื่อวัตถุดิบ ฮ–ก'], ['category', 'หมวดหมู่ ก–ฮ'], ['category-desc', 'หมวดหมู่ ฮ–ก'], ['qty-asc', 'คงเหลือ น้อยไปมาก'], ['qty-desc', 'คงเหลือ มากไปน้อย'], ['low-first', 'สถานะ: หมดและใกล้หมดก่อน']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
    </div>
    <div class="stock-actions" style="display:flex;gap:8px">
@@ -1120,6 +1121,7 @@ function bindStock() {
   const refreshList = () => { $('#list').innerHTML = rows(); };
   $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
   $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
+  $('#fs').onchange = e => { F.status = e.target.value; refreshList(); };
   $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
   if ($('#add')) $('#add').onclick = () => prodModal();
   bindStockReorder();
