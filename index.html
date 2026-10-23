@@ -104,7 +104,7 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 .ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
 .sushi-friends{position:absolute;right:26px;bottom:62px;z-index:2;display:flex;align-items:flex-end;gap:8px}.sushi-friend{width:53px;height:53px;border:3px solid #fff;border-radius:18px;background:#fff9f7;display:grid;place-items:center;position:relative;box-shadow:0 8px 18px rgba(165,111,135,.18);font-size:29px;transform:rotate(-7deg)}.sushi-friend:nth-child(2){width:46px;height:46px;border-radius:50%;background:#fff7dd;transform:rotate(7deg)}.sushi-friend:nth-child(3){width:39px;height:39px;border-radius:14px;background:#eaf3ff;transform:rotate(-3deg)}.sushi-friend i{position:absolute;bottom:-8px;font-style:normal;font-size:10px;line-height:1;color:#76546a;background:#fff;border-radius:99px;padding:2px 5px;box-shadow:0 2px 5px rgba(100,70,90,.12)}
 #login .lg{background:#fffdfb}.lg-icon{background:linear-gradient(140deg,#f4a8bf,#f5c99e);box-shadow:0 8px 18px rgba(224,151,174,.22)}.lg .eyebrow{color:#c26c88}.lg h1{color:#563e4e}.lg .fld span{color:#644d5c}.lg .in{background:#fff9f7;border-color:#f0dfe2}.lg .in:focus{border-color:#e89bb2;box-shadow:0 0 0 4px rgba(232,155,178,.16)}.login-submit{background:linear-gradient(135deg,#ee9db4,#e9a96f);box-shadow:0 7px 17px rgba(226,151,165,.25)}.hint{background:#fff4d9;color:#936a36}.login-note{color:#a18d98!important}
-.branch-select-wrap{position:relative}.branch-select-wrap:after{content:'⌄';position:absolute;right:14px;top:50%;transform:translateY(-55%);pointer-events:none;color:var(--mute);font-size:17px}.branch-select{appearance:none;padding-right:38px;font-weight:650}.branch-help{display:block;margin-top:-8px;margin-bottom:13px;color:var(--mute);font-size:11px;line-height:1.45}.branch-admin-card{border:1px solid var(--theme-border-strong);background:linear-gradient(135deg,var(--theme-wash),var(--card-bg));border-radius:16px;padding:15px}.branch-list{display:grid;gap:8px;margin-top:10px}.branch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}.branch-row b{min-width:0;overflow-wrap:anywhere}
+.branch-select-wrap{position:relative}.branch-select-wrap:after{content:'⌄';position:absolute;right:14px;top:50%;transform:translateY(-55%);pointer-events:none;color:var(--mute);font-size:17px}.branch-select{appearance:none;padding-right:38px;font-weight:650}.branch-help{display:block;margin-top:-8px;margin-bottom:13px;color:var(--mute);font-size:11px;line-height:1.45}.branch-admin-card{border:1px solid var(--theme-border-strong);background:linear-gradient(135deg,var(--theme-wash),var(--card-bg));border-radius:16px;padding:15px}.branch-list{display:grid;gap:8px;margin-top:10px}.branch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}.branch-row b{min-width:0;overflow-wrap:anywhere}.branch-actions{display:flex;align-items:center;justify-content:flex-end;gap:6px;flex-wrap:wrap}.branch-actions .btn{white-space:nowrap}
 @media(max-width:680px){.login-story{min-height:265px;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}.sushi-friends{right:18px;bottom:53px;gap:4px}.sushi-friend{width:42px;height:42px;font-size:24px;border-radius:15px}.sushi-friend:nth-child(2){width:37px;height:37px}.sushi-friend:nth-child(3){width:32px;height:32px;font-size:20px}.story-foot{position:relative;z-index:3}}
 /* ---------- App Shell ---------- */
 #app { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
@@ -825,8 +825,9 @@ let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
 let CATS = store.get('inv_categories', ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ']);
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
 const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
+const isGlobalBranchAdmin = user => String(user?.name || '').toLowerCase() === 'kiangkai' && !!user?.owner;
 const defaultPermissions = role => role === 'admin'
-  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: true }
+  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false }
   : role === 'supervisor'
     ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
     : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
@@ -1024,7 +1025,7 @@ const can = {
   users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
   lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
   permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
-  manageBranches: () => fullAccessUser(me) || !!me?.permissions?.manageBranches,
+  manageBranches: () => isGlobalBranchAdmin(me),
   reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
 };
 
@@ -1521,7 +1522,7 @@ function settingsView() {
   const canViewStorage = !!(me?.owner || me?.role === 'admin');
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
-    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">ผู้ที่ได้รับสิทธิ์นี้สามารถเพิ่มสาขาและเข้าใช้งานสาขาอื่นได้ โดยยืนยันด้วยรหัส 6 หลัก</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b>${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</div>`).join('')}</div></div>` : ''}
+    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button><button type="button" class="btn sm bad" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button>`:''}</span></div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card">
       <h3>🍣 เลือกธีมซูชิที่ชอบ</h3>
@@ -1553,7 +1554,7 @@ function settingsView() {
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['manageBranches', 'จัดการสาขา']
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div>
     </div>` : ''}
@@ -1569,6 +1570,7 @@ function bindSettings() {
   if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
   if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
   document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
+  document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
     const scope = $('#resetScope').value;
@@ -1698,6 +1700,18 @@ function switchBranch(branchId) {
       syncSnapshot = cloneData(result.state); syncVersion = result.version; closeModal(); enter(me, result.branch); toast(`เข้าสาขา${result.branch.name}แล้ว`);
     } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
   };
+}
+async function deactivateBranch(branchId) {
+  if (!can.manageBranches()) return toast('เฉพาะบัญชีหลัก kiangkai เท่านั้นที่จัดการสาขาได้', 1);
+  const branch = branches.find(item => String(item.id) === String(branchId));
+  if (!branch || String(branch.id) === String(currentBranch.id)) return toast('ไม่สามารถปิดสาขาที่กำลังใช้งานได้ กรุณาสลับไปสาขาอื่นก่อน', 1);
+  if (!confirm(`ปิดการใช้งาน${branch.name}ใช่ไหม? พนักงานจะเข้าสาขานี้ไม่ได้ แต่ข้อมูลเดิมจะยังเก็บไว้`)) return;
+  try {
+    const result = await cloudRpc('api_branch_deactivate', { p_token: cloudToken, p_branch_id: branch.id });
+    if (!result.ok) return toast(result.error || 'ปิดสาขาไม่สำเร็จ', 1);
+    branches = branches.filter(item => String(item.id) !== String(branch.id));
+    renderBranchOptions(branches); build(); toast(`ปิดการใช้งาน${branch.name}แล้ว ข้อมูลเดิมยังเก็บไว้`);
+  } catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
 }
 
 async function refreshStorageUsage() {
