@@ -1497,6 +1497,13 @@ function settingsView() {
         <button class="btn sm sec" id="exportExcelBtn">${ic('dl')} ส่งออก Excel</button>
         <input type="file" id="restoreFile" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hide">
       </div>
+      <div id="selectedImportPanel" class="hide" style="margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)">
+        <small style="display:block;color:var(--mute);margin-bottom:3px">ไฟล์ที่เลือก</small>
+        <b id="selectedImportName" style="display:block;overflow-wrap:anywhere;margin-bottom:3px"></b>
+        <small id="selectedImportMeta" style="display:block;color:var(--mute);margin-bottom:10px"></small>
+        <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="confirmImportBtn">${ic('up')} ยืนยันนำเข้า</button><button type="button" class="btn sm sec" id="cancelImportBtn">ยกเลิก</button></div>
+      </div>
+      <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div>
     ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกเฉพาะข้อมูลที่ต้องการล้าง ระบบจะขอให้ยืนยันก่อนดำเนินการ</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button>${lastResetMarkup()}</div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card">
@@ -1542,9 +1549,25 @@ function bindSettings() {
   $('#exportBtn').onclick = exportCSV;
   $('#exportExcelBtn').onclick = exportExcel;
 
+  let selectedImportFile = null;
   $('#restoreBtn').onclick = () => $('#restoreFile').click();
-  $('#restoreFile').onchange = async e => {
+  $('#restoreFile').onchange = e => {
     const file = e.target.files[0]; if (!file) return;
+    selectedImportFile = file;
+    $('#selectedImportName').textContent = file.name;
+    $('#selectedImportMeta').textContent = `${(file.size / 1024).toFixed(1)} KB · ${file.type || 'ไฟล์ข้อมูล'}`;
+    $('#selectedImportPanel').classList.remove('hide');
+  };
+  $('#cancelImportBtn').onclick = () => {
+    selectedImportFile = null;
+    $('#restoreFile').value = '';
+    $('#selectedImportPanel').classList.add('hide');
+  };
+  $('#confirmImportBtn').onclick = async () => {
+    const file = selectedImportFile; if (!file) return toast('กรุณาเลือกไฟล์ก่อน', 1);
+    const confirmButton = $('#confirmImportBtn');
+    confirmButton.disabled = true;
+    confirmButton.textContent = 'กำลังนำเข้า…';
     try {
       const ext = file.name.split('.').pop().toLowerCase();
       let parsed;
@@ -1572,12 +1595,15 @@ function bindSettings() {
         const rows = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.products) ? parsed.products : null;
         if (!rows) throw new Error('รูปแบบไฟล์ไม่ถูกต้อง ต้องมีตารางรายการวัตถุดิบและหัวคอลัมน์');
         const imported = prepareProductImport(rows);
-        if (!confirm(`พบวัตถุดิบ ${imported.length} รายการ\nรายการที่ชื่อซ้ำกับของเดิมจะอัปเดต ส่วนชื่อใหม่จะเพิ่มเข้าไป โดยประวัติและบัญชีผู้ใช้จะคงเดิม\n\nยืนยันนำเข้าหรือไม่?`)) return;
         const result = mergeImportedProducts(imported);
+        selectedImportFile = null; $('#restoreFile').value = ''; $('#selectedImportPanel').classList.add('hide');
         save(); build(); toast(`นำเข้าสำเร็จ เพิ่ม ${result.added} · อัปเดต ${result.updated} รายการ`);
       }
+      if (ext === 'json' && parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
+        selectedImportFile = null; $('#restoreFile').value = ''; $('#selectedImportPanel').classList.add('hide');
+      }
     } catch (error) { toast(error.message || 'อ่านไฟล์ไม่สำเร็จ ตรวจสอบชนิดไฟล์และรูปแบบข้อมูล', 1); }
-    finally { e.target.value = ''; }
+    finally { if (confirmButton.isConnected) { confirmButton.disabled = false; confirmButton.innerHTML = `${ic('up')} ยืนยันนำเข้า`; } }
   };
   const permissionList = $('#permissionList');
   if (permissionList) permissionList.onchange = e => {
