@@ -1337,16 +1337,16 @@ function prepareProductImport(rows) {
     return entry ? entry[1] : undefined;
   };
   const parsed = [];
-  const seenNames = new Set();
+  const seenNames = new Map();
   rows.forEach((row, index) => {
     const name = String(get(row, 'name') ?? '').trim();
     if (!name) {
       if (Object.values(row).some(value => String(value ?? '').trim())) throw new Error(`แถวที่ ${index + 2}: ไม่มีชื่อวัตถุดิบ`);
       return;
     }
-    const nameKey = normalize(name);
-    if (seenNames.has(nameKey)) throw new Error(`พบชื่อวัตถุดิบซ้ำในไฟล์: ${name}`);
-    seenNames.add(nameKey);
+    const nameKey = name.normalize('NFKC').trim().toLocaleLowerCase().replace(/\\s+/g, ' ');
+    if (seenNames.has(nameKey)) throw new Error(`ชื่อวัตถุดิบ "${name}" ซ้ำระหว่างแถว ${seenNames.get(nameKey)} และ ${index + 2}`);
+    seenNames.set(nameKey, index + 2);
     const qtyRaw = String(get(row, 'qty') ?? '').trim().replace(/,/g, '');
     const minRaw = String(get(row, 'min') ?? '').trim().replace(/,/g, '');
     const qty = Number(qtyRaw), min = minRaw === '' ? 0 : Number(minRaw);
