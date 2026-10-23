@@ -1344,15 +1344,17 @@ function prepareProductImport(rows) {
       if (Object.values(row).some(value => String(value ?? '').trim())) throw new Error(`แถวที่ ${index + 2}: ไม่มีชื่อวัตถุดิบ`);
       return;
     }
-    const nameKey = name.normalize('NFKC').trim().toLocaleLowerCase().replace(/\\s+/g, ' ');
-    if (seenNames.has(nameKey)) throw new Error(`ชื่อวัตถุดิบ "${name}" ซ้ำระหว่างแถว ${seenNames.get(nameKey)} และ ${index + 2}`);
-    seenNames.set(nameKey, index + 2);
+    const cat = String(get(row, 'cat') ?? '').trim(), unit = String(get(row, 'unit') ?? '').trim(), loc = String(get(row, 'loc') ?? '').trim();
+    const canonical = value => String(value ?? '').normalize('NFKC').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
+    const identityKey = [name, cat, unit, loc].map(canonical).join('\u0000');
+    if (seenNames.has(identityKey)) throw new Error(`รายการ "${name}" หมวด "${cat || 'ไม่ระบุ'}" หน่วย "${unit || 'ไม่ระบุ'}" ซ้ำระหว่างแถว ${seenNames.get(identityKey)} และ ${index + 2}`);
+    seenNames.set(identityKey, index + 2);
     const qtyRaw = String(get(row, 'qty') ?? '').trim().replace(/,/g, '');
     const minRaw = String(get(row, 'min') ?? '').trim().replace(/,/g, '');
     const qty = Number(qtyRaw), min = minRaw === '' ? 0 : Number(minRaw);
     if (qtyRaw === '' || !Number.isFinite(qty) || qty < 0) throw new Error(`แถวที่ ${index + 2}: จำนวนคงเหลือต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
     if (!Number.isFinite(min) || min < 0) throw new Error(`แถวที่ ${index + 2}: จำนวนขั้นต่ำต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
-    parsed.push({ id: String(get(row, 'id') ?? '').trim(), name, cat: String(get(row, 'cat') ?? '').trim(), unit: String(get(row, 'unit') ?? '').trim(), qty, min, loc: String(get(row, 'loc') ?? '').trim() });
+    parsed.push({ id: String(get(row, 'id') ?? '').trim(), name, cat, unit, qty, min, loc });
   });
   if (!parsed.length) throw new Error('ไม่พบรายการวัตถุดิบที่นำเข้าได้');
   return parsed;
@@ -1361,8 +1363,20 @@ function prepareProductImport(rows) {
 function mergeImportedProducts(imported) {
   const next = P.map(product => ({ ...product }));
   let added = 0, updated = 0;
+  const canonical = value => String(value ?? '').normalize('NFKC').trim().toLocaleLowerCase().replace(/\s+/g, ' ');
   for (const item of imported) {
-    let target = (item.id && next.find(product => String(product.id) === item.id)) || next.find(product => String(product.name || '').trim().toLocaleLowerCase() === item.name.toLocaleLowerCase());
+    let target = item.id && next.find(product => String(product.id) === item.id);
+    if (!target) {
+      let candidates = next.filter(product => canonical(product.name) === canonical(item.name));
+      if (item.cat) candidates = candidates.filter(product => canonical(product.cat) === canonical(item.cat));
+      if (item.unit) candidates = candidates.filter(product => canonical(product.unit) === canonical(item.unit));
+      if (candidates.length > 1 && item.loc) {
+        const supplierMatches = candidates.filter(product => canonical(product.loc) === canonical(item.loc));
+        if (supplierMatches.length) candidates = supplierMatches;
+      }
+      if (candidates.length > 1) throw new Error(`พบชื่อ "${item.name}" มากกว่าหนึ่งรายการในหมวด/หน่วยเดียวกัน กรุณาระบุซัพพลายเออร์ในไฟล์ให้ตรงกับรายการเดิม`);
+      target = candidates[0];
+    }
     if (target) {
       Object.assign(target, { name: item.name, cat: item.cat || target.cat || 'อื่นๆ', unit: item.unit || target.unit || 'ชิ้น', qty: item.qty, min: item.min, loc: item.loc });
       delete target.cost; delete target.price; updated++;
