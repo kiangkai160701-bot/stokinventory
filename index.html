@@ -643,6 +643,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 /* Database usage card for administrators */
 .storage-card{grid-column:1/-1}.storage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.storage-heading h3{margin-bottom:3px}.storage-heading .settings-hint{margin-bottom:10px}.storage-usage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.storage-metric{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);display:grid;gap:2px}.storage-metric small{font-size:11px;color:var(--mute)}.storage-metric b{font-size:17px;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--ink);overflow-wrap:anywhere}.storage-progress{height:10px;margin:12px 0 8px;border-radius:99px;overflow:hidden;background:var(--theme-soft);border:1px solid var(--line)}.storage-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s ease,background-color .3s ease}.storage-progress span.warn{background:linear-gradient(90deg,#f4d17f,var(--warn))}.storage-progress span.danger{background:linear-gradient(90deg,#f0a8b7,var(--bad))}.storage-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--mute)}.storage-footer small{font-size:10px}.storage-error{display:block;margin-top:6px;color:var(--bad);font-size:11px}
 @media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
+@media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;gap:8px}.branch-actions .btn{min-width:0;width:100%;min-height:40px;padding:8px 6px;white-space:normal;overflow-wrap:anywhere;line-height:1.25}}
 </style>
 </head>
 <body data-theme="teal">
@@ -795,9 +796,9 @@ const cloneData = x => JSON.parse(JSON.stringify(x));
 let lastReset = null;
 const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS, lastReset });
 function applyCloudState(state) {
-  U = (state.users || []).map(({ pin, ...u }) => u);
+  U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
   P = state.products || []; L = state.log || [];
-  ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) };
+  ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) }; delete ROLE.viewer;
   CATS = state.categories || []; UNITS = state.units || [];
   lastReset = state.lastReset || null;
 }
@@ -807,13 +808,13 @@ function migrateLegacyBrowserData(result) {
   if (!Array.isArray(oldProducts) || !oldProducts.length) return false;
   const oldUsers = store.get('inv_users', []);
   applyCloudState(result.state);
-  for (const oldUser of Array.isArray(oldUsers) ? oldUsers : []) {
+  for (const oldUser of normalizeRemovedViewerAccounts(oldUsers)) {
     if (!oldUser?.name || U.some(u => u.name === oldUser.name) || oldUser.owner) continue;
     U.push({ ...oldUser });
   }
   P = oldProducts.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
   L = store.get('inv_log', []).slice(0, 500);
-  ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
+  ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) }; delete ROLE.viewer;
   CATS = store.get('inv_categories', CATS); UNITS = store.get('inv_units', UNITS);
   return true;
 }
@@ -828,8 +829,12 @@ const sess = {
 };
 
 const num = n => Number(n).toLocaleString('th-TH');
-const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 'หัวหน้างาน', staff: 'พนักงานคลัง', viewer: 'ผู้ดูข้อมูล' };
-let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
+const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 'หัวหน้างาน', staff: 'พนักงานคลัง' };
+let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) }; delete ROLE.viewer;
+const READ_ONLY_PERMISSIONS = { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, resetData: false, manageBranches: false };
+const normalizeRemovedViewerAccounts = users => (Array.isArray(users) ? users : []).map(user => String(user?.role || '').toLowerCase() === 'viewer'
+  ? { ...user, role: 'staff', permissions: { ...READ_ONLY_PERMISSIONS } }
+  : user);
 let CATS = store.get('inv_categories', ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ']);
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
 const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
@@ -1643,10 +1648,10 @@ function bindSettings() {
       if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
         if (parsed.branch?.id && String(parsed.branch.id) !== String(currentBranch.id)) throw new Error(`ไฟล์นี้เป็นข้อมูลของสาขา${parsed.branch.name || ''} ไม่สามารถนำเข้าในสาขา${currentBranch.name}ได้`);
         if (!confirm('ไฟล์ JSON นี้เป็นข้อมูลสำรองทั้งระบบ เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ปัจจุบันจะถูกแทนที่ ต้องการดำเนินการต่อหรือไม่?')) return;
-        const restoredUsers = parsed.users.map(user => ({ ...user }));
+        const restoredUsers = normalizeRemovedViewerAccounts(parsed.users.map(user => ({ ...user })));
         const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
         U = restoredUsers; P = restoredProducts; L = Array.isArray(parsed.log) ? parsed.log : [];
-        ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
+        ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; delete ROLE.viewer; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
         const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
         U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
         me = me?.owner ? me : U.find(user => user.name === me.name && user.active);
