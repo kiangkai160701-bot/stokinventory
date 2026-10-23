@@ -639,6 +639,9 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .sheet{animation-duration:.56s;animation-timing-function:cubic-bezier(.18,.82,.22,1);transition-duration:.38s;transition-timing-function:cubic-bezier(.22,.78,.22,1)}
 button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,.dtabs button,.nav button,.seg span,.icon-tool{transition-duration:.32s!important;transition-timing-function:cubic-bezier(.22,.78,.22,1)!important}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* Database usage card for administrators */
+.storage-card{grid-column:1/-1}.storage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.storage-heading h3{margin-bottom:3px}.storage-heading .settings-hint{margin-bottom:10px}.storage-usage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.storage-metric{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);display:grid;gap:2px}.storage-metric small{font-size:11px;color:var(--mute)}.storage-metric b{font-size:17px;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--ink);overflow-wrap:anywhere}.storage-progress{height:10px;margin:12px 0 8px;border-radius:99px;overflow:hidden;background:var(--theme-soft);border:1px solid var(--line)}.storage-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s ease,background-color .3s ease}.storage-progress span.warn{background:linear-gradient(90deg,#f4d17f,var(--warn))}.storage-progress span.danger{background:linear-gradient(90deg,#f0a8b7,var(--bad))}.storage-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--mute)}.storage-footer small{font-size:10px}.storage-error{display:block;margin-top:6px;color:var(--bad);font-size:11px}
+@media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
 </style>
 </head>
 <body data-theme="teal">
@@ -750,7 +753,7 @@ const cloudTokenStore = {
     } catch {}
   }
 };
-let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false;
+let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false, storageUsageTimer = null, storageUsageBusy = false;
 async function cloudRpc(name, args = {}) {
   const response = await fetch(`${CLOUD_URL}/rest/v1/rpc/${name}`, {
     method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args)
@@ -986,7 +989,7 @@ async function refreshCloudState() {
 }
 setInterval(refreshCloudState, 2000);
 window.addEventListener('focus', refreshCloudState);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshCloudState(); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
 
 const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
 
@@ -1038,6 +1041,7 @@ function updatePageMascots() {
 }
 
 function render(animatePage = false) {
+  if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
   main.classList.remove('page-next', 'page-prev');
@@ -1495,8 +1499,10 @@ function lastResetMarkup() {
 }
 
 function settingsView() {
+  const canViewStorage = !!(me?.owner || me?.role === 'admin');
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
+    ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card">
       <h3>🍣 เลือกธีมซูชิที่ชอบ</h3>
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกสีและตัวการ์ตูนที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้</p>
@@ -1534,7 +1540,37 @@ function settingsView() {
   </div>`;
 }
 
+async function refreshStorageUsage() {
+  const card = $('#storageUsageCard');
+  if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
+  storageUsageBusy = true;
+  const error = $('#storageUsageError');
+  error.textContent = '';
+  try {
+    const result = await cloudRpc('api_storage_usage', { p_token: cloudToken });
+    if (!result.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+    const mib = bytes => (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const used = Number(result.usedBytes) || 0, remaining = Number(result.remainingBytes) || 0, quota = Number(result.quotaBytes) || 0;
+    const percent = Number(result.usedPercent) || 0, bar = $('#storageUsageBar');
+    $('#storageUsed').textContent = `${mib(used)} MB`;
+    $('#storageRemaining').textContent = `${mib(remaining)} MB`;
+    $('#storagePercent').textContent = `${percent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    $('#storageQuota').textContent = `โควตา ${mib(quota)} MB · ${result.quotaPlan || 'Free'}`;
+    $('#storageCheckedAt').textContent = result.checkedAt ? new Date(result.checkedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่ทราบเวลา';
+    bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    bar.classList.toggle('warn', percent >= 75 && percent < 90);
+    bar.classList.toggle('danger', percent >= 90);
+    card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
+  } catch (e) {
+    error.textContent = 'อ่านข้อมูลไม่ได้ กรุณาติดตั้ง supabase-storage-usage-migration.sql แล้วลองใหม่';
+    $('#storageCheckedAt').textContent = 'ตรวจไม่สำเร็จ';
+  } finally { storageUsageBusy = false; }
+}
+
 function bindSettings() {
+  clearInterval(storageUsageTimer); storageUsageTimer = null;
+  if (me?.owner || me?.role === 'admin') { refreshStorageUsage(); storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000); }
+  if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
     const scope = $('#resetScope').value;
