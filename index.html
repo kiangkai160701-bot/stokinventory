@@ -792,7 +792,7 @@ let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
 let CATS = store.get('inv_categories', ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ']);
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
 const defaultPermissions = role => role === 'admin'
-  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true }
+  ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true }
   : role === 'supervisor'
     ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
     : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false }
@@ -983,6 +983,7 @@ const can = {
   users: () => !!me?.permissions?.manageUsers,
   lists: () => !!me?.permissions?.manageLists,
   permissions: () => !!(me?.owner || me?.permissions?.managePermissions)
+  ,reset: () => !!(me?.owner || me?.permissions?.resetData)
 };
 
 /* ---------- Shell & Tabs Configuration ---------- */
@@ -1039,6 +1040,7 @@ function render(animatePage = false) {
   }
   if (tab === 'stock') bindStock();
   if (tab === 'settings') bindSettings();
+  if (tab === 'users') refreshPresence();
   if (animatePage) window.scrollTo({ top: 0, behavior: 'smooth' });
   else window.scrollTo(0, 0);
 }
@@ -1351,13 +1353,14 @@ function settingsView() {
         <input type="file" id="restoreFile" accept=".json" class="hide">
       </div>
     </div>
+    ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกเฉพาะข้อมูลที่ต้องการล้าง ระบบจะขอให้ยืนยันก่อนดำเนินการ</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card">
       <h3>🔐 สิทธิ์ผู้ใช้งาน</h3>
       <p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์']
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${user.permissions?.[key] ? 'checked' : ''} ${user.owner ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div>
     </div>` : ''}
@@ -1365,6 +1368,16 @@ function settingsView() {
 }
 
 function bindSettings() {
+  const resetButton = $('#resetDataBtn');
+  if (resetButton) resetButton.onclick = () => {
+    const scope = $('#resetScope').value;
+    const labels = { products: 'รายการวัตถุดิบและยอดคงเหลือ', history: 'ประวัติการเคลื่อนไหว', users: 'บัญชีผู้ใช้ (ยกเว้นผู้ดูแลหลัก)', all: 'รายการวัตถุดิบและประวัติทั้งหมด' };
+    openModal(`<h3>ยืนยันรีเซ็ตข้อมูล</h3><p style="margin-bottom:12px;color:var(--mute)">กำลังจะล้าง: <b>${labels[scope]}</b><br>การล้างข้อมูลนี้กู้คืนไม่ได้ เว้นแต่มีไฟล์สำรอง</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn bad" id="confirmReset">ยืนยันรีเซ็ต</button></div>`);
+    $('#confirmReset').onclick = async () => {
+      try { const result = await cloudRpc('api_reset_data', { p_token: cloudToken, p_scope: scope }); if (!result.ok) return toast(result.error || 'รีเซ็ตไม่สำเร็จ', 1); applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version; me = U.find(u => u.name === me?.name) || me; closeModal(); build(); toast('รีเซ็ตข้อมูลที่เลือกแล้ว'); }
+      catch (error) { toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
+    };
+  };
   $('#themePicker').onclick = e => {
     const opt = e.target.closest('.theme-opt'); if (!opt) return;
     applyTheme(opt.dataset.th);
