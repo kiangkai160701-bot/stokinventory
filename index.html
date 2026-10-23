@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 51645)
+Total output lines: 2106
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -933,104 +936,7 @@ $('#lgForm').addEventListener('submit', e => { e.preventDefault(); if ($('#lgPin
 async function tryLogin() {
   const name = $('#lgUser').value.trim().toLowerCase(), pinVal = $('#lgPinInput').value, msg = $('#lgMsg');
   const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; };
-  if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock.until - Date.now()) / 1000)} วิ`);
-  const branchId = $('#lgBranch').value;
-  if (!branchId) return fail('กรุณาเลือกสาขาก่อนเข้าสู่ระบบ');
-  if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
-  if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
-  
-  const h = await hash(pinVal);
-  let result;
-  try { result = await cloudRpc('api_branch_login', { p_branch_id: branchId, p_name: name, p_pin_hash: h }); }
-  catch (error) { return fail('เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจอินเทอร์เน็ตหรือติดต่อผู้ดูแล'); }
-  if (!result.ok) {
-    lock.n++;
-    if (lock.n >= 5) { lock = { n: 0, until: Date.now() + 30000 }; store.set('inv_lock', lock); return fail('ลองผิด 5 ครั้ง ล็อก 30 วินาที'); }
-    store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
-  }
-  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); setCurrentBranch(result.branch); sess.set(result.token, result.branch?.id);
-  applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
-  if (migrateLegacyBrowserData(result)) save();
-  enter(result.me, result.branch);
-}
-
-function enter(u, branch = currentBranch) {
-  setCurrentBranch(branch);
-  me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
-  $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess || !(u.owner || u.role === 'admin')); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-  tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
-}
-
-function logout() {
-  stopPresence();
-  const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
-  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
-}
-let onlineUsers = new Set(), presenceTimer = null, presenceBusy = false;
-function updateOnlineUsers(users = []) {
-  onlineUsers = new Set(users.map(name => String(name).trim().toLowerCase()).filter(Boolean));
-  document.querySelectorAll('[data-online-user]').forEach(badge => {
-    const online = onlineUsers.has(badge.dataset.onlineUser.toLowerCase());
-    badge.hidden = false;
-    badge.classList.toggle('is-online', online);
-    badge.classList.toggle('is-offline', !online);
-    badge.textContent = online ? 'กำลังใช้งาน' : 'Offline';
-  });
-}
-async function refreshPresence() {
-  if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
-  presenceBusy = true;
-  try {
-    const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-    if (result.ok) updateOnlineUsers(result.users || []);
-    else if (result.error?.includes('หมดเวลา')) logout();
-  } catch { /* คงสถานะล่าสุดไว้ชั่วคราวเมื่ออินเทอร์เน็ตขัดข้อง */ }
-  finally { presenceBusy = false; }
-}
-function startPresence() {
-  clearInterval(presenceTimer);
-  updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
-  refreshPresence();
-  presenceTimer = setInterval(refreshPresence, 15000);
-}
-function stopPresence() {
-  clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
-  onlineUsers = new Set(); updateOnlineUsers([]);
-}
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshPresence(); });
-function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
-$('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
-
-async function refreshCloudState() {
-  if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
-  try {
-    const result = await cloudRpc('api_get_state', { p_token: cloudToken });
-    if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
-    if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
-    if (result.version !== syncVersion) {
-      applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess || !(me.owner || me.role === 'admin')); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-      build(); toast('ข้อมูลสต็อกอัปเดตจากเครื่องอื่นแล้ว');
-    }
-  } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
-}
-setInterval(refreshCloudState, 2000);
-window.addEventListener('focus', refreshCloudState);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
-
-const can = {
-  edit: () => fullAccessUser(me) || !!me?.permissions?.editStock,
-  del: () => fullAccessUser(me) || !!me?.permissions?.deleteStock,
-  delUsers: () => fullAccessUser(me) || !!me?.permissions?.deleteUsers,
-  users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
-  lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
-  permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
-  manageBranches: () => isGlobalBranchAdmin(me),
-  reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
-};
-
-/* ---------- Shell & Tabs Configuration ---------- */
+  if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock…1645 tokens truncated…on ---------- */
 function tabs() {
   return [
     ['stock', 'สต็อก', 'box'],
@@ -1995,8 +1901,10 @@ document.addEventListener('click', e => {
 function userModal(name, draft = {}) {
   const target = name ? U.find(x => x.name === name) : null;
   const u = target ? { ...target, ...draft } : { name: '', role: 'staff', active: true, ...draft };
+  const canAssignAdminRole = me?.role === 'admin' || isGlobalBranchAdmin(me);
+  if (name && target?.role === 'admin' && !canAssignAdminRole) return toast('เฉพาะผู้ดูแลระบบเท่านั้นที่แก้ไขบัญชีผู้ดูแลระบบได้', 1);
   if (name && !target || (name && target.name !== me.name && ['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์แก้ไขบัญชีตำแหน่งนี้', 1);
-  const roleOptions = Object.entries(ROLE).filter(([key]) => can.permissions() || (!['admin', 'supervisor'].includes(key) || key === u.role));
+  const roleOptions = Object.entries(ROLE).filter(([key]) => key === 'admin' ? canAssignAdminRole : (can.permissions() || (!['admin', 'supervisor'].includes(key) || key === u.role)));
   openModal(`<h3>${name ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}</h3><form id="uf">
    <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required pattern="[\p{L}\p{M}0-9_]{3,20}" ${name ? 'readonly' : ''} value="${esc(u.name)}"></label>
    <label class="fld"><span>${name ? 'รหัส ใหม่ (เว้นว่าง)' : 'รหัส 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name ? '' : 'required'} placeholder="••••••" value="${esc(u.pinInput || '')}"></label>
@@ -2011,6 +1919,7 @@ function userModal(name, draft = {}) {
   $('#uf').onsubmit = async e => {
     e.preventDefault(); const f = e.target, n = fv(f, 'name').toLowerCase(), pn = f.elements.pin.value;
     if (!name && U.some(x => x.name === n)) return toast('ชื่อผู้ใช้ซ้ำ', 1);
+    if (!name && n === 'boykiangkai') return toast('ชื่อผู้ใช้นี้ถูกสงวนไว้', 1);
     if (pn && !/^\d{6}$/.test(pn)) return toast('รหัส ต้องเป็นตัวเลข 6 หลัก', 1);
     const role = f.elements.role.value, act = f.elements.act.checked;
     if (U.filter(x => x.role === 'admin' && x.active && x.name !== name).length + (role === 'admin' && act ? 1 : 0) < 1) return toast('ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
