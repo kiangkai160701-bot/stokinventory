@@ -2091,7 +2091,6 @@ function userModal(name, draft = {}) {
     if (!name && n === 'boykiangkai') return toast('ชื่อผู้ใช้นี้ถูกสงวนไว้', 1);
     if (pn && !/^\d{6}$/.test(pn)) return toast('รหัส ต้องเป็นตัวเลข 6 หลัก', 1);
     const role = f.elements.role.value, act = f.elements.act.checked;
-    if (name && !isGlobalBranchAdmin(me) && U.filter(x => x.role === 'admin' && x.active && x.name !== name).length + (role === 'admin' && act ? 1 : 0) < 1) return toast('ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
     if (name) { const oldRole = target.role; Object.assign(target, { role: target.owner ? oldRole : role, active: act }); if (!target.owner && role !== oldRole) target.permissions = defaultPermissions(role); if (pn) { target.pin = await hash(pn); target.must = false; } if (target.name === me.name) me = target; }
     else U.push({ name: n, pin: await hash(pn), role, active: act, must: false, permissions: defaultPermissions(role) });
     save(); $('#meRole').textContent = ROLE[me.role] || me.role; closeModal(); build(); toast('บันทึกผู้ใช้แล้ว');
@@ -2102,7 +2101,6 @@ function delUser(name) {
   if (!can.delUsers()) return toast('ไม่มีสิทธิ์ลบบัญชีผู้ใช้', 1);
   const target = U.find(user => user.name === name);
   if (!target || target.owner || (['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์ลบบัญชีตำแหน่งนี้', 1);
-  if (!isGlobalBranchAdmin(me) && U.filter(x => x.role === 'admin' && x.name !== name).length < 1) return toast('ลบไม่ได้ ต้องมีผู้ดูแลอย่างน้อย 1 คน', 1);
   openModal(`<h3>ลบผู้ใช้ ${esc(name)}?</h3><div class="acts"><button class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn bad" id="dy">ลบ</button></div>`);
   $('#dy').onclick = () => { U = U.filter(x => x.name !== name); save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว'); };
 }
