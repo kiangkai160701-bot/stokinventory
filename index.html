@@ -104,6 +104,7 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 .ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
 .sushi-friends{position:absolute;right:26px;bottom:62px;z-index:2;display:flex;align-items:flex-end;gap:8px}.sushi-friend{width:53px;height:53px;border:3px solid #fff;border-radius:18px;background:#fff9f7;display:grid;place-items:center;position:relative;box-shadow:0 8px 18px rgba(165,111,135,.18);font-size:29px;transform:rotate(-7deg)}.sushi-friend:nth-child(2){width:46px;height:46px;border-radius:50%;background:#fff7dd;transform:rotate(7deg)}.sushi-friend:nth-child(3){width:39px;height:39px;border-radius:14px;background:#eaf3ff;transform:rotate(-3deg)}.sushi-friend i{position:absolute;bottom:-8px;font-style:normal;font-size:10px;line-height:1;color:#76546a;background:#fff;border-radius:99px;padding:2px 5px;box-shadow:0 2px 5px rgba(100,70,90,.12)}
 #login .lg{background:#fffdfb}.lg-icon{background:linear-gradient(140deg,#f4a8bf,#f5c99e);box-shadow:0 8px 18px rgba(224,151,174,.22)}.lg .eyebrow{color:#c26c88}.lg h1{color:#563e4e}.lg .fld span{color:#644d5c}.lg .in{background:#fff9f7;border-color:#f0dfe2}.lg .in:focus{border-color:#e89bb2;box-shadow:0 0 0 4px rgba(232,155,178,.16)}.login-submit{background:linear-gradient(135deg,#ee9db4,#e9a96f);box-shadow:0 7px 17px rgba(226,151,165,.25)}.hint{background:#fff4d9;color:#936a36}.login-note{color:#a18d98!important}
+.branch-select-wrap{position:relative}.branch-select-wrap:after{content:'⌄';position:absolute;right:14px;top:50%;transform:translateY(-55%);pointer-events:none;color:var(--mute);font-size:17px}.branch-select{appearance:none;padding-right:38px;font-weight:650}.branch-help{display:block;margin-top:-8px;margin-bottom:13px;color:var(--mute);font-size:11px;line-height:1.45}.branch-admin-card{border:1px solid var(--theme-border-strong);background:linear-gradient(135deg,var(--theme-wash),var(--card-bg));border-radius:16px;padding:15px}.branch-list{display:grid;gap:8px;margin-top:10px}.branch-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}.branch-row b{min-width:0;overflow-wrap:anywhere}
 @media(max-width:680px){.login-story{min-height:265px;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}.sushi-friends{right:18px;bottom:53px;gap:4px}.sushi-friend{width:42px;height:42px;font-size:24px;border-radius:15px}.sushi-friend:nth-child(2){width:37px;height:37px}.sushi-friend:nth-child(3){width:32px;height:32px;font-size:20px}.story-foot{position:relative;z-index:3}}
 /* ---------- App Shell ---------- */
 #app { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
@@ -652,7 +653,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
       <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
-      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span>สาขาพันท้ายนรสิงห์</span></h2></div>
+      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span id="loginBranchTitle">สาขาพันท้ายนรสิงห์</span></h2></div>
       <div class="sushi-friends" aria-hidden="true"><span class="sushi-friend">🍣<i>•ᴗ•</i></span><span class="sushi-friend">🍙<i>•ᴗ•</i></span><span class="sushi-friend">🍤</span></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
       <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
@@ -662,6 +663,8 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
         <div class="lg-icon" aria-hidden="true" style="font-size:27px">🍣</div>
         <h1>เข้าสู่ระบบ</h1>
       </div>
+      <label class="fld"><span>สาขาที่ปฏิบัติงาน</span><div class="branch-select-wrap"><select class="in branch-select" id="lgBranch" name="branch" required aria-label="เลือกสาขาที่ปฏิบัติงานก่อนเข้าสู่ระบบ"><option value="">กำลังโหลดรายชื่อสาขา…</option></select></div></label>
+      <small class="branch-help">เลือกสาขาที่ผู้ดูแลสร้างบัญชีให้ บัญชีพนักงานเข้าได้เฉพาะสาขานั้น</small>
       <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" id="lgUser" name="username" maxlength="20" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="••••••••" required></label>
       <label class="fld"><span>รหัสลับ 6 หลัก</span><input class="in" id="lgPinInput" name="pin" type="password" inputmode="numeric" pattern="\d{6}" maxlength="6" autocomplete="current-password" placeholder="••••••" style="letter-spacing:5px;text-align:center;font-size:18px"></label>
       <div class="msg" id="lgMsg" role="alert" aria-live="polite"></div>
@@ -677,7 +680,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
       <div class="brand-badge">🍣</div>
       <div class="brand-copy">
         <span class="brand-title">ไข่หวานบ้านซูชิ</span>
-        <small class="brand-branch">สาขาพันท้ายนรสิงห์</small>
+        <small class="brand-branch" id="branchName">สาขาพันท้ายนรสิงห์</small>
         <small id="clock">กำลังโหลดเวลา...</small>
       </div>
     </div>
@@ -745,15 +748,33 @@ const cloudTokenStore = {
     } catch { return null; }
   },
   get() { return this.getSession()?.token || null; },
-  set(v) {
+  set(v, branchId = null) {
     try {
       if (!v) { localStorage.removeItem(this.key); return; }
       const now = Date.now();
-      localStorage.setItem(this.key, JSON.stringify({ token: v, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) }));
+      localStorage.setItem(this.key, JSON.stringify({ token: v, branchId, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) }));
     } catch {}
   }
 };
 let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false, storageUsageTimer = null, storageUsageBusy = false;
+const branchStore = { key: 'inv_selected_branch', get() { try { return localStorage.getItem(this.key) || ''; } catch { return ''; } }, set(id) { try { if (id) localStorage.setItem(this.key, id); else localStorage.removeItem(this.key); } catch {} } };
+let branches = [], currentBranch = { id: '', name: 'พันท้ายนรสิงห์' };
+function setCurrentBranch(branch) {
+  if (!branch?.id || !branch?.name) return;
+  currentBranch = { id: String(branch.id), name: String(branch.name) }; branchStore.set(currentBranch.id);
+  const label = `สาขา${currentBranch.name}`;
+  if ($('#branchName')) $('#branchName').textContent = label;
+  if ($('#loginBranchTitle')) $('#loginBranchTitle').textContent = label;
+  if ($('#lgBranch')) $('#lgBranch').value = currentBranch.id;
+}
+function renderBranchOptions(items = branches) {
+  branches = Array.isArray(items) ? items.filter(x => x?.id && x?.name) : [];
+  const select = $('#lgBranch'); if (!select) return;
+  const previous = branchStore.get() || currentBranch.id;
+  select.innerHTML = branches.length ? branches.map(b => `<option value="${esc(b.id)}">สาขา${esc(b.name)}</option>`).join('') : '<option value="">ไม่พบสาขา กรุณาติดต่อผู้ดูแลระบบ</option>';
+  const selected = branches.find(b => String(b.id) === String(previous)) || branches[0]; if (selected) setCurrentBranch(selected);
+}
+$('#lgBranch').addEventListener('change', e => { const branch = branches.find(b => String(b.id) === e.target.value); if (branch) { setCurrentBranch(branch); $('#lgMsg').textContent = ''; } });
 async function cloudRpc(name, args = {}) {
   const response = await fetch(`${CLOUD_URL}/rest/v1/rpc/${name}`, {
     method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args)
@@ -803,6 +824,7 @@ const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 
 let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) };
 let CATS = store.get('inv_categories', ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ']);
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
+const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
 const defaultPermissions = role => role === 'admin'
   ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true }
   : role === 'supervisor'
@@ -910,25 +932,28 @@ async function tryLogin() {
   const name = $('#lgUser').value.trim().toLowerCase(), pinVal = $('#lgPinInput').value, msg = $('#lgMsg');
   const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; };
   if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock.until - Date.now()) / 1000)} วิ`);
+  const branchId = $('#lgBranch').value;
+  if (!branchId) return fail('กรุณาเลือกสาขาก่อนเข้าสู่ระบบ');
   if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
   if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
   
   const h = await hash(pinVal);
   let result;
-  try { result = await cloudRpc('api_login', { p_name: name, p_pin_hash: h }); }
+  try { result = await cloudRpc('api_branch_login', { p_branch_id: branchId, p_name: name, p_pin_hash: h }); }
   catch (error) { return fail('เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจอินเทอร์เน็ตหรือติดต่อผู้ดูแล'); }
   if (!result.ok) {
     lock.n++;
     if (lock.n >= 5) { lock = { n: 0, until: Date.now() + 30000 }; store.set('inv_lock', lock); return fail('ลองผิด 5 ครั้ง ล็อก 30 วินาที'); }
     store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
   }
-  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); sess.set(result.token);
+  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); setCurrentBranch(result.branch); sess.set(result.token, result.branch?.id);
   applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
   if (migrateLegacyBrowserData(result)) save();
-  enter(result.me);
+  enter(result.me, result.branch);
 }
 
-function enter(u) {
+function enter(u, branch = currentBranch) {
+  setCurrentBranch(branch);
   me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
   $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
   $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !(u.owner || u.role === 'admin'));
@@ -980,6 +1005,7 @@ async function refreshCloudState() {
   try {
     const result = await cloudRpc('api_get_state', { p_token: cloudToken });
     if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+    if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
     if (result.version !== syncVersion) {
       applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
       me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !(me.owner || me.role === 'admin'));
@@ -990,8 +1016,6 @@ async function refreshCloudState() {
 setInterval(refreshCloudState, 2000);
 window.addEventListener('focus', refreshCloudState);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
-
-const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
 
 const can = {
   edit: () => fullAccessUser(me) || !!me?.permissions?.editStock,
@@ -1275,7 +1299,7 @@ function exportCSV() {
   const rows = P.map(p => [p.name, p.cat, p.unit, p.qty, p.min, p.loc].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob(['\ufeff' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv' }));
-  link.download = 'รายการวัตถุดิบ-' + new Date().toISOString().slice(0, 10) + '.csv';
+  link.download = `รายการวัตถุดิบ-${safeBranchFileName()}-${new Date().toISOString().slice(0, 10)}.csv`;
   link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
   toast('ส่งออก CSV สำหรับแก้ไขและนำเข้าได้แล้ว');
@@ -1304,10 +1328,11 @@ async function exportExcel() {
     sheet['!autofilter'] = { ref: `A1:F${Math.max(1, rows.length + 1)}` };
     sheet['!freeze'] = { xSplit: 0, ySplit: 1 };
     XLSX.utils.book_append_sheet(workbook, sheet, 'รายการวัตถุดิบ');
-    XLSX.writeFile(workbook, `รายการวัตถุดิบ-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    XLSX.writeFile(workbook, `รายการวัตถุดิบ-${safeBranchFileName()}-${new Date().toISOString().slice(0, 10)}.xlsx`);
     toast('ส่งออก Excel สำหรับแก้ไขและนำเข้าได้แล้ว');
   } catch (error) { toast(error.message || 'ส่งออก Excel ไม่สำเร็จ', 1); }
 }
+function safeBranchFileName() { return String(currentBranch?.name || 'สาขา').normalize('NFC').replace(/[\\/:*?"<>|\s]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'สาขา'; }
 
 function parseCsv(text) {
   const source = String(text || '').replace(/^\uFEFF/, '');
@@ -1491,17 +1516,11 @@ function dashboardView() {
 }
 
 /* ---------- Settings View ---------- */
-function lastResetMarkup() {
-  if (!lastReset) return '<div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b>🕘 การรีเซ็ตข้อมูลล่าสุด</b><div style="color:var(--mute);margin-top:5px">ยังไม่มีประวัติการรีเซ็ต</div></div>';
-  const labels = { products:'วัตถุดิบและจำนวนคงเหลือ', history:'ประวัติการเคลื่อนไหว', users:'บัญชีผู้ใช้', all:'วัตถุดิบและประวัติทั้งหมด' };
-  const date = Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ';
-  return `<div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b>🕘 การรีเซ็ตข้อมูลล่าสุด</b><div style="margin-top:5px"><span style="color:var(--mute)">หัวข้อ:</span> ${esc(labels[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${date}</div></div>`;
-}
-
 function settingsView() {
   const canViewStorage = !!(me?.owner || me?.role === 'admin');
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
+    ${me?.owner ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">ผู้ดูแลหลักจัดการได้ทุกสาขา บัญชีพนักงานถูกจำกัดให้อยู่ในสาขาที่สร้างให้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b>${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card">
       <h3>🍣 เลือกธีมซูชิที่ชอบ</h3>
@@ -1526,7 +1545,7 @@ function settingsView() {
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div>
-    ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกเฉพาะข้อมูลที่ต้องการล้าง ระบบจะขอให้ยืนยันก่อนดำเนินการ</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button>${lastResetMarkup()}</div>` : ''}
+    ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกเฉพาะข้อมูลที่ต้องการล้าง ระบบจะขอให้ยืนยันก่อนดำเนินการ</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${lastReset ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card">
       <h3>🔐 สิทธิ์ผู้ใช้งาน</h3>
       <p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
@@ -1540,37 +1559,15 @@ function settingsView() {
   </div>`;
 }
 
-async function refreshStorageUsage() {
-  const card = $('#storageUsageCard');
-  if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
-  storageUsageBusy = true;
-  const error = $('#storageUsageError');
-  error.textContent = '';
-  try {
-    const result = await cloudRpc('api_storage_usage', { p_token: cloudToken });
-    if (!result.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
-    const mib = bytes => (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const used = Number(result.usedBytes) || 0, remaining = Number(result.remainingBytes) || 0, quota = Number(result.quotaBytes) || 0;
-    const percent = Number(result.usedPercent) || 0, bar = $('#storageUsageBar');
-    $('#storageUsed').textContent = `${mib(used)} MB`;
-    $('#storageRemaining').textContent = `${mib(remaining)} MB`;
-    $('#storagePercent').textContent = `${percent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-    $('#storageQuota').textContent = `โควตา ${mib(quota)} MB · ${result.quotaPlan || 'Free'}`;
-    $('#storageCheckedAt').textContent = result.checkedAt ? new Date(result.checkedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่ทราบเวลา';
-    bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
-    bar.classList.toggle('warn', percent >= 75 && percent < 90);
-    bar.classList.toggle('danger', percent >= 90);
-    card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
-  } catch (e) {
-    error.textContent = 'อ่านข้อมูลไม่ได้ กรุณาติดตั้ง supabase-storage-usage-migration.sql แล้วลองใหม่';
-    $('#storageCheckedAt').textContent = 'ตรวจไม่สำเร็จ';
-  } finally { storageUsageBusy = false; }
-}
-
 function bindSettings() {
   clearInterval(storageUsageTimer); storageUsageTimer = null;
-  if (me?.owner || me?.role === 'admin') { refreshStorageUsage(); storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000); }
+  if (me?.owner || me?.role === 'admin') {
+    refreshStorageUsage();
+    storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
+  }
   if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
+  if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
+  document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
     const scope = $('#resetScope').value;
@@ -1591,10 +1588,10 @@ function bindSettings() {
   };
 
   $('#backupBtn').onclick = () => {
-    const data = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS };
+    const data = { branch: { id: currentBranch.id, name: currentBranch.name }, users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS };
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
-    a.download = 'stock-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+    a.download = `stock-backup-${safeBranchFileName()}-${new Date().toISOString().slice(0, 10)}.json`;
     a.click(); toast('สำรองข้อมูลไฟล์ JSON สำเร็จ');
   };
   $('#exportBtn').onclick = exportCSV;
@@ -1632,6 +1629,7 @@ function bindSettings() {
       } else throw new Error('ชนิดไฟล์นี้ยังไม่รองรับ เลือก JSON, CSV หรือ Excel (.xlsx/.xls)');
 
       if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
+        if (parsed.branch?.id && String(parsed.branch.id) !== String(currentBranch.id)) throw new Error(`ไฟล์นี้เป็นข้อมูลของสาขา${parsed.branch.name || ''} ไม่สามารถนำเข้าในสาขา${currentBranch.name}ได้`);
         if (!confirm('ไฟล์ JSON นี้เป็นข้อมูลสำรองทั้งระบบ เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ปัจจุบันจะถูกแทนที่ ต้องการดำเนินการต่อหรือไม่?')) return;
         const restoredUsers = parsed.users.map(user => ({ ...user }));
         const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
@@ -1639,7 +1637,7 @@ function bindSettings() {
         ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
         const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
         U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
-        me = U.find(user => user.name === me.name && user.active);
+        me = me?.owner ? me : U.find(user => user.name === me.name && user.active);
         if (!me) { logout(); return toast('บัญชีนี้ไม่มีในข้อมูลสำรอง กรุณาเข้าสู่ระบบใหม่', 1); }
         $('#meRole').textContent = ROLE[me.role] || me.role; save(); build(); toast('กู้คืนข้อมูล JSON สำเร็จ');
       } else {
@@ -1669,6 +1667,55 @@ function bindSettings() {
       toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
     } else toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
   };
+}
+
+function createBranchModal() {
+  if (!me?.owner) return toast('เฉพาะผู้ดูแลหลักเท่านั้นที่เพิ่มสาขาได้', 1);
+  openModal(`<h3>🏬 เพิ่มสาขาใหม่</h3><p class="settings-hint">สาขาใหม่จะเริ่มโดยไม่มีวัตถุดิบ ประวัติ หรือบัญชีพนักงาน ผู้ดูแลหลักจะสร้างบัญชีให้ภายหลัง</p><form id="createBranchForm"><label class="fld"><span>ชื่อสาขา</span><input class="in" name="name" maxlength="80" required placeholder="เช่น สาขา..." autocomplete="off"></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สร้างสาขา</button></div></form>`);
+  $('#createBranchForm').onsubmit = async e => {
+    e.preventDefault(); const button = e.submitter; if (button) button.disabled = true;
+    try {
+      const result = await cloudRpc('api_branch_create', { p_token: cloudToken, p_name: fv(e.target, 'name') });
+      if (!result.ok) { if (button) button.disabled = false; return toast(result.error || 'สร้างสาขาไม่สำเร็จ', 1); }
+      branches = [...branches.filter(branch => branch.id !== result.branch.id), result.branch];
+      renderBranchOptions(branches); closeModal(); build(); toast(`สร้าง${result.branch.name}แล้ว ข้อมูลของสาขาเริ่มต้นว่างเปล่า`);
+    } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
+  };
+}
+function switchBranch(branchId) {
+  if (!me?.owner) return toast('เฉพาะผู้ดูแลหลักเท่านั้นที่สลับไปจัดการสาขาอื่นได้', 1);
+  const branch = branches.find(item => String(item.id) === String(branchId)); if (!branch) return toast('ไม่พบสาขาที่เลือก', 1);
+  const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+  sess.set(null); syncSnapshot = null; me = null; setCurrentBranch(branch); closeModal();
+  $('#app').classList.add('hide'); $('#bootScreen').classList.add('hide'); $('#login').classList.remove('hide');
+  $('#lgUser').value = ''; $('#lgPinInput').value = ''; $('#lgMsg').textContent = 'เข้าสู่ระบบด้วยบัญชี kiangkai เพื่อจัดการสาขานี้'; $('#lgBranch').value = branch.id;
+}
+
+async function refreshStorageUsage() {
+  const card = $('#storageUsageCard');
+  if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
+  storageUsageBusy = true;
+  const error = $('#storageUsageError');
+  error.textContent = '';
+  try {
+    const result = await cloudRpc('api_storage_usage', { p_token: cloudToken });
+    if (!result.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+    const mib = bytes => (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const used = Number(result.usedBytes) || 0, remaining = Number(result.remainingBytes) || 0, quota = Number(result.quotaBytes) || 0;
+    const percent = Number(result.usedPercent) || 0, bar = $('#storageUsageBar');
+    $('#storageUsed').textContent = `${mib(used)} MB`;
+    $('#storageRemaining').textContent = `${mib(remaining)} MB`;
+    $('#storagePercent').textContent = `${percent.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    $('#storageQuota').textContent = `โควตา ${mib(quota)} MB · ${result.quotaPlan || 'Free'}`;
+    $('#storageCheckedAt').textContent = result.checkedAt ? new Date(result.checkedAt).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : 'ไม่ทราบเวลา';
+    bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
+    bar.classList.toggle('warn', percent >= 75 && percent < 90);
+    bar.classList.toggle('danger', percent >= 90);
+    card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
+  } catch (e) {
+    error.textContent = 'อ่านข้อมูลไม่ได้ กรุณาติดตั้ง supabase-storage-usage-migration.sql แล้วลองใหม่';
+    $('#storageCheckedAt').textContent = 'ตรวจไม่สำเร็จ';
+  } finally { storageUsageBusy = false; }
 }
 
 function optionCollection(kind) {
@@ -2005,13 +2052,17 @@ function revealLogin(message = '') {
 (async () => {
   await init();
   try {
+    const branchResult = await cloudRpc('api_branch_list');
+    if (!branchResult.ok) throw new Error(branchResult.error || 'โหลดรายชื่อสาขาไม่สำเร็จ');
+    renderBranchOptions(branchResult.branches);
     const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin);
     const token = sess.get();
     if (token) {
       const result = await cloudRpc('api_get_state', { p_token: token });
       if (result.ok) {
         applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-        enter(result.me); checkSaturdayAutoLogout();
+        if (result.branch) { setCurrentBranch(result.branch); sess.set(token, result.branch.id); }
+        enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout();
       } else { sess.set(null); showHint(false); revealLogin(result.error || 'กรุณาเข้าสู่ระบบใหม่'); }
     } else revealLogin();
   } catch { showHint(false); revealLogin('ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
@@ -2019,6 +2070,7 @@ function revealLogin(message = '') {
 </script>
 </body>
 </html>
+
 
 
 
