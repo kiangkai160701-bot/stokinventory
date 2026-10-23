@@ -99,9 +99,6 @@ button{cursor:pointer;border:0;background:none;user-select:none}
 .login-story{color:#67465a;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}
 .login-story:after{content:'';position:absolute;inset:0;width:auto;height:auto;right:0;top:0;border:0;border-radius:0;box-shadow:none;pointer-events:none;background-image:radial-gradient(circle at 13% 77%,rgba(255,255,255,.55) 0 5px,transparent 6px),radial-gradient(circle at 88% 23%,rgba(255,255,255,.6) 0 7px,transparent 8px),radial-gradient(circle at 73% 80%,rgba(245,170,196,.2) 0 45px,transparent 46px),radial-gradient(circle at 19% 32%,rgba(255,255,255,.3) 0 60px,transparent 61px)}
 .story-brand,.story-copy,.ingredient-art,.story-foot{position:relative;z-index:1}
-.login-mascot-cloud{position:relative;inset:auto;display:flex;align-items:center;justify-content:space-around;gap:5px;width:100%;height:34px;margin:0 0 3px;overflow:hidden;pointer-events:none;z-index:1}.login-mascot-cloud span{position:relative;display:grid;place-items:center;flex:0 1 28px;width:auto;height:auto;border:0;border-radius:0;background:transparent;box-shadow:none;font-size:22px;line-height:1;opacity:1;filter:drop-shadow(0 3px 3px rgba(120,75,100,.18));animation:loginMascotFloat 4.2s ease-in-out infinite}.login-mascot-cloud span:nth-child(2){animation-delay:-1.4s}.login-mascot-cloud span:nth-child(3){animation-delay:-.8s}.login-mascot-cloud span:nth-child(4){animation-delay:-2s}.login-mascot-cloud span:nth-child(5){animation-delay:-2.5s}.login-mascot-cloud span:nth-child(6){animation-delay:-.5s}.login-mascot-cloud span:nth-child(7){animation-delay:-3s}.login-mascot-cloud span:nth-child(8){animation-delay:-1.8s}@keyframes loginMascotFloat{50%{translate:0 -4px;rotate:3deg}}
-@media(max-width:680px){.login-mascot-cloud{height:25px;margin-bottom:2px;gap:2px}.login-mascot-cloud span{font-size:16px;flex-basis:22px}}
-@media(prefers-reduced-motion:reduce){.login-mascot-cloud span{animation:none}}
 .story-brand{color:#67465a}.story-mark{border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.7);box-shadow:0 7px 16px rgba(184,121,146,.14);color:#dc7893}.story-brand-sub{color:#98778a}
 .eyebrow{color:#c26c88}.story-copy h2{color:#67465a}.story-copy p{color:#866c7b}.story-foot{border-color:rgba(146,105,127,.2);color:#866c7b}
 .ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
@@ -509,22 +506,16 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .quantity-stepper button:active{transform:scale(.94);background:var(--theme-wash)}
 .quantity-stepper input{min-width:0;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
 @media(max-width:680px){.quantity-stepper{grid-template-columns:50px minmax(0,1fr) 50px;gap:9px}.quantity-stepper button{height:48px}}
-/* Current-page sushi mascots, aligned stock values, and active-user badges */
-#main{position:relative}
-#main>*:not(.page-mascots){position:relative;z-index:1}
-.page-mascots{position:relative;display:flex;align-items:center;justify-content:space-around;gap:clamp(4px,1.4vw,15px);width:100%;height:39px;margin:-3px 0 7px;padding:0 9px;overflow:hidden;pointer-events:none;z-index:2}
-.page-mascots span{position:relative;display:grid;place-items:center;flex:0 1 30px;width:30px;height:30px;border:0;border-radius:0;background:transparent;font-size:21px;line-height:1;opacity:1;filter:drop-shadow(0 3px 3px var(--theme-shadow));animation:mascotFloat 4.6s ease-in-out infinite}
-.page-mascots span:nth-child(2){animation-delay:-.7s}
-.page-mascots span:nth-child(3){animation-delay:-1.3s}
-.page-mascots span:nth-child(4){animation-delay:-2.1s}
-.page-mascots span:nth-child(5){animation-delay:-.9s}
-.page-mascots span:nth-child(6){animation-delay:-1.7s}
-.page-mascots span:nth-child(7){animation-delay:-2.5s}
-.page-mascots span:nth-child(8){animation-delay:-1.1s}
-.page-mascots span:nth-child(9){animation-delay:-3s}
-.page-mascots span:nth-child(10){animation-delay:-.4s}
-@keyframes mascotFloat{50%{translate:0 -4px;rotate:2deg}}
-@media(prefers-reduced-motion:reduce){.page-mascots span{animation:none}}
+/* Theme mascots sit in card corners, separate from labels and totals */
+.has-card-mascot{position:relative;overflow:hidden}
+.stats .st.has-card-mascot{padding-right:42px}
+.dash-activity-stats>div.has-card-mascot{padding-right:42px}
+.card-mascot{position:absolute;display:grid;place-items:center;width:25px;height:25px;right:8px;bottom:7px;font-size:21px;line-height:1;filter:drop-shadow(0 2px 3px var(--theme-shadow));pointer-events:none;opacity:.9;animation:cardMascotBob 3.8s ease-in-out infinite}
+.card-mascot.corner-top{top:7px;bottom:auto}
+.card-mascot.corner-left{left:8px;right:auto}
+.card-mascot:nth-of-type(1){animation-delay:-.8s}
+@keyframes cardMascotBob{50%{translate:0 -3px;rotate:4deg}}
+@media(prefers-reduced-motion:reduce){.card-mascot{animation:none}}
 .user-name-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .user-name-line>b{display:inline!important}
 .user-online-badge{display:inline-flex;align-items:center;gap:5px;color:var(--bad);font-size:10px;font-weight:600;white-space:nowrap}
@@ -665,7 +656,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 /* Database usage card for administrators */
 .storage-card{grid-column:1/-1}.storage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.storage-heading h3{margin-bottom:3px}.storage-heading .settings-hint{margin-bottom:10px}.storage-usage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.storage-metric{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);display:grid;gap:2px}.storage-metric small{font-size:11px;color:var(--mute)}.storage-metric b{font-size:17px;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--ink);overflow-wrap:anywhere}.storage-progress{height:10px;margin:12px 0 8px;border-radius:99px;overflow:hidden;background:var(--theme-soft);border:1px solid var(--line)}.storage-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s ease,background-color .3s ease}.storage-progress span.warn{background:linear-gradient(90deg,#f4d17f,var(--warn))}.storage-progress span.danger{background:linear-gradient(90deg,#f0a8b7,var(--bad))}.storage-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--mute)}.storage-footer small{font-size:10px}.storage-error{display:block;margin-top:6px;color:var(--bad);font-size:11px}
 @media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
-@media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:11px;line-height:1;white-space:nowrap;opacity:.9}.page-mascots{height:33px;margin:-2px 0 5px;padding:0 3px;gap:1px}.page-mascots span{flex-basis:24px;width:24px;height:26px;font-size:17px}.branch-confirm-actions{grid-template-columns:1fr}}
+@media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:11px;line-height:1;white-space:nowrap;opacity:.9}.card-mascot{width:21px;height:21px;right:6px;bottom:6px;font-size:18px}.card-mascot.corner-top{top:5px}.card-mascot.corner-left{left:6px}.stats .st.has-card-mascot{padding-right:36px}.dash-activity-stats>div.has-card-mascot{padding-right:36px}.branch-confirm-actions{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-theme="teal">
@@ -675,10 +666,8 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 <section id="login" class="hide">
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
-      <div class="login-mascot-cloud"><span class="login-mascot">🍣</span><span class="login-mascot">🍙</span><span class="login-mascot">🍤</span><span class="login-mascot">🍣</span><span class="login-mascot">🍙</span><span class="login-mascot">🍤</span><span class="login-mascot">🍣</span><span class="login-mascot">🍙</span></div>
       <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
       <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span id="loginBranchTitle">สาขาพันท้ายนรสิงห์</span></h2></div>
-      <div class="sushi-friends" aria-hidden="true"><span class="sushi-friend">🍣<i>•ᴗ•</i></span><span class="sushi-friend">🍙<i>•ᴗ•</i></span><span class="sushi-friend">🍤</span></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
       <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
     </div>
@@ -911,7 +900,6 @@ function applyTheme(id) {
   document.body.setAttribute('data-theme', currentTheme);
   Object.entries(theme.colors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
   document.querySelectorAll('.sushi-friend').forEach((friend, index) => { const first = friend.childNodes[0]; if (first?.nodeType === Node.TEXT_NODE) first.nodeValue = theme.friends[index % theme.friends.length]; });
-  document.querySelectorAll('.login-mascot').forEach((mascot, index) => { mascot.textContent = theme.friends[(index + 1) % theme.friends.length]; });
   document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot').forEach(mark => { mark.textContent = theme.mascot; });
 }
 applyTheme(currentTheme);
@@ -1106,12 +1094,20 @@ document.addEventListener('click', e => {
 
 function updatePageMascots() {
   const main = $('#main'), friends = THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
-  const pageOrder = ['stock','dashboard','log','users','settings'];
-  const offset = Math.max(0, pageOrder.indexOf(tab));
-  const emojis = Array.from({length:10},(_,index) => friends[(offset + index) % friends.length]);
-  const markup = `<div class="page-mascots" aria-hidden="true">${emojis.map(emoji => `<span>${esc(emoji)}</span>`).join('')}</div>`;
-  const existing = main.querySelector('.page-mascots');
-  if (existing) existing.outerHTML = markup; else main.insertAdjacentHTML('afterbegin', markup);
+  main.querySelectorAll('.page-mascots').forEach(row => row.remove());
+  main.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
+  main.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
+  const cards = [...main.querySelectorAll('.stats .st')];
+  if (tab === 'dashboard') cards.push(...main.querySelectorAll('.dash-activity-stats > div:nth-child(-n+2)'));
+  cards.forEach((card, index) => {
+    const mascot = document.createElement('span');
+    mascot.className = `card-mascot ${index % 2 ? 'corner-top' : ''}`;
+    mascot.setAttribute('aria-hidden', 'true');
+    mascot.textContent = friends[index % friends.length];
+    mascot.style.animationDelay = `-${(index % 5) * 0.45}s`;
+    card.classList.add('has-card-mascot');
+    card.append(mascot);
+  });
 }
 
 function render(animatePage = false) {
