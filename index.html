@@ -1252,14 +1252,131 @@ function bindStockReorder() {
 }
 
 function exportCSV() {
-  const headers = ['ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ซัพพลายเออร์', 'สถานะ'];
-  const rows = P.map(p => [p.name, p.cat, p.unit, p.qty, p.min, p.loc, STX[status(p)]].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
+  const headers = ['ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ซัพพลายเออร์'];
+  const rows = P.map(p => [p.name, p.cat, p.unit, p.qty, p.min, p.loc].map(v => `"${String(v ?? '').replace(/"/g, '""')}"`).join(','));
   const link = document.createElement('a');
   link.href = URL.createObjectURL(new Blob(['\ufeff' + [headers.join(','), ...rows].join('\n')], { type: 'text/csv' }));
   link.download = 'รายการวัตถุดิบ-' + new Date().toISOString().slice(0, 10) + '.csv';
   link.click();
   setTimeout(() => URL.revokeObjectURL(link.href), 1000);
-  toast('ส่งออกรายการวัตถุดิบสำเร็จ');
+  toast('ส่งออก CSV สำหรับแก้ไขและนำเข้าได้แล้ว');
+}
+
+async function loadXlsxLibrary() {
+  if (window.XLSX) return window.XLSX;
+  if (!loadXlsxLibrary.promise) loadXlsxLibrary.promise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    script.onload = () => window.XLSX ? resolve(window.XLSX) : reject(new Error('โหลดตัวอ่านไฟล์ Excel ไม่สำเร็จ'));
+    script.onerror = () => reject(new Error('โหลดตัวอ่านไฟล์ Excel ไม่สำเร็จ กรุณาเชื่อมต่ออินเทอร์เน็ตแล้วลองใหม่'));
+    document.head.appendChild(script);
+  });
+  return loadXlsxLibrary.promise;
+}
+
+async function exportExcel() {
+  try {
+    const XLSX = await loadXlsxLibrary();
+    const headers = ['ชื่อวัตถุดิบ', 'หมวดหมู่', 'หน่วย', 'คงเหลือ', 'ขั้นต่ำ', 'ซัพพลายเออร์'];
+    const rows = P.map(p => [p.name, p.cat, p.unit, Number(p.qty) || 0, Number(p.min) || 0, p.loc || '']);
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    sheet['!cols'] = [{ wch: 28 }, { wch: 22 }, { wch: 14 }, { wch: 12 }, { wch: 12 }, { wch: 28 }];
+    sheet['!autofilter'] = { ref: `A1:F${Math.max(1, rows.length + 1)}` };
+    sheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+    XLSX.utils.book_append_sheet(workbook, sheet, 'รายการวัตถุดิบ');
+    XLSX.writeFile(workbook, `รายการวัตถุดิบ-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    toast('ส่งออก Excel สำหรับแก้ไขและนำเข้าได้แล้ว');
+  } catch (error) { toast(error.message || 'ส่งออก Excel ไม่สำเร็จ', 1); }
+}
+
+function parseCsv(text) {
+  const source = String(text || '').replace(/^\uFEFF/, '');
+  let quotedHeader = false, delimiterCounts = { ',': 0, ';': 0, '\t': 0 };
+  for (let i = 0; i < source.length && source[i] !== '\n' && source[i] !== '\r'; i++) {
+    if (source[i] === '"' && source[i + 1] === '"' && quotedHeader) { i++; continue; }
+    if (source[i] === '"') { quotedHeader = !quotedHeader; continue; }
+    if (!quotedHeader && Object.hasOwn(delimiterCounts, source[i])) delimiterCounts[source[i]]++;
+  }
+  const delimiter = Object.entries(delimiterCounts).sort((a, b) => b[1] - a[1])[0][0];
+  const rows = []; let row = [], cell = '', quoted = false;
+  for (let i = 0; i < source.length; i++) {
+    const ch = source[i];
+    if (quoted) {
+      if (ch === '"' && source[i + 1] === '"') { cell += '"'; i++; }
+      else if (ch === '"') quoted = false;
+      else cell += ch;
+    } else if (ch === '"') quoted = true;
+    else if (ch === delimiter) { row.push(cell); cell = ''; }
+    else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && source[i + 1] === '\n') i++;
+      row.push(cell); if (row.some(value => String(value).trim())) rows.push(row);
+      row = []; cell = '';
+    } else cell += ch;
+  }
+  row.push(cell); if (row.some(value => String(value).trim())) rows.push(row);
+  if (rows.length < 2) throw new Error('ไม่พบแถวข้อมูลในไฟล์ CSV');
+  const headers = rows.shift().map(value => String(value).trim());
+  return rows.map(values => Object.fromEntries(headers.map((header, index) => [header, values[index] ?? ''])));
+}
+
+function prepareProductImport(rows) {
+  const normalize = value => String(value ?? '').trim().toLocaleLowerCase().replace(/[\s_\-./()]/g, '');
+  const aliases = {
+    name: ['ชื่อวัตถุดิบ', 'ชื่อสินค้า', 'ชื่อ', 'name', 'product', 'productname', 'item'],
+    cat: ['หมวดหมู่', 'ประเภท', 'category', 'cat'],
+    unit: ['หน่วย', 'unit'],
+    qty: ['คงเหลือ', 'จำนวนคงเหลือ', 'จำนวน', 'ยอดคงเหลือ', 'qty', 'quantity', 'stock'],
+    min: ['ขั้นต่ำ', 'จำนวนขั้นต่ำ', 'จุดสั่งซื้อ', 'min', 'minimum', 'reorderlevel'],
+    loc: ['ซัพพลายเออร์', 'แหล่งจัดซื้อ', 'ผู้จำหน่าย', 'supplier', 'loc', 'location'],
+    id: ['รหัสอ้างอิง', 'รหัสสินค้า', 'id', 'productid']
+  };
+  const get = (row, key) => {
+    const wanted = new Set(aliases[key].map(normalize));
+    const entry = Object.entries(row).find(([header]) => wanted.has(normalize(header)));
+    return entry ? entry[1] : undefined;
+  };
+  const parsed = [];
+  const seenNames = new Set();
+  rows.forEach((row, index) => {
+    const name = String(get(row, 'name') ?? '').trim();
+    if (!name) {
+      if (Object.values(row).some(value => String(value ?? '').trim())) throw new Error(`แถวที่ ${index + 2}: ไม่มีชื่อวัตถุดิบ`);
+      return;
+    }
+    const nameKey = normalize(name);
+    if (seenNames.has(nameKey)) throw new Error(`พบชื่อวัตถุดิบซ้ำในไฟล์: ${name}`);
+    seenNames.add(nameKey);
+    const qtyRaw = String(get(row, 'qty') ?? '').trim().replace(/,/g, '');
+    const minRaw = String(get(row, 'min') ?? '').trim().replace(/,/g, '');
+    const qty = Number(qtyRaw), min = minRaw === '' ? 0 : Number(minRaw);
+    if (qtyRaw === '' || !Number.isFinite(qty) || qty < 0) throw new Error(`แถวที่ ${index + 2}: จำนวนคงเหลือต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
+    if (!Number.isFinite(min) || min < 0) throw new Error(`แถวที่ ${index + 2}: จำนวนขั้นต่ำต้องเป็นตัวเลขตั้งแต่ 0 ขึ้นไป`);
+    parsed.push({ id: String(get(row, 'id') ?? '').trim(), name, cat: String(get(row, 'cat') ?? '').trim(), unit: String(get(row, 'unit') ?? '').trim(), qty, min, loc: String(get(row, 'loc') ?? '').trim() });
+  });
+  if (!parsed.length) throw new Error('ไม่พบรายการวัตถุดิบที่นำเข้าได้');
+  return parsed;
+}
+
+function mergeImportedProducts(imported) {
+  const next = P.map(product => ({ ...product }));
+  let added = 0, updated = 0;
+  for (const item of imported) {
+    let target = (item.id && next.find(product => String(product.id) === item.id)) || next.find(product => String(product.name || '').trim().toLocaleLowerCase() === item.name.toLocaleLowerCase());
+    if (target) {
+      Object.assign(target, { name: item.name, cat: item.cat || target.cat || 'อื่นๆ', unit: item.unit || target.unit || 'ชิ้น', qty: item.qty, min: item.min, loc: item.loc });
+      delete target.cost; delete target.price; updated++;
+    } else {
+      let id;
+      do { id = 'P-' + (1000 + Math.floor(Math.random() * 9000)); } while (next.some(product => product.id === id));
+      next.unshift({ id, name: item.name, cat: item.cat || 'อื่นๆ', unit: item.unit || 'ชิ้น', qty: item.qty, min: item.min, loc: item.loc });
+      added++;
+    }
+    if (item.cat && !CATS.includes(item.cat)) CATS.push(item.cat);
+    if (item.unit && !UNITS.includes(item.unit)) UNITS.push(item.unit);
+  }
+  P = next;
+  return { added, updated };
 }
 
 /* ---------- Dashboard View (สรุปข้อมูลการเบิกจ่าย เติมของ และสถิติ) ---------- */
@@ -1358,12 +1475,13 @@ function settingsView() {
     </div>
     <div class="dash-card">
       <h3>💾 จัดการข้อมูลสำรอง</h3>
-      <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">สำรองข้อมูลหรือกู้คืนรายการสินค้าทั้งหมดในเครื่อง</p>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm sec" id="backupBtn">${ic('dl')} สำรองข้อมูล</button>
         <button class="btn sm sec" id="restoreBtn">${ic('up')} นำเข้าข้อมูล</button>
-        <button class="btn sm sec" id="exportBtn">${ic('dl')} ส่งออกข้อมูล</button>
-        <input type="file" id="restoreFile" accept=".json" class="hide">
+        <button class="btn sm sec" id="exportBtn">${ic('dl')} ส่งออก CSV</button>
+        <button class="btn sm sec" id="exportExcelBtn">${ic('dl')} ส่งออก Excel</button>
+        <input type="file" id="restoreFile" accept=".json,.csv,.xlsx,.xls,application/json,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" class="hide">
       </div>
     </div>
     ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกเฉพาะข้อมูลที่ต้องการล้าง ระบบจะขอให้ยืนยันก่อนดำเนินการ</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button>${lastResetMarkup()}</div>` : ''}
@@ -1408,26 +1526,44 @@ function bindSettings() {
     a.click(); toast('สำรองข้อมูลไฟล์ JSON สำเร็จ');
   };
   $('#exportBtn').onclick = exportCSV;
+  $('#exportExcelBtn').onclick = exportExcel;
 
   $('#restoreBtn').onclick = () => $('#restoreFile').click();
-  $('#restoreFile').onchange = e => {
+  $('#restoreFile').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const parsed = JSON.parse(ev.target.result);
-        if (Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
-          P = parsed.products.map(product => { delete product.cost; delete product.price; return product; }); U = parsed.users; L = parsed.log || [];
-          ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
-          const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
-          U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
-          me = U.find(user => user.name === me.name && user.active);
-          if (!me) { logout(); return toast('บัญชีนี้ไม่มีในข้อมูลสำรอง กรุณาเข้าสู่ระบบใหม่', 1); }
-          $('#meRole').textContent = ROLE[me.role] || me.role; save(); build(); toast('กู้คืนข้อมูลสำเร็จ');
-        } else { toast('รูปแบบไฟล์ไม่ถูกต้อง', 1); }
-      } catch { toast('ไม่สามารถอ่านไฟล์ JSON ได้', 1); }
-    };
-    reader.readAsText(file);
+    try {
+      const ext = file.name.split('.').pop().toLowerCase();
+      let parsed;
+      if (ext === 'json') parsed = JSON.parse(await file.text());
+      else if (ext === 'csv') parsed = parseCsv(await file.text());
+      else if (ext === 'xlsx' || ext === 'xls') {
+        const XLSX = await loadXlsxLibrary();
+        const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+        parsed = firstSheet ? XLSX.utils.sheet_to_json(firstSheet, { defval: '', raw: false }) : [];
+      } else throw new Error('ชนิดไฟล์นี้ยังไม่รองรับ เลือก JSON, CSV หรือ Excel (.xlsx/.xls)');
+
+      if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
+        if (!confirm('ไฟล์ JSON นี้เป็นข้อมูลสำรองทั้งระบบ เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ปัจจุบันจะถูกแทนที่ ต้องการดำเนินการต่อหรือไม่?')) return;
+        const restoredUsers = parsed.users.map(user => ({ ...user }));
+        const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
+        U = restoredUsers; P = restoredProducts; L = Array.isArray(parsed.log) ? parsed.log : [];
+        ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
+        const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
+        U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
+        me = U.find(user => user.name === me.name && user.active);
+        if (!me) { logout(); return toast('บัญชีนี้ไม่มีในข้อมูลสำรอง กรุณาเข้าสู่ระบบใหม่', 1); }
+        $('#meRole').textContent = ROLE[me.role] || me.role; save(); build(); toast('กู้คืนข้อมูล JSON สำเร็จ');
+      } else {
+        const rows = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.products) ? parsed.products : null;
+        if (!rows) throw new Error('รูปแบบไฟล์ไม่ถูกต้อง ต้องมีตารางรายการวัตถุดิบและหัวคอลัมน์');
+        const imported = prepareProductImport(rows);
+        if (!confirm(`พบวัตถุดิบ ${imported.length} รายการ\nรายการที่ชื่อซ้ำกับของเดิมจะอัปเดต ส่วนชื่อใหม่จะเพิ่มเข้าไป โดยประวัติและบัญชีผู้ใช้จะคงเดิม\n\nยืนยันนำเข้าหรือไม่?`)) return;
+        const result = mergeImportedProducts(imported);
+        save(); build(); toast(`นำเข้าสำเร็จ เพิ่ม ${result.added} · อัปเดต ${result.updated} รายการ`);
+      }
+    } catch (error) { toast(error.message || 'อ่านไฟล์ไม่สำเร็จ ตรวจสอบชนิดไฟล์และรูปแบบข้อมูล', 1); }
+    finally { e.target.value = ''; }
   };
   const permissionList = $('#permissionList');
   if (permissionList) permissionList.onchange = e => {
