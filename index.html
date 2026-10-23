@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 51645)
-Total output lines: 2106
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -761,6 +758,7 @@ const cloudTokenStore = {
 };
 let cloudToken = cloudTokenStore.get(), syncSnapshot = null, syncVersion = 0, syncQueue = Promise.resolve(), cloudBusy = false, storageUsageTimer = null, storageUsageBusy = false;
 const branchStore = { key: 'inv_selected_branch', get() { try { return localStorage.getItem(this.key) || ''; } catch { return ''; } }, set(id) { try { if (id) localStorage.setItem(this.key, id); else localStorage.removeItem(this.key); } catch {} } };
+const PRIMARY_BRANCH_FALLBACK = { id: 'e735a3bf-8a74-4a8c-9e9b-7af778e91234', name: 'พันท้ายนรสิงห์' };
 let branches = [], currentBranch = { id: '', name: 'พันท้ายนรสิงห์' };
 function setCurrentBranch(branch) {
   if (!branch?.id || !branch?.name) return;
@@ -779,12 +777,19 @@ function renderBranchOptions(items = branches) {
 }
 $('#lgBranch').addEventListener('change', e => { const branch = branches.find(b => String(b.id) === e.target.value); if (branch) { setCurrentBranch(branch); $('#lgMsg').textContent = ''; } });
 async function cloudRpc(name, args = {}) {
-  const response = await fetch(`${CLOUD_URL}/rest/v1/rpc/${name}`, {
-    method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args)
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.message || data.error || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ');
-  return data;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+  try {
+    const response = await fetch(`${CLOUD_URL}/rest/v1/rpc/${name}`, {
+      method: 'POST', headers: { apikey: CLOUD_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify(args), signal: controller.signal
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.message || data.error || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ');
+    return data;
+  } catch (error) {
+    if (error?.name === 'AbortError') throw new Error('Supabase ไม่ตอบสนองภายใน 15 วินาที กรุณาตรวจอินเทอร์เน็ตแล้วลองใหม่');
+    throw error;
+  } finally { clearTimeout(timeout); }
 }
 const cloneData = x => JSON.parse(JSON.stringify(x));
 let lastReset = null;
@@ -936,7 +941,104 @@ $('#lgForm').addEventListener('submit', e => { e.preventDefault(); if ($('#lgPin
 async function tryLogin() {
   const name = $('#lgUser').value.trim().toLowerCase(), pinVal = $('#lgPinInput').value, msg = $('#lgMsg');
   const fail = t => { msg.textContent = t; $('#lgPinInput').value = ''; };
-  if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock…1645 tokens truncated…on ---------- */
+  if (Date.now() < lock.until) return fail(`ระงับชั่วคราว รออีก ${Math.ceil((lock.until - Date.now()) / 1000)} วิ`);
+  const branchId = $('#lgBranch').value;
+  if (!branchId) return fail('กรุณาเลือกสาขาก่อนเข้าสู่ระบบ');
+  if (!name) return fail('กรุณากรอกชื่อผู้ใช้ก่อน');
+  if (pinVal.length !== 6) return fail('กรุณากรอกรหัสให้ครบ 6 หลัก');
+  
+  const h = await hash(pinVal);
+  let result;
+  try { result = await cloudRpc('api_branch_login', { p_branch_id: branchId, p_name: name, p_pin_hash: h }); }
+  catch (error) { return fail('เชื่อมต่อฐานข้อมูลไม่ได้ กรุณาตรวจอินเทอร์เน็ตหรือติดต่อผู้ดูแล'); }
+  if (!result.ok) {
+    lock.n++;
+    if (lock.n >= 5) { lock = { n: 0, until: Date.now() + 30000 }; store.set('inv_lock', lock); return fail('ลองผิด 5 ครั้ง ล็อก 30 วินาที'); }
+    store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
+  }
+  lock = { n: 0, until: 0 }; store.set('inv_lock', lock); setCurrentBranch(result.branch); sess.set(result.token, result.branch?.id);
+  applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
+  if (migrateLegacyBrowserData(result)) save();
+  enter(result.me, result.branch);
+}
+
+function enter(u, branch = currentBranch) {
+  setCurrentBranch(branch);
+  me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
+  $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
+  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess || !(u.owner || u.role === 'admin')); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
+  tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
+}
+
+function logout() {
+  stopPresence();
+  const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
+}
+let onlineUsers = new Set(), presenceTimer = null, presenceBusy = false;
+function updateOnlineUsers(users = []) {
+  onlineUsers = new Set(users.map(name => String(name).trim().toLowerCase()).filter(Boolean));
+  document.querySelectorAll('[data-online-user]').forEach(badge => {
+    const online = onlineUsers.has(badge.dataset.onlineUser.toLowerCase());
+    badge.hidden = false;
+    badge.classList.toggle('is-online', online);
+    badge.classList.toggle('is-offline', !online);
+    badge.textContent = online ? 'กำลังใช้งาน' : 'Offline';
+  });
+}
+async function refreshPresence() {
+  if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
+  presenceBusy = true;
+  try {
+    const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
+    if (result.ok) updateOnlineUsers(result.users || []);
+    else if (result.error?.includes('หมดเวลา')) logout();
+  } catch { /* คงสถานะล่าสุดไว้ชั่วคราวเมื่ออินเทอร์เน็ตขัดข้อง */ }
+  finally { presenceBusy = false; }
+}
+function startPresence() {
+  clearInterval(presenceTimer);
+  updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
+  refreshPresence();
+  presenceTimer = setInterval(refreshPresence, 15000);
+}
+function stopPresence() {
+  clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
+  onlineUsers = new Set(); updateOnlineUsers([]);
+}
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshPresence(); });
+function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
+$('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
+
+async function refreshCloudState() {
+  if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
+  try {
+    const result = await cloudRpc('api_get_state', { p_token: cloudToken });
+    if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+    if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
+    if (result.version !== syncVersion) {
+      applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess || !(me.owner || me.role === 'admin')); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
+      build(); toast('ข้อมูลสต็อกอัปเดตจากเครื่องอื่นแล้ว');
+    }
+  } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
+}
+setInterval(refreshCloudState, 2000);
+window.addEventListener('focus', refreshCloudState);
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
+
+const can = {
+  edit: () => fullAccessUser(me) || !!me?.permissions?.editStock,
+  del: () => fullAccessUser(me) || !!me?.permissions?.deleteStock,
+  delUsers: () => fullAccessUser(me) || !!me?.permissions?.deleteUsers,
+  users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
+  lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
+  permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
+  manageBranches: () => isGlobalBranchAdmin(me),
+  reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
+};
+
+/* ---------- Shell & Tabs Configuration ---------- */
 function tabs() {
   return [
     ['stock', 'สต็อก', 'box'],
@@ -1985,26 +2087,33 @@ function revealLogin(message = '') {
 
 (async () => {
   await init();
+  let startupMessage = '';
   try {
     const branchResult = await cloudRpc('api_branch_list');
-    if (!branchResult.ok) throw new Error(branchResult.error || 'โหลดรายชื่อสาขาไม่สำเร็จ');
+    if (!branchResult.ok || !Array.isArray(branchResult.branches) || !branchResult.branches.length) throw new Error(branchResult.error || 'โหลดรายชื่อสาขาไม่สำเร็จ');
     renderBranchOptions(branchResult.branches);
-    const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin);
-    const token = sess.get();
-    if (token) {
+  } catch (error) {
+    renderBranchOptions([PRIMARY_BRANCH_FALLBACK]);
+    startupMessage = 'โหลดรายชื่อสาขาไม่สำเร็จ กำลังใช้สาขาพันท้ายนรสิงห์ชั่วคราว';
+  }
+  try { const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin); }
+  catch { showHint(false); }
+
+  const token = sess.get();
+  if (token) {
+    try {
       const result = await cloudRpc('api_get_state', { p_token: token });
       if (result.ok) {
         applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
         if (result.branch) { setCurrentBranch(result.branch); sess.set(token, result.branch.id); }
         enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout();
       } else { sess.set(null); showHint(false); revealLogin(result.error || 'กรุณาเข้าสู่ระบบใหม่'); }
-    } else revealLogin();
-  } catch { showHint(false); revealLogin('ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
+    } catch (error) { showHint(false); revealLogin(error.message || 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
+  } else revealLogin(startupMessage);
 })();
 </script>
 </body>
 </html>
-
 
 
 
