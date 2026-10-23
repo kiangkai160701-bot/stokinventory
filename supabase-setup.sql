@@ -280,7 +280,7 @@ create or replace function public.api_reset_data(p_token text, p_scope text)
 returns jsonb
 language plpgsql security definer
 set search_path = ''
-as $
+as $$
 declare
   v_name text;
   v_data jsonb;
@@ -330,7 +330,7 @@ begin
   returning version into v_version;
   return jsonb_build_object('ok', true, 'state', public.api_safe_state(v_data), 'version', v_version);
 end;
-$;
+$$;
 
 create or replace function public.api_change_pin(p_token text, p_old_hash text, p_new_hash text)
 returns jsonb
