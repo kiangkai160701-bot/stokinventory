@@ -160,6 +160,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .st.alert { background: #fffbf0; border-color: #fde68a; } .st.alert b { color: var(--warn); }
 .st.bad { background: #fff1f2; border-color: #fecdd3; } .st.bad b { color: var(--bad); }
 .st[data-stock-filter]{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}.st[data-stock-filter]:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--acc)}.st[data-stock-filter]:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.st[data-stock-filter],.st[data-dashboard-stock-filter]{padding-right:42px;border-color:var(--theme-border-strong)}.st[data-stock-filter]::after,.st[data-dashboard-stock-filter]::after{content:'›';position:absolute;top:10px;right:10px;width:24px;height:24px;display:grid;place-items:center;border:1px solid var(--theme-border-strong);border-radius:50%;background:var(--acc-light);color:var(--acc-hover);font-size:20px;font-weight:700;line-height:1}
 
 /* ---------- Toolbar & Controls ---------- */
 .tools { display: grid; gap: 10px; margin-bottom: 14px; }
@@ -438,12 +439,12 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 /* Compact history cards and small paired dashboard charts */
 .history-filter{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg)}
 .history-filter label{font-size:12px;color:var(--mute);font-weight:600}
-.history-filter input{min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--ink);font:inherit}
+.history-filter input,.history-filter select{min-height:36px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--ink);font:inherit}
 .history-filter button{min-height:36px;padding:6px 11px;border:1px solid var(--line);border-radius:10px;background:var(--theme-soft);color:var(--ink);font:inherit;font-size:12px;cursor:pointer}
 .history-filter small{margin-left:auto;color:var(--mute);font-size:11px}
 .range-filter>label:first-child{font-size:12px;color:var(--mute);font-weight:600}
 .range-filter .range-field{display:flex;align-items:center;gap:5px;margin:0;color:var(--mute);font-size:11px;font-weight:500}
-.range-filter .range-field input{width:142px;min-width:0}
+.range-filter .range-field input,.range-filter .range-field select{width:142px;min-width:0;min-height:36px;padding:6px 9px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:12px}
 .dashboard-range{margin-bottom:12px}
 .dash-activity-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 12px}
 .dash-activity-stats>div{min-width:0;display:grid;gap:2px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);box-shadow:var(--shadow-sm)}
@@ -491,6 +492,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
   .history-filter{gap:6px;padding:7px 9px;margin-bottom:9px;border-radius:11px}
   .history-filter label{font-size:11px}
   .history-filter input{width:126px;max-width:40vw;min-height:31px;height:31px;padding:4px 7px;border-radius:8px;font-size:12px}
+  .history-filter select{max-width:43vw;min-height:31px;height:31px;padding:4px 7px;border-radius:8px;font-size:12px}
   .history-filter button{min-height:31px;height:31px;padding:4px 8px;border-radius:8px;font-size:11px}
   .history-filter small{display:none}
   .range-filter>label:first-child{width:100%;font-size:11px}
@@ -527,7 +529,12 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .history-icon svg{width:20px;height:20px;display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .history-icon.in{color:var(--ok)}.history-icon.out{color:var(--bad)}.history-icon.adjust{background:var(--theme-soft);color:var(--acc)}
 .history-icon.create{color:var(--ok)}.history-icon.edit{color:var(--acc)}.history-icon.delete{color:var(--bad)}
+.history-icon.import{color:var(--acc)}
 .history-badge.create{background:var(--ok-bg);color:var(--ok)}.history-badge.edit{background:var(--theme-soft);color:var(--acc)}.history-badge.delete{background:var(--bad-bg);color:var(--bad)}
+.history-badge.import{background:var(--theme-soft);color:var(--acc)}
+.user-activity-card{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
+.user-activity-card:hover,.user-activity-card:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--acc);outline:none}
+.user-history-hint{padding:5px 8px;border:1px solid var(--theme-border-strong);border-radius:999px;background:var(--acc-light);color:var(--acc-hover);font-size:11px;font-weight:650;white-space:nowrap}
 /* Polished stock balance bars and compact, consistent movement rows */
 .meter{height:7px;background:linear-gradient(180deg,var(--theme-soft),var(--card-bg));border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(90,60,75,.08),0 1px 0 rgba(255,255,255,.9);margin:5px 0 2px}
 .meter u{background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s cubic-bezier(.2,.75,.25,1)}.low .meter u{background:linear-gradient(90deg,#f4d17f,var(--warn))}.out .meter u{background:linear-gradient(90deg,#f0a8b7,var(--bad));min-width:8%}
@@ -586,6 +593,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .history-item:has(.history-icon.create){border-left:3px solid var(--ok)!important}
 .history-item:has(.history-icon.edit){border-left:3px solid var(--acc)!important}
 .history-item:has(.history-icon.delete){border-left:3px solid var(--bad)!important}
+.history-item:has(.history-icon.import){border-left:3px solid var(--acc)!important}
 .history-icon{width:40px;height:40px;border:1px solid var(--line);border-radius:13px}
 .history-title{gap:8px;margin-bottom:1px}
 .history-title b{font-size:14.5px}
@@ -1841,6 +1849,7 @@ function bindSettings() {
       if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
         if (parsed.branch?.id && String(parsed.branch.id) !== String(currentBranch.id)) throw new Error(`ไฟล์นี้เป็นข้อมูลของสาขา${parsed.branch.name || ''} ไม่สามารถนำเข้าในสาขา${currentBranch.name}ได้`);
         if (!confirm('ไฟล์ JSON นี้เป็นข้อมูลสำรองทั้งระบบ เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ปัจจุบันจะถูกแทนที่ ต้องการดำเนินการต่อหรือไม่?')) return;
+        const previousProductCount = P.length;
         const restoredUsers = normalizeRemovedViewerAccounts(parsed.users.map(user => ({ ...user })));
         const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
         U = restoredUsers; P = restoredProducts; L = Array.isArray(parsed.log) ? parsed.log : [];
@@ -1849,12 +1858,13 @@ function bindSettings() {
         U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
         me = me?.owner ? me : U.find(user => user.name === me.name && user.active);
         if (!me) { logout(); return toast('บัญชีนี้ไม่มีในข้อมูลสำรอง กรุณาเข้าสู่ระบบใหม่', 1); }
-        $('#meRole').textContent = ROLE[me.role] || me.role; save(); build(); toast('กู้คืนข้อมูล JSON สำเร็จ');
+        $('#meRole').textContent = ROLE[me.role] || me.role; addImportLog(restoredProducts.length, previousProductCount, P.length, 'กู้คืนจากไฟล์สำรอง JSON'); save(); build(); toast('กู้คืนข้อมูล JSON สำเร็จ');
       } else {
         const rows = Array.isArray(parsed) ? parsed : Array.isArray(parsed?.products) ? parsed.products : null;
         if (!rows) throw new Error('รูปแบบไฟล์ไม่ถูกต้อง ต้องมีตารางรายการวัตถุดิบและหัวคอลัมน์');
         const imported = prepareProductImport(rows);
         const result = mergeImportedProducts(imported);
+        addImportLog(imported.length, P.length - result.added, P.length, `เพิ่ม ${result.added} · อัปเดต ${result.updated}`);
         selectedImportFile = null; $('#restoreFile').value = ''; $('#selectedImportPanel').classList.add('hide');
         save(); build(); toast(`นำเข้าสำเร็จ เพิ่ม ${result.added} · อัปเดต ${result.updated} รายการ`);
       }
@@ -2059,6 +2069,9 @@ const fv = (f, n) => f.elements[n].value.trim();
 function addLog(type, p, amt, before, after, note = '') {
   L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type, pid: p.id, pname: p.name, unit: p.unit || '', amt, before, after, ...(note ? { note } : {}) });
 }
+function addImportLog(count, before, after, note = '') {
+  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt: count, before, after, ...(note ? { note } : {}) });
+}
 
 /* Modal จัดการสินค้าภายในเมื่อคลิกที่แถวสินค้า */
 function itemDetailModal(id) {
@@ -2159,24 +2172,28 @@ function logView() {
   const params = new URLSearchParams(location.search);
   let dateFrom = params.get('historyFrom') || '', dateTo = params.get('historyTo') || '';
   const requestedType = params.get('historyType') || '';
-  const typeFilter = ['in', 'out', 'adjust'].includes(requestedType) ? requestedType : '';
-  const typeLabels = { in: 'รับเข้า', out: 'เบิกจ่าย', adjust: 'ปรับยอด' };
+  const typeFilter = ['in', 'out', 'adjust', 'create', 'edit', 'delete', 'import'].includes(requestedType) ? requestedType : '';
+  const requestedUser = params.get('historyUser') || '';
+  const userNames = [...new Set([...U.map(user => user.name), ...L.map(item => item.user).filter(Boolean)])].filter(Boolean).sort((a,b) => a.localeCompare(b, 'th'));
+  const selectedUser = userNames.find(name => name.toLowerCase() === requestedUser.toLowerCase()) || '';
+  const typeLabels = { in: 'รับเข้า', out: 'เบิกจ่าย', adjust: 'ปรับยอด', create: 'เพิ่มวัตถุดิบ', edit: 'แก้ไขข้อมูล', delete: 'ลบวัตถุดิบ', import: 'นำเข้าวัตถุดิบ' };
   const legacyDate = params.get('historyDate') || '';
   if (!dateFrom && !dateTo && legacyDate) dateFrom = dateTo = legacyDate;
   const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || x.type === typeFilter); }).slice(0, 300);
-  const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}`;
-  const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'] };
+  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || x.type === typeFilter) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); }).slice(0, 300);
+  const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}${selectedUser ? ` · ผู้ทำรายการ ${selectedUser}` : ''}`;
+  const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'], import: ['นำเข้าวัตถุดิบ', 'import'] };
   const historyIcons = {
     in: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 13h15l-1.2 7H5.7z"/><path d="M12 3.5v8.5m-3.5-3.5 3.5 3.5 3.5-3.5"/><path d="M8 16.5h8"/></svg>',
     out: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 13h15l-1.2 7H5.7z"/><path d="M12 12.5V4m-3.5 3.5L12 4l3.5 3.5"/><path d="M8 16.5h8"/></svg>',
     adjust: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M7 9h6m-3-3v6m5 6h4"/></svg>',
     create: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 8 8-4 8 4-8 4-8-4Z"/><path d="M4 8v8l8 4 8-4V8m-8 4v8"/><path d="M18.5 2.5v5m-2.5-2.5h5"/></svg>',
     edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L20 7.4 16.6 4 4.8 15.8 4 20Z"/><path d="M13 20h7"/></svg>',
-    delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>'
+    delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>',
+    import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9l5 5V20a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 20z"/><path d="M14 3.5v5h5M12 11v7m-3-3 3 3 3-3"/></svg>'
   };
   return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><button type="button" id="clearHistoryRange">แสดงทั้งหมด</button><small>แสดงย้อนหลังได้สูงสุด 300 รายการ</small></div>` +
+  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button><small>แสดงย้อนหลังได้สูงสุด 300 รายการ</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
@@ -2184,11 +2201,17 @@ function logView() {
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
     const movementIcon = historyIcons[x.type] || historyIcons.adjust;
     return `<article class="history-item"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
-  }).join('')}</div>` : `<div class="empty"><b>${dateFrom || dateTo ? 'ไม่พบรายการในช่วงวันที่เลือก' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo ? 'ลองเลือกช่วงวันอื่น หรือกดแสดงทั้งหมด' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`);
+  }).join('')}</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`);
 }
 
 document.addEventListener('change', e => {
   const historyIds = ['historyFrom','historyTo'], dashboardIds = ['dashboardFrom','dashboardTo'];
+  if (['historyTypeFilter','historyUserFilter'].includes(e.target.id)) {
+    const url = new URL(location.href), type = $('#historyTypeFilter').value, user = $('#historyUserFilter').value;
+    if (type) url.searchParams.set('historyType', type); else url.searchParams.delete('historyType');
+    if (user) url.searchParams.set('historyUser', user); else url.searchParams.delete('historyUser');
+    history.pushState({}, '', url); render(); return;
+  }
   if (historyIds.includes(e.target.id)) {
     const from = $('#historyFrom').value, to = $('#historyTo').value;
     if (from && to && from > to) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = e.target.id === 'historyFrom' ? to : from; return; }
@@ -2217,14 +2240,14 @@ document.addEventListener('click', e => {
   if (dashboardMovementCard && tab === 'dashboard') {
     const from = $('#dashboardFrom')?.value || '', to = $('#dashboardTo')?.value || '';
     const url = new URL(location.href);
-    url.searchParams.delete('historyDate');
+    url.searchParams.delete('historyDate'); url.searchParams.delete('historyUser');
     url.searchParams.set('historyType', dashboardMovementCard.dataset.dashboardMovementFilter);
     if (from) url.searchParams.set('historyFrom', from); else url.searchParams.delete('historyFrom');
     if (to) url.searchParams.set('historyTo', to); else url.searchParams.delete('historyTo');
     history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
   }
   if (e.target.closest('#clearHistoryRange')) {
-    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); history.pushState({}, '', url); render();
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.delete('historyUser'); history.pushState({}, '', url); render();
   }
   if (e.target.closest('#dashboardSevenDays')) {
     const now = new Date(); now.setHours(0,0,0,0); const from = new Date(now); from.setDate(from.getDate()-6);
@@ -2234,6 +2257,8 @@ document.addEventListener('click', e => {
 });
 document.addEventListener('keydown', e => {
   if (e.key !== 'Enter' && e.key !== ' ') return;
+  const userCard = e.target.closest('[data-history-user]');
+  if (userCard && !e.target.closest('button') && tab === 'users') { e.preventDefault(); userCard.click(); return; }
   const card = e.target.closest('[data-dashboard-stock-filter],[data-dashboard-movement-filter]');
   if (!card) return;
   e.preventDefault(); card.click();
@@ -2245,13 +2270,19 @@ function usersView() {
   const summary=users.map(activity), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=users.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
   <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
-  <div class="list">${users.map(u => `<div class="card"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
+  <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs} · ล่าสุด ${activity(u).last}</small></div>
-  <div style="display:flex;gap:6px">${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+  <div style="display:flex;gap:6px;align-items:center"><span class="user-history-hint">ดูประวัติ ›</span>${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
 document.addEventListener('click', e => {
-  if (!me || tab !== 'users') return; const b = e.target.closest('button'); if (!b) return;
+  if (!me || tab !== 'users') return;
+  const activityCard = e.target.closest('[data-history-user]');
+  if (activityCard && !e.target.closest('button')) {
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.set('historyUser', activityCard.dataset.historyUser);
+    history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
+  }
+  const b = e.target.closest('button'); if (!b) return;
   if (b.id === 'nu') userModal(); if (b.dataset.ue) userModal(b.dataset.ue); if (b.dataset.ud) delUser(b.dataset.ud);
 });
 
