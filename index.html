@@ -775,22 +775,23 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 @media(max-width:360px){.row{grid-template-columns:31px minmax(0,1fr) minmax(120px,42%);column-gap:6px;padding-left:10px;padding-right:8px}.row .c-qty>b{font-size:17px}.row .c-loc{font-size:11px}}
 @media(max-width:680px){.row{grid-template-columns:36px minmax(0,1fr) minmax(128px,42%)}.row .drag-handle{width:36px;height:42px;border-radius:11px;touch-action:none;-webkit-tap-highlight-color:transparent}.row .drag-handle svg{width:20px;height:20px}.list.is-reordering .row:not(.is-dragging){will-change:transform;transition:transform .22s cubic-bezier(.2,.78,.22,1),box-shadow .22s ease}}
 @media(max-width:360px){.row{grid-template-columns:34px minmax(0,1fr) minmax(120px,42%)}.row .drag-handle{width:34px;height:40px}}
-/* Floating notch navigation adapted to the app's own tabs and active theme */
-#nav.nav{height:64px;min-height:64px;padding:0;gap:0;overflow:visible;isolation:isolate;border:0;border-radius:22px;background:transparent;box-shadow:none}
-#nav .nav-bar{position:absolute;inset:0;z-index:0;overflow:hidden;border:1px solid var(--theme-border-strong);border-radius:22px;filter:drop-shadow(0 7px 16px var(--theme-shadow));pointer-events:none}
+/* Floating notch navigation: the ball slides to the chosen tab and the bar dips under it */
+#nav.nav{--nav-ball:var(--acc-hover);height:64px;min-height:64px;padding:0;gap:0;overflow:visible;isolation:isolate;border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+#nav .nav-bar{position:absolute;inset:0;z-index:0;overflow:hidden;border-radius:22px;filter:drop-shadow(0 6px 14px var(--theme-shadow));pointer-events:none}
 #nav .nav-shape{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible}
-#nav .nav-shape path{fill:var(--theme-nav-bg);stroke:var(--theme-border-strong);stroke-width:1.1;vector-effect:non-scaling-stroke}
-#nav.nav button{z-index:1;position:relative;flex:1 1 0;min-width:0;height:64px;min-height:64px;padding:0 2px 6px;gap:0;justify-content:flex-end;border:0;border-radius:0;color:var(--mute);background:transparent;transition:color .24s ease;-webkit-tap-highlight-color:transparent}
-#nav.nav button.on{color:var(--ink);background:transparent}
+#nav .nav-shape path{fill:var(--theme-nav-bg)}
+#nav.nav button{position:relative;z-index:1;flex:1 1 0;min-width:0;height:64px;min-height:64px;padding:0;border:0;border-radius:0;background:transparent;color:var(--mute);transition:color .25s ease}
+#nav.nav button.on{background:transparent;color:var(--acc-hover)}
 #nav.nav button.on::after{display:none}
-#nav.nav button>svg{position:absolute;top:12px;width:22px;height:22px;flex:none;opacity:.8;transform:translateY(0);transition:opacity .2s ease,transform .25s ease}
-#nav.nav button.on>svg{opacity:0;transform:scale(.65)}
-#nav.nav button span{position:absolute;left:2px;right:2px;bottom:6px;font-size:11px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#nav .nav-ball{position:absolute;z-index:3;top:-26px;left:0;width:54px;height:54px;margin-left:-27px;display:grid;place-items:center;border:4px solid var(--theme-nav-bg);border-radius:50%;background:var(--acc-hover);color:#fff;box-shadow:0 7px 16px var(--acc-glow);will-change:transform;pointer-events:none}
-#nav .nav-ball svg{grid-area:1/1;width:24px;height:24px;opacity:0;transform:scale(.58) rotate(-25deg);stroke:#fff;transition:opacity .28s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
-#nav .nav-ball svg.show{opacity:1;transform:scale(1) rotate(0)}
-#nav .nav-dot{position:absolute;z-index:2;left:0;bottom:7px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc-glow);will-change:transform;pointer-events:none}
-@media(max-width:380px){#nav.nav{height:62px;min-height:62px}#nav.nav button{height:62px;min-height:62px;padding-inline:1px}#nav.nav button>svg{top:11px}#nav.nav button span{font-size:10px}#nav .nav-ball{width:52px;height:52px;top:-25px;margin-left:-26px}}
+#nav.nav button>svg{position:absolute;top:11px;left:50%;width:22px;height:22px;margin-left:-11px;opacity:.85;transition:opacity .2s ease,transform .3s ease}
+#nav.nav button.on>svg{opacity:0;transform:scale(.6)}
+#nav.nav button span{position:absolute;left:2px;right:2px;bottom:7px;font-size:11px;line-height:1.15;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#nav.nav button.on span{font-weight:600}
+#nav .nav-ball{position:absolute;z-index:3;top:-26px;left:0;width:54px;height:54px;margin-left:-27px;display:grid;place-items:center;border-radius:50%;background:var(--nav-ball);color:#fff;box-shadow:0 0 0 5px var(--theme-nav-bg),0 8px 16px var(--acc-glow);will-change:transform;pointer-events:none}
+#nav .nav-ball svg{grid-area:1/1;width:24px;height:24px;stroke:#fff;opacity:0;transform:scale(.55) rotate(-30deg);transition:opacity .3s ease,transform .4s cubic-bezier(.2,.8,.2,1)}
+#nav .nav-ball svg.show{opacity:1;transform:none}
+#nav .nav-dot{position:absolute;z-index:2;left:0;top:37px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--nav-ball);will-change:transform;pointer-events:none}
+@media(max-width:859px){.toast{bottom:calc(112px + env(safe-area-inset-bottom,0px))}}
 @media(prefers-reduced-motion:reduce){#nav .nav-ball svg{transition:none}}
 /* Four clean, non-mascot business palettes */
 html.formal-theme #login{background:radial-gradient(ellipse at 12% 8%,var(--theme-wash),transparent 38%),radial-gradient(ellipse at 90% 92%,var(--theme-wash-2),transparent 40%),var(--bg-app)}
@@ -1282,7 +1283,7 @@ function build() {
   if (tab === 'users' && !can.users()) tab = 'settings';
   const nav = $('#nav');
   nav.dataset.activeIndex = '';
-  nav.innerHTML = `<div class="nav-bar" aria-hidden="true"><svg class="nav-shape"><path></path></svg></div>${tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('')}<span class="nav-dot" aria-hidden="true"></span><span class="nav-ball" aria-hidden="true"></span>`;
+  nav.innerHTML = `<div class="nav-bar" aria-hidden="true"><svg class="nav-shape"><path></path></svg></div>${tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('')}<span class="nav-dot" aria-hidden="true"></span><span class="nav-ball" aria-hidden="true">${tabs().map(t => ic(t[2])).join('')}</span>`;
   $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
   render();
 }
@@ -1332,52 +1333,38 @@ function updatePageMascots() {
 }
 
 let mobileNavX = null, mobileNavRaf = 0;
-const MOBILE_NAV_HEIGHT = 64, MOBILE_NAV_NOTCH_WIDTH = 42, MOBILE_NAV_NOTCH_DEPTH = 29;
-const mobileNavEase = t => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2);
-function drawMobileNav(centerX) {
+const MOBILE_NAV_NOTCH_WIDTH = 42, MOBILE_NAV_NOTCH_DEPTH = 29;
+const mobileNavEase = t => 1 + 2.4 * Math.pow(t - 1, 3) + 1.4 * Math.pow(t - 1, 2); // easeOutBack: slides then settles with a small bounce
+function drawMobileNav(cx) {
   const nav = $('#nav'), shape = nav?.querySelector('.nav-shape'), path = shape?.querySelector('path');
-  if (!nav || !shape || !path) return;
-  const width = nav.clientWidth, height = nav.clientHeight || MOBILE_NAV_HEIGHT, notchWidth = MOBILE_NAV_NOTCH_WIDTH, depth = Math.min(MOBILE_NAV_NOTCH_DEPTH, height * .46), curve = notchWidth * .55;
-  shape.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  shape.setAttribute('width', width); shape.setAttribute('height', height);
-  path.setAttribute('d', `M -48 0 L ${centerX-notchWidth} 0 C ${centerX-notchWidth+curve} 0 ${centerX-curve} ${depth} ${centerX} ${depth} C ${centerX+curve} ${depth} ${centerX+notchWidth-curve} 0 ${centerX+notchWidth} 0 L ${width+48} 0 L ${width+48} ${height} L -48 ${height} Z`);
+  if (!nav || !path) return;
+  const w = nav.clientWidth, h = nav.clientHeight, nw = MOBILE_NAV_NOTCH_WIDTH, d = MOBILE_NAV_NOTCH_DEPTH, k = nw * .55;
+  shape.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  path.setAttribute('d', `M -60 0 L ${cx-nw} 0 C ${cx-nw+k} 0 ${cx-k} ${d} ${cx} ${d} C ${cx+k} ${d} ${cx+nw-k} 0 ${cx+nw} 0 L ${w+60} 0 L ${w+60} ${h} L -60 ${h} Z`);
   const ball = nav.querySelector('.nav-ball'), dot = nav.querySelector('.nav-dot');
-  if (ball) ball.style.transform = `translate3d(${centerX}px,0,0)`;
-  if (dot) dot.style.transform = `translate3d(${centerX}px,0,0)`;
+  if (ball) ball.style.transform = `translate3d(${cx}px,0,0)`;
+  if (dot) dot.style.transform = `translate3d(${cx}px,0,0)`;
 }
 function updateMobileNavIndicator() {
   const nav = $('#nav');
-  if (!nav) return;
-  const buttons = [...nav.querySelectorAll('button[data-t]')], index = buttons.findIndex(button => button.classList.contains('on'));
-  if (index < 0 || !buttons.length) return;
-  const width = nav.clientWidth, targetX = (index + .5) * width / buttons.length;
-  const indexChanged = nav.dataset.activeIndex !== String(index);
-  const ball = nav.querySelector('.nav-ball'), selectedIcon = buttons[index].querySelector('svg');
-  if (ball && selectedIcon && (indexChanged || !ball.querySelector('svg'))) {
-    ball.innerHTML = selectedIcon.outerHTML;
-    requestAnimationFrame(() => ball.querySelector('svg')?.classList.add('show'));
-  }
-  const fromX = mobileNavX, firstLayout = fromX === null || !Number.isFinite(fromX) || !width;
+  if (!nav || !nav.clientWidth) return;
+  const buttons = [...nav.querySelectorAll('button[data-t]')], index = buttons.findIndex(b => b.classList.contains('on'));
+  if (index < 0) return;
+  nav.querySelectorAll('.nav-ball svg').forEach((icon, i) => icon.classList.toggle('show', i === index));
+  const target = (index + .5) * nav.clientWidth / buttons.length, from = mobileNavX;
   cancelAnimationFrame(mobileNavRaf);
-  if (firstLayout || !width || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    mobileNavX = targetX; drawMobileNav(targetX);
-  } else if (!indexChanged && Math.abs(fromX - targetX) < 1) {
-    mobileNavX = targetX; drawMobileNav(targetX);
-  } else {
-    const start = performance.now();
-    (function step(now) {
-      const progress = Math.min((now - start) / 520, 1);
-      mobileNavX = fromX + (targetX - fromX) * mobileNavEase(progress);
-      drawMobileNav(mobileNavX);
-      if (progress < 1) mobileNavRaf = requestAnimationFrame(step);
-      else mobileNavX = targetX;
-    })(start);
-  }
-  nav.dataset.activeIndex = String(index);
+  if (from === null || Math.abs(from - target) < 1 || matchMedia('(prefers-reduced-motion: reduce)').matches) { mobileNavX = target; drawMobileNav(target); return; }
+  const t0 = performance.now();
+  (function step(now) {
+    const p = Math.min((now - t0) / 560, 1);
+    mobileNavX = from + (target - from) * mobileNavEase(p);
+    drawMobileNav(mobileNavX);
+    if (p < 1) mobileNavRaf = requestAnimationFrame(step); else mobileNavX = target;
+  })(t0);
 }
 window.addEventListener('resize', () => {
-  const nav = $('#nav'), buttons = nav?.querySelectorAll('button[data-t]'), index = [...(buttons || [])].findIndex(button => button.classList.contains('on'));
-  if (!nav || index < 0 || !buttons.length) return;
+  const nav = $('#nav'), buttons = nav ? [...nav.querySelectorAll('button[data-t]')] : [], index = buttons.findIndex(b => b.classList.contains('on'));
+  if (!nav || index < 0 || !nav.clientWidth) return;
   cancelAnimationFrame(mobileNavRaf);
   mobileNavX = (index + .5) * nav.clientWidth / buttons.length;
   drawMobileNav(mobileNavX);
