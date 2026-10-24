@@ -509,16 +509,26 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .quantity-stepper button:active{transform:scale(.94);background:var(--theme-wash)}
 .quantity-stepper input{min-width:0;text-align:center;font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
 @media(max-width:680px){.quantity-stepper{grid-template-columns:50px minmax(0,1fr) 50px;gap:9px}.quantity-stepper button{height:48px}}
-/* Theme mascots sit in card corners, separate from labels and totals */
+/* Small themed characters stay inside card corners and leave text controls clear */
 .has-card-mascot{position:relative;overflow:hidden}
 .stats .st.has-card-mascot{padding-right:42px}
-.dash-activity-stats>div.has-card-mascot{padding-right:42px}
-.card-mascot{position:absolute;display:grid;place-items:center;width:25px;height:25px;right:8px;bottom:7px;font-size:21px;line-height:1;filter:drop-shadow(0 2px 3px var(--theme-shadow));pointer-events:none;opacity:.9;animation:cardMascotBob 3.8s ease-in-out infinite}
-.card-mascot.corner-top{top:7px;bottom:auto}
-.card-mascot.corner-left{left:8px;right:auto}
+.dash-activity-stats>div.has-card-mascot{padding-right:38px}
+.card-mascot{position:absolute;z-index:0;display:grid;place-items:center;width:22px;height:22px;right:7px;bottom:6px;border:1px solid var(--theme-border-strong);border-radius:50%;background:var(--theme-soft);font-size:16px;line-height:1;filter:drop-shadow(0 2px 3px var(--theme-shadow));pointer-events:none;opacity:.78;animation:cardMascotBob 3.8s ease-in-out infinite}
+.card-mascot.mascot-top-right{top:7px;right:8px;bottom:auto}
+.card-mascot.mascot-bottom-right{right:8px;bottom:6px;top:auto}
+.card-mascot.mascot-stock{top:50%;right:0;bottom:auto;width:18px;height:18px;border:0;background:transparent;font-size:16px;opacity:.88;transform:translateY(-50%)}
+.card-mascot.mascot-history{top:0;right:0;bottom:auto;width:18px;height:18px;border:0;background:transparent;font-size:15px;opacity:.66}
+.card-mascot.mascot-user{top:0;right:0;bottom:auto;width:19px;height:19px;font-size:15px}
+.row .c-name.has-card-mascot{padding-right:23px}
+.history-main.has-card-mascot{padding-right:23px}
+.card .t.has-card-mascot{padding-right:24px}
+.dash-card.has-card-mascot>h3,.dash-chart.has-card-mascot>h3,.permission-user.has-card-mascot .permission-heading{padding-right:26px}
+.theme-opt .theme-emoji{position:relative;z-index:1}
+#app::before,#app::after{display:none!important}
 .card-mascot:nth-of-type(1){animation-delay:-.8s}
 @keyframes cardMascotBob{50%{translate:0 -3px;rotate:4deg}}
 @media(prefers-reduced-motion:reduce){.card-mascot{animation:none}}
+@media(max-width:680px){.card-mascot{width:19px;height:19px;right:6px;bottom:5px;font-size:14px;opacity:.74}.card-mascot.mascot-top-right{top:6px;right:6px}.card-mascot.mascot-bottom-right{right:6px;bottom:5px}.card-mascot.mascot-history{width:16px;height:16px;font-size:13px}.card-mascot.mascot-stock{width:16px;height:16px;font-size:14px}.stats .st.has-card-mascot{padding-right:39px}.dash-activity-stats>div.has-card-mascot{padding-right:34px}}
 .user-name-line{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .user-name-line>b{display:inline!important}
 .user-online-badge{display:inline-flex;align-items:center;gap:5px;color:var(--bad);font-size:10px;font-weight:600;white-space:nowrap}
@@ -1020,6 +1030,9 @@ const THEMES = {
   kawaii:{id:'kawaii',name:'การ์ตูนน่ารัก',mascot:'🐱',friends:['🐱','🍙','🐙'],colors:{'--bg-app':'#fff3fa','--card-bg':'#fffdfd','--ink':'#68485e','--mute':'#997a90','--line':'#f1dbe9','--acc':'#e58fbd','--acc-hover':'#cc70a2','--acc-light':'#fff0f8','--acc-glow':'rgba(229,143,189,.22)','--theme-soft':'#ffeafa','--theme-chip':'#f8d7e9','--theme-input':'#fff9fc','--theme-wash':'rgba(255,190,221,.34)','--theme-wash-2':'rgba(216,205,255,.29)','--theme-story-1':'#ffdfef','--theme-story-2':'#fff0d9','--theme-story-3':'#e9e4ff','--theme-top-bg':'rgba(255,249,253,.96)','--theme-nav-bg':'rgba(255,250,253,.97)','--theme-shadow':'rgba(151,81,123,.12)','--theme-border-strong':'#edc4db','--theme-warn-ink':'#916630','--theme-mascot-a':'"🐱"','--theme-mascot-b':'"🍙"','--bad':'#c66d8d','--bad-bg':'#fff0f4','--ok':'#6c9a88','--ok-bg':'#edf7f1'}},
   cyber:{id:'cyber',name:'ไฮเทค',mascot:'🤖',friends:['🤖','🛰️','🪼'],colors:{'--bg-app':'#effaff','--card-bg':'#fcfeff','--ink':'#3c5268','--mute':'#71889d','--line':'#d4e9f3','--acc':'#50b7d1','--acc-hover':'#3496b1','--acc-light':'#e5f8ff','--acc-glow':'rgba(80,183,209,.22)','--theme-soft':'#e2f7ff','--theme-chip':'#ccecf6','--theme-input':'#f8fdff','--theme-wash':'rgba(150,225,245,.32)','--theme-wash-2':'rgba(207,195,255,.28)','--theme-story-1':'#d5f4ff','--theme-story-2':'#e7e7ff','--theme-story-3':'#d9f5eb','--theme-top-bg':'rgba(247,253,255,.96)','--theme-nav-bg':'rgba(249,254,255,.97)','--theme-shadow':'rgba(55,122,151,.13)','--theme-border-strong':'#b7deeb','--theme-warn-ink':'#8c672e','--theme-mascot-a':'"🤖"','--theme-mascot-b':'"🛰️"','--bad':'#c66f87','--bad-bg':'#fff0f3','--ok':'#589b91','--ok-bg':'#e7f7f2'}}
 };
+const THEME_CARD_FRIENDS = {
+  sakura:['🍣','🍙','🍤','🐟','🍥','🦐','🥢','🐡'], matcha:['🍵','🍙','🥑','🍃','🐸','🍡','🍣','🥬'], ocean:['🐟','🍣','🦀','🐳','🐙','🐬','🪼','🦑'], lavender:['🍙','🍣','🐙','🦄','🌙','⭐','🍡','🐰'], peach:['🍤','🍣','🍋','🦐','🍑','🐥','🍡','🦆'], lemon:['🍋','🍣','🍙','🐤','🍊','🌼','🍮','🐝'], mint:['🐳','🍣','🍙','🐬','🫧','🦭','🧊','🐠'], grape:['🍇','🍙','🍣','🐱','🫐','🍡','🐙','🐻'], coral:['🦀','🍣','🐟','🐠','🐚','🪸','🦐','🐢'], ramune:['🫧','🐟','🍣','🐬','🦭','🐠','🪼','🧊'], taro:['🍠','🍙','🍣','🐰','🍡','🐻','🌸','🐼'], nori:['🌿','🍣','🍙','🐢','🥬','🫛','🍃','🐸'], midnight:['🐙','🌙','🍣','⭐','🪐','🐈‍⬛','🌟','👾'], cosmos:['🚀','🪐','🍣','👾','🌙','⭐','🛰️','🌠'], kawaii:['🐱','🍙','🐙','🐻','🐰','🍡','🐥','🦄'], cyber:['🤖','🛰️','🪼','💫','👾','🐬','🛸','🦾']
+};
 let currentTheme = store.get('inv_theme', 'sakura');
 function applyTheme(id) {
   const aliases = { teal:'sakura', indigo:'lavender', emerald:'peach', ruby:'ocean' };
@@ -1221,15 +1234,31 @@ document.addEventListener('click', e => {
 });
 
 function updatePageMascots() {
-  const main = $('#main'), friends = THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
+  const main = $('#main'), friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
   main.querySelectorAll('.page-mascots').forEach(row => row.remove());
   main.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
   main.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
-  const cards = [...main.querySelectorAll('.stats .st')];
-  if (tab === 'dashboard') cards.push(...main.querySelectorAll('.dash-activity-stats > div:nth-child(-n+2)'));
-  cards.forEach((card, index) => {
+  const cards = [];
+  const add = (selector, placement = 'mascot-top-right', every = 1) => {
+    [...main.querySelectorAll(selector)].forEach((card, index) => { if (index % every === 0) cards.push({ card, placement }); });
+  };
+  if (tab === 'stock') {
+    add('.stats .st', 'mascot-bottom-right');
+    add('.row .c-name', 'mascot-stock');
+  } else if (tab === 'dashboard') {
+    add('.stats .st', 'mascot-bottom-right');
+    add('.dash-activity-stats > div', 'mascot-top-right');
+    add('.dash-chart,.dash-grid > .dash-card', 'mascot-top-right');
+  } else if (tab === 'log') {
+    add('.history-main', 'mascot-history', 3);
+  } else if (tab === 'users') {
+    add('.user-activity-card .t', 'mascot-user');
+  } else if (tab === 'settings') {
+    add('.dash-grid > .dash-card,.permission-user', 'mascot-top-right');
+  }
+  cards.forEach(({ card, placement }, index) => {
     const mascot = document.createElement('span');
-    mascot.className = `card-mascot ${index % 2 ? 'corner-top' : ''}`;
+    mascot.className = `card-mascot ${placement}`;
     mascot.setAttribute('aria-hidden', 'true');
     mascot.textContent = friends[index % friends.length];
     mascot.style.animationDelay = `-${(index % 5) * 0.45}s`;
