@@ -773,6 +773,16 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
   .row .c-loc>span:last-child{flex:1 1 90px;min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 }
 @media(max-width:360px){.row{grid-template-columns:31px minmax(0,1fr) minmax(120px,42%);column-gap:6px;padding-left:10px;padding-right:8px}.row .c-qty>b{font-size:17px}.row .c-loc{font-size:11px}}
+/* Mobile navigation: a larger capsule with a smoothly sliding active tab */
+#nav.nav{--nav-pill-x:0px;--nav-pill-width:0px;isolation:isolate;overflow:hidden;align-items:stretch;gap:3px;padding:6px;border-radius:999px;background:var(--theme-nav-bg);border:1px solid var(--theme-border-strong);box-shadow:0 10px 28px var(--theme-shadow)}
+#nav.nav::before{content:"";position:absolute;z-index:0;top:6px;bottom:6px;left:0;width:var(--nav-pill-width);border-radius:999px;background:var(--acc-hover);background:color-mix(in srgb,var(--acc-hover) 72%,#302b3a);box-shadow:0 4px 12px var(--acc-glow);transform:translateX(var(--nav-pill-x));transition:transform .38s cubic-bezier(.22,.78,.22,1),background-color .25s ease;pointer-events:none}
+#nav.nav button{z-index:1;flex:1 1 0;min-width:0;min-height:58px;padding:7px 3px 6px;gap:4px;border-radius:999px;color:var(--mute);background:transparent;transition:color .26s ease}
+#nav.nav button.on{color:#fff;background:transparent}
+#nav.nav button.on::after{display:none}
+#nav.nav svg{width:22px;height:22px;flex:none}
+#nav.nav button span{font-size:11px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:380px){#nav.nav{gap:2px;padding:5px}#nav.nav::before{top:5px;bottom:5px}#nav.nav button{min-height:56px;padding-inline:2px}#nav.nav button span{font-size:10px}}
+@media(prefers-reduced-motion:reduce){#nav.nav::before{transition:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1291,12 +1301,25 @@ function updatePageMascots() {
   });
 }
 
+function updateMobileNavIndicator() {
+  const nav = $('#nav');
+  if (!nav) return;
+  const selected = nav.querySelector('button[data-t].on');
+  if (!selected) return;
+  const navRect = nav.getBoundingClientRect();
+  const selectedRect = selected.getBoundingClientRect();
+  nav.style.setProperty('--nav-pill-x', `${selectedRect.left - navRect.left}px`);
+  nav.style.setProperty('--nav-pill-width', `${selectedRect.width}px`);
+}
+window.addEventListener('resize', updateMobileNavIndicator, { passive: true });
+
 function render(animatePage = false) {
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
   main.classList.remove('page-next', 'page-prev');
   document.querySelectorAll('[data-t]').forEach(button => button.classList.toggle('on', button.dataset.t === tab));
+  updateMobileNavIndicator();
   if (tab === 'stock') main.innerHTML = stockView();
   else if (tab === 'dashboard') main.innerHTML = dashboardView();
   else if (tab === 'log') main.innerHTML = logView();
