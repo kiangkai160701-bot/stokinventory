@@ -334,10 +334,10 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
 }
 @media(max-width:380px){.ov-product .sheet{padding-left:14px;padding-right:14px}.ov-product .g2{grid-template-columns:1fr;gap:0}.ov-product .acts{margin-left:-14px;margin-right:-14px;padding-left:14px;padding-right:14px}}
 /* ---------- Smooth page and sheet transitions ---------- */
-@keyframes pageSlideForward{from{opacity:0;transform:translateX(22px)}to{opacity:1;transform:translateX(0)}}
-@keyframes pageSlideBack{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
-#main.page-next{animation:pageSlideForward .34s cubic-bezier(.22,.75,.25,1) both}
-#main.page-prev{animation:pageSlideBack .34s cubic-bezier(.22,.75,.25,1) both}
+@keyframes pageSlideForward{from{opacity:1;transform:translateX(18px)}to{opacity:1;transform:translateX(0)}}
+@keyframes pageSlideBack{from{opacity:1;transform:translateX(-18px)}to{opacity:1;transform:translateX(0)}}
+#main.page-next{animation:pageSlideForward .62s cubic-bezier(.22,.78,.22,1) both}
+#main.page-prev{animation:pageSlideBack .62s cubic-bezier(.22,.78,.22,1) both}
 .filter-stat{font:inherit;color:inherit;text-align:left;width:100%;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
 .filter-stat:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(180,119,145,.13)}
 .filter-stat.selected{border-color:#e7a0b5;box-shadow:0 0 0 2px rgba(231,143,169,.18),var(--shadow-sm)}
@@ -775,23 +775,31 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 @media(max-width:360px){.row{grid-template-columns:31px minmax(0,1fr) minmax(120px,42%);column-gap:6px;padding-left:10px;padding-right:8px}.row .c-qty>b{font-size:17px}.row .c-loc{font-size:11px}}
 @media(max-width:680px){.row{grid-template-columns:36px minmax(0,1fr) minmax(128px,42%)}.row .drag-handle{width:36px;height:42px;border-radius:11px;touch-action:none;-webkit-tap-highlight-color:transparent}.row .drag-handle svg{width:20px;height:20px}.list.is-reordering .row:not(.is-dragging){will-change:transform;transition:transform .22s cubic-bezier(.2,.78,.22,1),box-shadow .22s ease}}
 @media(max-width:360px){.row{grid-template-columns:34px minmax(0,1fr) minmax(120px,42%)}.row .drag-handle{width:34px;height:40px}}
-/* Floating notch navigation adapted to the app's own tabs and active theme */
-#nav.nav{height:64px;min-height:64px;padding:0;gap:0;overflow:visible;isolation:isolate;border:0;border-radius:22px;background:transparent;box-shadow:none}
-#nav .nav-bar{position:absolute;inset:0;z-index:0;overflow:hidden;border:0;border-radius:22px;background:var(--theme-nav-bg);filter:drop-shadow(0 8px 18px var(--theme-shadow));pointer-events:none}
-#nav .nav-bar::after{content:"";position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--theme-border-strong) 70%,#fff);border-radius:inherit;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 color-mix(in srgb,var(--theme-border-strong) 22%,transparent);pointer-events:none}
-#nav .nav-shape{position:absolute;inset:0;display:block;width:100%;height:100%;overflow:visible}
-#nav .nav-shape path{fill:var(--theme-nav-bg);stroke:none}
-#nav.nav button{z-index:1;position:relative;flex:1 1 0;min-width:0;height:64px;min-height:64px;padding:0 2px 6px;gap:0;justify-content:flex-end;border:0;border-radius:0;color:var(--mute);background:transparent;transition:color .24s ease;-webkit-tap-highlight-color:transparent}
-#nav.nav button.on{color:var(--ink);background:transparent}
+/* Expanding rounded-square mobile tabs, matched to the active theme */
+#nav.nav{left:14px;right:14px;max-width:460px;margin:0 auto;display:flex;gap:4px;padding:8px;overflow:visible;border:1px solid color-mix(in srgb,var(--theme-border-strong) 72%,#fff);border-radius:18px;background:var(--theme-nav-bg);box-shadow:0 10px 26px var(--theme-shadow),0 1px 3px rgba(50,40,45,.045);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+#nav.nav button{position:relative;display:flex;flex:1 1 0;flex-direction:row;align-items:center;justify-content:center;gap:0;min-width:0;height:46px;min-height:46px;padding:0 5px;border:0;border-radius:13px;color:var(--mute);background:transparent;transition:flex .58s cubic-bezier(.3,1.18,.4,1),background-color .34s ease,color .34s ease,transform .18s ease!important;-webkit-tap-highlight-color:transparent}
+#nav.nav button.on{flex:2.7 1 0;color:#fff;background:var(--acc);box-shadow:0 4px 12px var(--acc-glow)}
 #nav.nav button.on::after{display:none}
-#nav.nav button>svg{position:absolute;top:12px;width:22px;height:22px;flex:none;opacity:.8;transform:translateY(0);transition:opacity .2s ease,transform .25s ease}
-#nav.nav button.on>svg{opacity:0;transform:scale(.65)}
-#nav.nav button span{position:absolute;left:2px;right:2px;bottom:6px;font-size:12px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#nav .nav-ball{position:absolute;z-index:3;top:-26px;left:0;width:54px;height:54px;margin-left:-27px;display:grid;place-items:center;border:4px solid var(--theme-nav-bg);border-radius:50%;background:var(--acc-hover);color:#fff;box-shadow:0 7px 16px var(--acc-glow);will-change:transform;pointer-events:none}
-#nav .nav-ball svg{grid-area:1/1;width:24px;height:24px;opacity:0;transform:scale(.58) rotate(-25deg);stroke:#fff;transition:opacity .28s ease,transform .38s cubic-bezier(.2,.8,.2,1)}
-#nav .nav-ball svg.show{opacity:1;transform:scale(1) rotate(0)}
-@media(max-width:380px){#nav.nav{height:62px;min-height:62px}#nav.nav button{height:62px;min-height:62px;padding-inline:1px}#nav.nav button>svg{top:11px}#nav.nav button span{font-size:11px}#nav .nav-ball{width:52px;height:52px;top:-25px;margin-left:-26px}}
-@media(prefers-reduced-motion:reduce){#nav .nav-ball svg{transition:none}}
+#nav.nav button>svg{width:22px;height:22px;flex:none;transition:transform .32s cubic-bezier(.22,.78,.22,1)}
+#nav.nav button.on>svg{transform:scale(1.04)}
+#nav.nav button span{position:static;display:block;max-width:0;margin-left:0;overflow:hidden;opacity:0;font-size:12px;font-weight:600;line-height:1.2;white-space:nowrap;text-overflow:clip;transition:max-width .58s cubic-bezier(.3,1.18,.4,1),opacity .3s ease,margin-left .35s ease}
+#nav.nav button.on span{max-width:92px;margin-left:6px;opacity:1}
+#nav.nav button:active{transform:scale(.97)}
+@media(max-width:380px){#nav.nav{gap:3px;padding:7px}#nav.nav button{height:44px;min-height:44px;padding:0 3px}#nav.nav button.on{flex:2.45 1 0}#nav.nav button span{font-size:11px}#nav.nav button.on span{max-width:78px;margin-left:5px}}
+@media(prefers-reduced-motion:reduce){#nav.nav button,#nav.nav button span{transition-duration:.01ms!important}}
+/* Slide the page snapshots together on browsers with the View Transitions API */
+#main{view-transition-name:inventory-main}
+::view-transition-old(root),::view-transition-new(root){animation:none}
+::view-transition-group(inventory-main){animation-duration:.62s;animation-timing-function:cubic-bezier(.22,.78,.22,1)}
+@keyframes inventoryPageInFromRight{from{transform:translateX(4vw);opacity:1}to{transform:translateX(0);opacity:1}}
+@keyframes inventoryPageOutToLeft{from{transform:translateX(0);opacity:1}to{transform:translateX(-2vw);opacity:1}}
+@keyframes inventoryPageInFromLeft{from{transform:translateX(-4vw);opacity:1}to{transform:translateX(0);opacity:1}}
+@keyframes inventoryPageOutToRight{from{transform:translateX(0);opacity:1}to{transform:translateX(2vw);opacity:1}}
+html.page-vt-forward::view-transition-old(inventory-main){animation:inventoryPageOutToLeft .62s cubic-bezier(.22,.78,.22,1) both}
+html.page-vt-forward::view-transition-new(inventory-main){animation:inventoryPageInFromRight .62s cubic-bezier(.22,.78,.22,1) both}
+html.page-vt-back::view-transition-old(inventory-main){animation:inventoryPageOutToRight .62s cubic-bezier(.22,.78,.22,1) both}
+html.page-vt-back::view-transition-new(inventory-main){animation:inventoryPageInFromLeft .62s cubic-bezier(.22,.78,.22,1) both}
+html.page-vt-active #main{animation:none!important}
 /* Four clean, non-mascot business palettes */
 html.formal-theme #login{background:radial-gradient(ellipse at 12% 8%,var(--theme-wash),transparent 38%),radial-gradient(ellipse at 90% 92%,var(--theme-wash-2),transparent 40%),var(--bg-app)}
 html.formal-theme .login-story{color:var(--ink);background:linear-gradient(145deg,var(--theme-story-1),var(--theme-story-2) 58%,var(--theme-story-3))}
@@ -1281,8 +1289,7 @@ function tabs() {
 function build() {
   if (tab === 'users' && !can.users()) tab = 'settings';
   const nav = $('#nav');
-  nav.dataset.activeIndex = '';
-  nav.innerHTML = `<div class="nav-bar" aria-hidden="true"><svg class="nav-shape"><path></path></svg></div>${tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('')}<span class="nav-ball" aria-hidden="true"></span>`;
+  nav.innerHTML = tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
   $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
   render();
 }
@@ -1331,81 +1338,56 @@ function updatePageMascots() {
   });
 }
 
-let mobileNavX = null, mobileNavRaf = 0;
-const MOBILE_NAV_HEIGHT = 64, MOBILE_NAV_NOTCH_WIDTH = 42, MOBILE_NAV_NOTCH_DEPTH = 29;
-const mobileNavEase = t => 1 - Math.pow(1 - t, 3);
-function drawMobileNav(centerX) {
-  const nav = $('#nav'), shape = nav?.querySelector('.nav-shape'), path = shape?.querySelector('path');
-  if (!nav || !shape || !path) return;
-  const width = nav.clientWidth, height = nav.clientHeight || MOBILE_NAV_HEIGHT, notchWidth = MOBILE_NAV_NOTCH_WIDTH, depth = Math.min(MOBILE_NAV_NOTCH_DEPTH, height * .46), curve = notchWidth * .55;
-  shape.setAttribute('viewBox', `0 0 ${width} ${height}`);
-  shape.setAttribute('width', width); shape.setAttribute('height', height);
-  path.setAttribute('d', `M -48 0 L ${centerX-notchWidth} 0 C ${centerX-notchWidth+curve} 0 ${centerX-curve} ${depth} ${centerX} ${depth} C ${centerX+curve} ${depth} ${centerX+notchWidth-curve} 0 ${centerX+notchWidth} 0 L ${width+48} 0 L ${width+48} ${height} L -48 ${height} Z`);
-  const ball = nav.querySelector('.nav-ball');
-  if (ball) ball.style.transform = `translate3d(${centerX}px,0,0)`;
-}
-function updateMobileNavIndicator() {
-  const nav = $('#nav');
-  if (!nav) return;
-  const buttons = [...nav.querySelectorAll('button[data-t]')], index = buttons.findIndex(button => button.classList.contains('on'));
-  if (index < 0 || !buttons.length) return;
-  const width = nav.clientWidth, targetX = (index + .5) * width / buttons.length;
-  const indexChanged = nav.dataset.activeIndex !== String(index);
-  const ball = nav.querySelector('.nav-ball'), selectedIcon = buttons[index].querySelector('svg');
-  if (ball && selectedIcon && (indexChanged || !ball.querySelector('svg'))) {
-    ball.innerHTML = selectedIcon.outerHTML;
-    requestAnimationFrame(() => ball.querySelector('svg')?.classList.add('show'));
-  }
-  const fromX = mobileNavX, firstLayout = fromX === null || !Number.isFinite(fromX) || !width;
-  cancelAnimationFrame(mobileNavRaf);
-  if (firstLayout || !width || matchMedia('(prefers-reduced-motion: reduce)').matches) {
-    mobileNavX = targetX; drawMobileNav(targetX);
-  } else if (!indexChanged && Math.abs(fromX - targetX) < 1) {
-    mobileNavX = targetX; drawMobileNav(targetX);
-  } else {
-    const start = performance.now();
-    (function step(now) {
-      const progress = Math.min((now - start) / 640, 1);
-      mobileNavX = fromX + (targetX - fromX) * mobileNavEase(progress);
-      drawMobileNav(mobileNavX);
-      if (progress < 1) mobileNavRaf = requestAnimationFrame(step);
-      else mobileNavX = targetX;
-    })(start);
-  }
-  nav.dataset.activeIndex = String(index);
-}
-window.addEventListener('resize', () => {
-  const nav = $('#nav'), buttons = nav?.querySelectorAll('button[data-t]'), index = [...(buttons || [])].findIndex(button => button.classList.contains('on'));
-  if (!nav || index < 0 || !buttons.length) return;
-  cancelAnimationFrame(mobileNavRaf);
-  mobileNavX = (index + .5) * nav.clientWidth / buttons.length;
-  drawMobileNav(mobileNavX);
-}, { passive: true });
-
+let pageTransitionSequence = 0;
 function render(animatePage = false) {
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
-  const main = $('#main');
+  const main = $('#main'), root = document.documentElement;
   main.classList.remove('page-next', 'page-prev');
-  document.querySelectorAll('[data-t]').forEach(button => button.classList.toggle('on', button.dataset.t === tab));
-  updateMobileNavIndicator();
-  if (tab === 'stock') main.innerHTML = stockView();
-  else if (tab === 'dashboard') main.innerHTML = dashboardView();
-  else if (tab === 'log') main.innerHTML = logView();
-  else if (tab === 'users') main.innerHTML = usersView();
-  else if (tab === 'settings') main.innerHTML = settingsView();
-  updatePageMascots();
+  document.querySelectorAll('[data-t]').forEach(button => {
+    const active = button.dataset.t === tab;
+    button.classList.toggle('on', active);
+    if (button.closest('#nav')) button.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+  const paintPage = () => {
+    if (tab === 'stock') main.innerHTML = stockView();
+    else if (tab === 'dashboard') main.innerHTML = dashboardView();
+    else if (tab === 'log') main.innerHTML = logView();
+    else if (tab === 'users') main.innerHTML = usersView();
+    else if (tab === 'settings') main.innerHTML = settingsView();
+    updatePageMascots();
+  };
+  const finishRender = () => {
+    if (tab === 'stock') bindStock();
+    if (tab === 'settings') bindSettings();
+    if (tab === 'users') refreshPresence();
+    watchTextScale();
+    applyTextScale();
+    if (animatePage) window.scrollTo({ top: 0, behavior: 'smooth' });
+    else window.scrollTo(0, 0);
+  };
+  const canUseViewTransition = animatePage && typeof document.startViewTransition === 'function' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (canUseViewTransition) {
+    const sequence = ++pageTransitionSequence;
+    root.classList.remove('page-vt-forward', 'page-vt-back');
+    root.classList.add('page-vt-active', pageDirection === 'prev' ? 'page-vt-back' : 'page-vt-forward');
+    try {
+      const transition = document.startViewTransition(paintPage);
+      transition.updateCallbackDone.then(finishRender, finishRender);
+      transition.finished.finally(() => {
+        if (sequence === pageTransitionSequence) root.classList.remove('page-vt-active', 'page-vt-forward', 'page-vt-back');
+      });
+      return;
+    } catch (error) {
+      root.classList.remove('page-vt-active', 'page-vt-forward', 'page-vt-back');
+    }
+  }
+  paintPage();
   if (animatePage) {
     void main.offsetWidth;
     main.classList.add(`page-${pageDirection}`);
   }
-  if (tab === 'stock') bindStock();
-  if (tab === 'settings') bindSettings();
-  if (tab === 'users') refreshPresence();
-  watchTextScale();
-  applyTextScale();
-  if (animatePage) window.scrollTo({ top: 0, behavior: 'smooth' });
-  else window.scrollTo(0, 0);
+  finishRender();
 }
 
 setInterval(() => {
