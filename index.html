@@ -448,6 +448,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .dash-activity-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:0 0 12px}
 .dash-activity-stats>div{min-width:0;display:grid;gap:2px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);box-shadow:var(--shadow-sm)}
 .dash-activity-stats small{color:var(--mute);font-size:11px}.dash-activity-stats b{font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}.dash-activity-stats span{overflow:hidden;color:var(--mute);font-size:10px;line-height:1.35;text-overflow:ellipsis}
+.stats .st[data-dashboard-stock-filter],.dash-action-card{cursor:pointer;transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease}.stats .st[data-dashboard-stock-filter]:hover,.dash-action-card:hover{transform:translateY(-2px);border-color:var(--acc);box-shadow:var(--shadow-md)}.stats .st[data-dashboard-stock-filter]:focus-visible,.dash-action-card:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 .dash-rank-list{display:grid;gap:6px;margin-top:8px}.dash-rank-row{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:35px;padding:7px 9px;border:1px solid var(--line);border-radius:10px;background:var(--theme-wash);font-size:11px}.dash-rank-row>b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}.dash-rank-row>span{flex:none;color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}.dash-rank-row small,.dash-empty-note{color:var(--mute);font-size:10px;font-weight:400}.dash-status{padding:3px 7px;border-radius:99px;background:var(--ok-bg);color:var(--ok)!important;font-size:10px}.dash-status.low{background:var(--warn-bg);color:var(--warn)!important}.dash-status.out{background:var(--bad-bg);color:var(--bad)!important}
 .history-list{gap:6px}
 .history-item{grid-template-columns:34px minmax(0,1fr) auto;gap:8px;padding:8px 10px;border-radius:13px;box-shadow:none}
@@ -717,6 +718,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 .text-scale-presets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}
 .text-scale-option{min-height:42px;justify-content:center;font-weight:600}
 .text-scale-option[aria-pressed="true"]{color:var(--acc-hover);background:var(--acc-light);border-color:var(--acc);box-shadow:0 0 0 2px var(--acc-glow)}
+#app.font-scale-instant *{transition:none!important}
 @media(max-width:680px){
   .row{grid-template-columns:34px minmax(0,1fr) minmax(128px,42%);grid-template-rows:auto auto;column-gap:7px;row-gap:4px;align-items:center;padding:8px 10px 8px 12px;min-height:0}
   .row .drag-handle{grid-column:1;grid-row:1/3;width:30px;height:36px;border-radius:9px}
@@ -913,20 +915,21 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 
-const TEXT_SCALE_PRESETS = [92, 100, 112];
+const TEXT_SCALE_PRESETS = [92, 100, 108];
 const savedTextScale = Number(store.get('inv_text_scale', 100)) || 100;
 let uiTextScale = TEXT_SCALE_PRESETS.reduce((closest, value) => Math.abs(value - savedTextScale) < Math.abs(closest - savedTextScale) ? value : closest, 100);
 const textScaleBaseInline = new WeakMap();
 const textScaleTracked = new Set();
 function applyTextScale(root = document.querySelector('#app')) {
   if (!root) return;
+  root.classList.add('font-scale-instant');
   for (const element of [...textScaleTracked]) {
     if (!element.isConnected) { textScaleTracked.delete(element); continue; }
     element.style.fontSize = textScaleBaseInline.get(element) || '';
   }
   const elements = [root, ...root.querySelectorAll('*')].filter(element => {
     if (element.closest('svg,script,style,[aria-hidden="true"]')) return false;
-    if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(element.tagName)) return true;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(element.tagName)) return true;
     return [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
   });
   const sizes = elements.map(element => {
@@ -939,6 +942,8 @@ function applyTextScale(root = document.querySelector('#app')) {
     button.setAttribute('aria-pressed', String(selected));
     button.classList.toggle('active', selected);
   });
+  void root.offsetWidth;
+  root.classList.remove('font-scale-instant');
 }
 let textScaleObserver = null;
 function watchTextScale() {
@@ -1261,7 +1266,7 @@ const STX = { ok: 'ปกติ', low: 'ใกล้หมด', out: 'หมด�
 
 function filtered() {
   const q = F.q.toLowerCase();
-  const selectedStatus = F.sort === 'status-out' ? 'out' : F.sort === 'status-low' ? 'low' : '';
+  const selectedStatus = F.sort === 'status-out' ? 'out' : F.sort === 'status-low' ? 'low' : F.sort === 'status-ok' ? 'ok' : '';
   const list = P.filter(p => (!q || [p.name, p.id, p.cat, p.loc].some(x => String(x || '').toLowerCase().includes(q))) && (!F.cat || p.cat === F.cat) && (!selectedStatus || status(p) === selectedStatus) && (F.sort !== 'stock-in' || p.qty > 0));
   const byName = (a, b) => a.name.localeCompare(b.name, 'th');
   const byCategory = (a, b) => a.cat.localeCompare(b.cat, 'th') || byName(a, b);
@@ -1272,7 +1277,7 @@ function filtered() {
     'qty-asc': (a, b) => a.qty - b.qty || byName(a, b),
     'qty-desc': (a, b) => b.qty - a.qty || byName(a, b),
     'low-first': (a, b) => statusRank[status(a)] - statusRank[status(b)] || a.qty - b.qty || byName(a, b),
-    'status-out': byName, 'status-low': byName, 'stock-in': byName
+    'status-out': byName, 'status-low': byName, 'status-ok': byName, 'stock-in': byName
   };
   return list.sort(sorters[F.sort] || sorters.name);
 }
@@ -1292,7 +1297,7 @@ function stockView() {
    <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อหรือหมวดหมู่..." value="${esc(F.q)}"></div>
    <div class="flt">
     <select id="fc" aria-label="หมวดหมู่"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat === c ? 'selected' : ''}>${c}</option>`).join('')}</select>
-    <select id="fo" aria-label="เรียงลำดับและกรองสถานะ">${[['name', 'ชื่อวัตถุดิบ ก–ฮ'], ['name-desc', 'ชื่อวัตถุดิบ ฮ–ก'], ['category', 'หมวดหมู่ ก–ฮ'], ['category-desc', 'หมวดหมู่ ฮ–ก'], ['qty-asc', 'คงเหลือ น้อยไปมาก'], ['qty-desc', 'คงเหลือ มากไปน้อย'], ['stock-in', 'มีวัตถุดิบในคลัง'], ['status-low', 'สถานะ: ใกล้หมด'], ['status-out', 'สถานะ: หมดสต็อก']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
+    <select id="fo" aria-label="เรียงลำดับและกรองสถานะ">${[['name', 'ชื่อวัตถุดิบ ก–ฮ'], ['name-desc', 'ชื่อวัตถุดิบ ฮ–ก'], ['category', 'หมวดหมู่ ก–ฮ'], ['category-desc', 'หมวดหมู่ ฮ–ก'], ['qty-asc', 'คงเหลือ น้อยไปมาก'], ['qty-desc', 'คงเหลือ มากไปน้อย'], ['stock-in', 'มีวัตถุดิบในคลัง'], ['status-ok', 'สถานะ: ปกติ'], ['status-low', 'สถานะ: ใกล้หมด'], ['status-out', 'สถานะ: หมดสต็อก']].map(o => `<option value="${o[0]}" ${F.sort === o[0] ? 'selected' : ''}>${o[1]}</option>`).join('')}</select>
    </div>
    <div class="stock-actions" style="display:flex;gap:8px">
     ${can.edit() ? `<button class="btn fab" id="add" aria-label="เพิ่มวัตถุดิบ" title="เพิ่มวัตถุดิบ">${ic('plus')}<span class="fab-label"> เพิ่มวัตถุดิบ</span></button>` : ''}
@@ -1323,7 +1328,12 @@ function bindStock() {
   $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
   $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
   $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
-  const applyStockFilter = card => { F.sort = card.dataset.stockFilter === 'all' ? 'name' : card.dataset.stockFilter; $('#fo').value = F.sort; refreshList(); };
+  const applyStockFilter = card => {
+    F.q = ''; F.cat = '';
+    F.sort = card.dataset.stockFilter === 'all' ? 'name' : card.dataset.stockFilter;
+    $('#q').value = ''; $('#fc').value = ''; $('#fo').value = F.sort;
+    refreshList();
+  };
   document.querySelectorAll('[data-stock-filter]').forEach(card => {
     card.onclick = () => applyStockFilter(card);
     card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); applyStockFilter(card); } };
@@ -1655,15 +1665,15 @@ function dashboardView() {
   return `<div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
   <div class="history-filter range-filter dashboard-range"><label>📅 ช่วงข้อมูล</label><label class="range-field"><span>ตั้งแต่</span><input id="dashboardFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นแดชบอร์ด"></label><label class="range-field"><span>ถึง</span><input id="dashboardTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดแดชบอร์ด"></label><button type="button" id="dashboardSevenDays">7 วันล่าสุด</button><small>${inRange.length} รายการเคลื่อนไหว · ${activityDays} วันที่มีรายการ</small></div>
   <div class="stats">
-    <div class="st"><small>วัตถุดิบทั้งหมด</small><b>${totalItems}</b><small>รายการ</small></div>
-    <div class="st"><small>สถานะปกติ</small><b>${readyCount}</b><small>รายการพร้อมใช้</small></div>
-    <div class="st ${lowCount ? 'alert' : ''}"><small>ใกล้หมด</small><b>${lowCount}</b><small>รายการ</small></div>
-    <div class="st ${outCountItems ? 'bad' : ''}"><small>หมดสต็อก</small><b>${outCountItems}</b><small>รายการ</small></div>
+    <div class="st" data-dashboard-stock-filter="all" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${totalItems}</b><small>รายการ</small></div>
+    <div class="st" data-dashboard-stock-filter="status-ok" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบสถานะปกติ"><small>สถานะปกติ</small><b>${readyCount}</b><small>รายการพร้อมใช้</small></div>
+    <div class="st ${lowCount ? 'alert' : ''}" data-dashboard-stock-filter="status-low" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบใกล้หมด"><small>ใกล้หมด</small><b>${lowCount}</b><small>รายการ</small></div>
+    <div class="st ${outCountItems ? 'bad' : ''}" data-dashboard-stock-filter="status-out" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบหมดสต็อก"><small>หมดสต็อก</small><b>${outCountItems}</b><small>รายการ</small></div>
   </div>
   <div class="dash-activity-stats">
-    <div><small>รับเข้า</small><b>${inLogs.length}</b><span>ครั้ง · ${quantityText(inLogs)}</span></div>
-    <div><small>เบิกจ่าย</small><b>${outLogs.length}</b><span>ครั้ง · ${quantityText(outLogs)}</span></div>
-    <div><small>ปรับยอด</small><b>${adjustLogs.length}</b><span>ครั้งในช่วงนี้</span></div>
+    <div class="dash-action-card" data-dashboard-movement-filter="in" role="button" tabindex="0" aria-label="ดูประวัติการรับเข้าในช่วงวันที่เลือก"><small>รับเข้า</small><b>${inLogs.length}</b><span>ครั้ง · ${quantityText(inLogs)}</span></div>
+    <div class="dash-action-card" data-dashboard-movement-filter="out" role="button" tabindex="0" aria-label="ดูประวัติการเบิกจ่ายในช่วงวันที่เลือก"><small>เบิกจ่าย</small><b>${outLogs.length}</b><span>ครั้ง · ${quantityText(outLogs)}</span></div>
+    <div class="dash-action-card" data-dashboard-movement-filter="adjust" role="button" tabindex="0" aria-label="ดูประวัติการปรับยอดในช่วงวันที่เลือก"><small>ปรับยอด</small><b>${adjustLogs.length}</b><span>ครั้งในช่วงนี้</span></div>
     <div><small>พนักงานที่ทำรายการ</small><b>${activeNames.length}</b><span>${activeNames.length ? activeNames.map(esc).join(', ') : 'ยังไม่มีรายการ'}</span></div>
   </div>
   <div class="dash-charts">
@@ -2148,11 +2158,14 @@ function prodModal(id, draft = {}) {
 function logView() {
   const params = new URLSearchParams(location.search);
   let dateFrom = params.get('historyFrom') || '', dateTo = params.get('historyTo') || '';
+  const requestedType = params.get('historyType') || '';
+  const typeFilter = ['in', 'out', 'adjust'].includes(requestedType) ? requestedType : '';
+  const typeLabels = { in: 'รับเข้า', out: 'เบิกจ่าย', adjust: 'ปรับยอด' };
   const legacyDate = params.get('historyDate') || '';
   if (!dateFrom && !dateTo && legacyDate) dateFrom = dateTo = legacyDate;
   const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo); }).slice(0, 300);
-  const periodText = dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน';
+  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || x.type === typeFilter); }).slice(0, 300);
+  const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}`;
   const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'] };
   const historyIcons = {
     in: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 13h15l-1.2 7H5.7z"/><path d="M12 3.5v8.5m-3.5-3.5 3.5 3.5 3.5-3.5"/><path d="M8 16.5h8"/></svg>',
@@ -2194,14 +2207,36 @@ document.addEventListener('change', e => {
   }
 });
 document.addEventListener('click', e => {
+  const dashboardStockCard = e.target.closest('[data-dashboard-stock-filter]');
+  if (dashboardStockCard && tab === 'dashboard') {
+    F.q = ''; F.cat = '';
+    F.sort = dashboardStockCard.dataset.dashboardStockFilter === 'all' ? 'name' : dashboardStockCard.dataset.dashboardStockFilter;
+    pageDirection = 'prev'; tab = 'stock'; render(true); return;
+  }
+  const dashboardMovementCard = e.target.closest('[data-dashboard-movement-filter]');
+  if (dashboardMovementCard && tab === 'dashboard') {
+    const from = $('#dashboardFrom')?.value || '', to = $('#dashboardTo')?.value || '';
+    const url = new URL(location.href);
+    url.searchParams.delete('historyDate');
+    url.searchParams.set('historyType', dashboardMovementCard.dataset.dashboardMovementFilter);
+    if (from) url.searchParams.set('historyFrom', from); else url.searchParams.delete('historyFrom');
+    if (to) url.searchParams.set('historyTo', to); else url.searchParams.delete('historyTo');
+    history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
+  }
   if (e.target.closest('#clearHistoryRange')) {
-    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); history.pushState({}, '', url); render();
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); history.pushState({}, '', url); render();
   }
   if (e.target.closest('#dashboardSevenDays')) {
     const now = new Date(); now.setHours(0,0,0,0); const from = new Date(now); from.setDate(from.getDate()-6);
     const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const url = new URL(location.href); url.searchParams.set('dashFrom',key(from)); url.searchParams.set('dashTo',key(now)); history.pushState({},'',url); render();
   }
+});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const card = e.target.closest('[data-dashboard-stock-filter],[data-dashboard-movement-filter]');
+  if (!card) return;
+  e.preventDefault(); card.click();
 });
 
 function usersView() {
