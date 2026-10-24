@@ -553,6 +553,10 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .user-activity-card:hover,.user-activity-card:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--acc);outline:none}
 .user-activity-meta{display:block;margin-top:3px;color:var(--mute);font-size:11px;line-height:1.35;font-variant-numeric:tabular-nums}
 .user-history-hint{padding:5px 8px;border:1px solid var(--theme-border-strong);border-radius:999px;background:var(--acc-light);color:var(--acc-hover);font-size:11px;font-weight:650;white-space:nowrap}
+.user-activity-card{align-items:flex-start}
+.user-card-actions{display:flex;flex:0 0 88px;flex-direction:column;align-items:stretch;gap:6px}
+.user-card-actions .btn{width:100%;min-height:34px;justify-content:center;padding:6px 7px;font-size:11px;white-space:nowrap}
+@media(max-width:460px){.user-card-actions{flex-basis:76px;gap:5px}.user-card-actions .btn{min-height:32px;padding:5px 4px;font-size:10px}}
 /* Polished stock balance bars and compact, consistent movement rows */
 .meter{height:7px;background:linear-gradient(180deg,var(--theme-soft),var(--card-bg));border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(90,60,75,.08),0 1px 0 rgba(255,255,255,.9);margin:5px 0 2px}
 .meter u{background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s cubic-bezier(.2,.75,.25,1)}.low .meter u{background:linear-gradient(90deg,#f4d17f,var(--warn))}.out .meter u{background:linear-gradient(90deg,#f0a8b7,var(--bad));min-width:8%}
@@ -686,10 +690,10 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 @media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:11px;line-height:1;white-space:nowrap;opacity:.9}.card-mascot{width:21px;height:21px;right:6px;bottom:6px;font-size:18px}.card-mascot.corner-top{top:5px}.card-mascot.corner-left{left:6px}.stats .st.has-card-mascot{padding-right:36px}.dash-activity-stats>div.has-card-mascot{padding-right:36px}.branch-confirm-actions{grid-template-columns:1fr}}
 /* Safer branch controls: deactivate stays small on the left, enter is prominent on the right */
 .branch-actions{justify-content:space-between;flex-wrap:nowrap}
-.branch-actions .branch-close-btn{order:1;width:82px;min-width:82px;height:36px;min-height:36px;padding:6px 8px;font-size:10px;line-height:1;opacity:.86}
+.branch-actions .branch-close-btn{order:1;width:82px;min-width:82px;height:44px;min-height:44px;padding:6px 8px;font-size:10px;line-height:1;opacity:.86}
 .branch-actions .branch-enter-btn{order:2;background:linear-gradient(135deg,#51a971,#368b58)!important;border-color:#368b58!important;color:#fff!important;box-shadow:0 3px 9px rgba(54,139,88,.18)}
 .branch-actions .branch-enter-btn:hover{background:linear-gradient(135deg,#438f60,#2f764b)!important}
-@media(max-width:680px){.branch-actions{grid-template-columns:82px minmax(0,1fr);gap:8px}.branch-actions .branch-close-btn{grid-column:1;justify-self:start;width:82px;min-width:82px;height:36px;min-height:36px}.branch-actions .branch-enter-btn{grid-column:2;justify-self:stretch;width:100%;min-width:0;height:44px;min-height:44px;font-weight:700}}
+@media(max-width:680px){.branch-actions{grid-template-columns:82px minmax(0,1fr);gap:8px}.branch-actions .branch-close-btn{grid-column:1;justify-self:start;width:82px;min-width:82px;height:44px;min-height:44px}.branch-actions .branch-enter-btn{grid-column:2;justify-self:stretch;width:100%;min-width:0;height:44px;min-height:44px;font-weight:700}}
 /* Roomier stock rows with clear item, quantity and supplier columns */
 .head{display:none!important}
 .row{grid-template-columns:42px minmax(0,1fr) minmax(185px,220px);grid-template-rows:auto auto;align-items:center;column-gap:12px;row-gap:7px;padding:12px 16px 12px 18px;min-height:82px}
@@ -2336,7 +2340,7 @@ function usersView() {
   <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
-  <div style="display:flex;gap:6px;align-items:center"><span class="user-history-hint">ดูประวัติ ›</span>${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
 document.addEventListener('click', e => {
@@ -2347,6 +2351,10 @@ document.addEventListener('click', e => {
     history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
   }
   const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.viewUserHistory) {
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.set('historyUser', b.dataset.viewUserHistory);
+    history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
+  }
   if (b.id === 'nu') userModal(); if (b.dataset.ue) userModal(b.dataset.ue); if (b.dataset.ud) delUser(b.dataset.ud);
 });
 
