@@ -714,6 +714,27 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
   .row .c-qty>small{font-size:10px}
   .row .c-loc{font-size:11.5px}
 }
+.text-scale-control{display:grid;grid-template-columns:auto minmax(80px,1fr) auto auto;align-items:center;gap:10px;margin-top:12px;color:var(--mute);font-size:12px}
+.text-scale-control input{width:100%;min-width:0;accent-color:var(--acc);cursor:pointer}
+.text-scale-control output{min-width:52px;padding:5px 9px;border:1px solid var(--theme-border-strong);border-radius:10px;background:var(--theme-wash);color:var(--ink);font-size:13px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums}
+@media(max-width:680px){
+  .row{grid-template-columns:34px minmax(0,1fr) minmax(128px,42%);grid-template-rows:auto auto;column-gap:7px;row-gap:4px;align-items:center;padding:8px 10px 8px 12px;min-height:0}
+  .row .drag-handle{grid-column:1;grid-row:1/3;width:30px;height:36px;border-radius:9px}
+  .row .drag-handle svg{width:18px;height:18px}
+  .row .c-name{grid-column:2;grid-row:1;align-self:center}
+  .row .c-name b{font-size:15.5px;line-height:1.25}
+  .row .c-name small{margin-top:1px;font-size:11.5px;line-height:1.2}
+  .row .c-qty{grid-column:3;grid-row:1;grid-template-columns:max-content max-content;grid-template-rows:auto auto;justify-content:center;align-content:center;align-self:center;column-gap:7px;row-gap:5px;width:100%;min-width:0}
+  .row .c-qty>b{grid-column:1;grid-row:1;width:auto;min-width:0;max-width:none;text-align:right;font-size:18px;line-height:1.2;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .row .c-qty>small{grid-column:2;grid-row:1;font-size:11px;white-space:nowrap}
+  .row .c-qty .stock-dots{grid-column:1;grid-row:2;justify-self:end;gap:4px;min-height:10px;margin:4px 0 0;padding:1px 0}
+  .row .c-qty>.pill{grid-column:2;grid-row:2;justify-self:start;align-self:center;font-size:10px;padding:2px 6px;line-height:1.2;white-space:nowrap}
+  .row .c-loc{grid-column:2/-1;grid-row:2;display:flex;align-items:flex-start;flex-wrap:wrap;gap:2px 5px;min-width:0;padding:0;font-size:11.5px;line-height:1.3;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+  .row .c-loc>span:first-child{flex:0 0 auto}
+  .row .c-loc .supplier-label{flex:0 0 auto;font-size:10.5px;white-space:nowrap}
+  .row .c-loc>span:last-child{flex:1 1 90px;min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
+}
+@media(max-width:360px){.row{grid-template-columns:31px minmax(0,1fr) minmax(120px,42%);column-gap:6px;padding-left:10px;padding-right:8px}.row .c-qty>b{font-size:17px}.row .c-loc{font-size:11px}}
 </style>
 </head>
 <body data-theme="teal">
@@ -891,6 +912,40 @@ const store = {
   get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+
+let uiTextScale = Math.max(85, Math.min(130, Number(store.get('inv_text_scale', 100)) || 100));
+const textScaleBaseInline = new WeakMap();
+const textScaleTracked = new Set();
+function applyTextScale(root = document.querySelector('#app')) {
+  if (!root) return;
+  for (const element of [...textScaleTracked]) {
+    if (!element.isConnected) { textScaleTracked.delete(element); continue; }
+    element.style.fontSize = textScaleBaseInline.get(element) || '';
+  }
+  const elements = [root, ...root.querySelectorAll('*')].filter(element => {
+    if (element.closest('svg,script,style,[aria-hidden="true"]')) return false;
+    if (/^(INPUT|SELECT|TEXTAREA|BUTTON)$/.test(element.tagName)) return true;
+    return [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+  });
+  const sizes = elements.map(element => {
+    if (!textScaleBaseInline.has(element)) { textScaleBaseInline.set(element, element.style.fontSize); textScaleTracked.add(element); }
+    return Number.parseFloat(getComputedStyle(element).fontSize) || 14;
+  });
+  elements.forEach((element, index) => { element.style.fontSize = `${(sizes[index] * uiTextScale / 100).toFixed(2)}px`; });
+  const value = document.querySelector('#textScalePercent');
+  if (value && value.textContent !== `${uiTextScale}%`) value.textContent = `${uiTextScale}%`;
+  const slider = document.querySelector('#textScaleRange');
+  if (slider && Number(slider.value) !== uiTextScale) slider.value = String(uiTextScale);
+}
+let textScaleObserver = null;
+function watchTextScale() {
+  const appRoot = document.querySelector('#app');
+  if (!appRoot || textScaleObserver) return;
+  textScaleObserver = new MutationObserver(records => {
+    if (records.some(record => record.addedNodes.length)) applyTextScale(appRoot);
+  });
+  textScaleObserver.observe(appRoot, { childList: true, subtree: true });
+}
 
 const sess = {
   get() { return cloudTokenStore.get(); },
@@ -1186,6 +1241,8 @@ function render(animatePage = false) {
   if (tab === 'stock') bindStock();
   if (tab === 'settings') bindSettings();
   if (tab === 'users') refreshPresence();
+  watchTextScale();
+  applyTextScale();
   if (animatePage) window.scrollTo({ top: 0, behavior: 'smooth' });
   else window.scrollTo(0, 0);
 }
@@ -1626,6 +1683,7 @@ function settingsView() {
   <div class="dash-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button><button type="button" class="btn sm bad" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button>`:''}</span></div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
+    <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">ปรับขนาดข้อความบนอุปกรณ์นี้ เลือกเล็กลงหรือใหญ่ขึ้นได้ตามต้องการ</p><label class="text-scale-control" for="textScaleRange"><span>เล็ก</span><input id="textScaleRange" type="range" min="85" max="130" step="5" value="${uiTextScale}" aria-label="ปรับขนาดตัวอักษร"><span>ใหญ่</span><output id="textScalePercent" for="textScaleRange">${uiTextScale}%</output></label></div>
     <div class="dash-card">
       <h3>🍣 เลือกธีมซูชิที่ชอบ</h3>
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกสีและตัวการ์ตูนที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้</p>
@@ -1670,6 +1728,11 @@ function bindSettings() {
     storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
   }
   if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
+  if ($('#textScaleRange')) $('#textScaleRange').oninput = e => {
+    uiTextScale = Math.max(85, Math.min(130, Number(e.target.value) || 100));
+    store.set('inv_text_scale', uiTextScale);
+    applyTextScale();
+  };
   if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
   document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
   document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
