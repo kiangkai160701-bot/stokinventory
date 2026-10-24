@@ -373,7 +373,7 @@ html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradi
   .msg{margin-bottom:4px}
 }
 @media(max-height:620px) and (max-width:680px){#login{align-items:flex-start}.login-wrap{margin:auto 0}.login-story{min-height:96px}.#login .lg{padding-top:16px;padding-bottom:16px}}
-/* ---------- 13 full-page sushi themes ---------- */
+/* ---------- Full-page sushi themes ---------- */
 .theme-picker{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px!important;margin-top:13px!important}
 .theme-opt{width:auto!important;height:auto!important;min-height:62px;border-radius:15px!important;padding:8px 6px!important;display:flex!important;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid var(--line)!important;background:var(--theme-chip)!important;color:var(--ink)!important;font-size:11px;font-weight:600;line-height:1.2}
 .theme-opt .theme-emoji{font-size:23px;line-height:1.1}.theme-opt .theme-label{white-space:nowrap}.theme-opt.active{outline:2px solid var(--acc)!important;outline-offset:1px!important;box-shadow:0 4px 13px var(--acc-glow)!important}
@@ -790,6 +790,31 @@ html.formal-theme .story-mark{color:var(--acc);border-color:var(--line);backgrou
 html.formal-theme #login .lg{background:var(--card-bg)}html.formal-theme .lg h1{color:var(--ink)}html.formal-theme .lg .fld span{color:var(--ink)}html.formal-theme .lg .in{background:var(--theme-input);border-color:var(--line)}html.formal-theme .lg .in:focus{border-color:var(--acc);box-shadow:0 0 0 4px var(--acc-glow)}html.formal-theme .login-submit,.formal-theme .lg-icon{background:linear-gradient(135deg,var(--acc),var(--acc-hover));box-shadow:0 7px 17px var(--acc-glow)}
 html.formal-theme .login-note{color:var(--mute)!important}html.formal-theme .hint{background:var(--theme-soft);color:var(--ink)}
 html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px}
+/* Theme selector: two swipeable pages, four columns by five rows per page */
+#themePicker.theme-picker{display:flex!important;grid-template-columns:none!important;gap:0!important;width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x pan-y;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;scrollbar-width:thin;scrollbar-color:var(--theme-border-strong) transparent;padding:2px 1px 8px;margin-top:9px!important}
+.theme-page{flex:0 0 100%;width:100%;min-width:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));grid-template-rows:repeat(5,minmax(55px,auto));gap:6px;padding:2px;scroll-snap-align:start;scroll-snap-stop:always}
+.theme-page .theme-opt{width:100%!important;min-width:0;min-height:55px!important;padding:4px 3px!important;border-radius:12px!important;gap:2px}
+.theme-page .theme-opt .theme-emoji{font-size:19px;line-height:1.05}
+.theme-page .theme-opt .theme-label{display:-webkit-box;max-width:100%;min-height:2.1em;overflow:hidden;white-space:normal;text-align:center;line-height:1.05;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:10px}
+.theme-carousel-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:5px;color:var(--mute)}
+.theme-page-dots{display:flex;align-items:center;justify-content:center;gap:7px}
+.theme-page-dot{width:8px;height:8px;padding:0;border-radius:99px;background:var(--line);transition:width .28s ease,background-color .28s ease,transform .28s ease}
+.theme-page-dot.active{width:22px;background:var(--acc);box-shadow:0 2px 6px var(--acc-glow)}
+.theme-page-dot:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+/* Collapsible settings sections */
+.disclosure-card{padding:0!important;overflow:hidden}
+.disclosure-summary{width:100%;min-height:52px;display:flex;align-items:center;gap:9px;padding:13px 15px;border:0;border-radius:inherit;background:transparent;color:var(--ink);text-align:left;font:inherit;font-size:15px;font-weight:700;cursor:pointer;transition:background-color .25s ease}
+.disclosure-summary:hover{background:var(--theme-soft)}
+.disclosure-summary:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
+.disclosure-count{margin-left:auto;color:var(--mute);font-size:11px;font-weight:500}
+.disclosure-chevron{width:10px;height:10px;flex:none;border-right:2px solid var(--acc-hover);border-bottom:2px solid var(--acc-hover);transform:rotate(45deg) translateY(-2px);transition:transform .32s cubic-bezier(.22,.78,.22,1)}
+.disclosure-summary[aria-expanded="true"] .disclosure-chevron{transform:rotate(225deg) translate(-1px,-1px)}
+.disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.22,.78,.22,1)}
+.disclosure-panel.open{grid-template-rows:1fr}
+.disclosure-inner{min-height:0;overflow:hidden;padding:0 14px 0;opacity:0;transform:translateY(-7px);transition:opacity .24s ease,transform .32s cubic-bezier(.22,.78,.22,1),padding .32s ease}
+.disclosure-panel.open .disclosure-inner{padding:2px 14px 14px;opacity:1;transform:translateY(0)}
+@media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
+@media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1069,6 +1094,43 @@ const THEMES = {
   ivory:{id:'ivory',name:'ไอวอรี',mascot:'◈',friends:[],formal:true,colors:{'--bg-app':'#f7f5ef','--card-bg':'#fffefa','--ink':'#403d36','--mute':'#7e786c','--line':'#e7e2d6','--acc':'#8b7958','--acc-hover':'#6e5d40','--acc-light':'#f4f0e6','--acc-glow':'rgba(139,121,88,.16)','--theme-soft':'#f2eee4','--theme-chip':'#e9e2d3','--theme-input':'#fffefa','--theme-wash':'rgba(218,207,181,.3)','--theme-wash-2':'rgba(235,229,216,.34)','--theme-story-1':'#ebe4d4','--theme-story-2':'#f6f3eb','--theme-story-3':'#e4e5dc','--theme-top-bg':'rgba(255,254,250,.97)','--theme-nav-bg':'rgba(255,254,250,.97)','--theme-shadow':'rgba(83,72,51,.12)','--theme-border-strong':'#d8cfbb','--theme-warn-ink':'#82652b','--theme-mascot-a':'""','--theme-mascot-b':'""','--bad':'#b66e68','--bad-bg':'#f8eeeb','--ok':'#5f806f','--ok-bg':'#edf3ec'}},
   evergreen:{id:'evergreen',name:'เขียวผู้บริหาร',mascot:'◈',friends:[],formal:true,colors:{'--bg-app':'#f1f6f4','--card-bg':'#fcfefd','--ink':'#2d423b','--mute':'#6e8079','--line':'#d9e4df','--acc':'#53786b','--acc-hover':'#3b6053','--acc-light':'#e7f0ec','--acc-glow':'rgba(83,120,107,.16)','--theme-soft':'#e7efeb','--theme-chip':'#d8e5df','--theme-input':'#fbfdfc','--theme-wash':'rgba(172,200,188,.3)','--theme-wash-2':'rgba(222,232,225,.34)','--theme-story-1':'#dce9e2','--theme-story-2':'#edf3ef','--theme-story-3':'#d5e3dc','--theme-top-bg':'rgba(249,252,250,.97)','--theme-nav-bg':'rgba(252,254,253,.97)','--theme-shadow':'rgba(42,72,60,.12)','--theme-border-strong':'#c5d8cf','--theme-warn-ink':'#86682f','--theme-mascot-a':'""','--theme-mascot-b':'""','--bad':'#b76a72','--bad-bg':'#f8ecee','--ok':'#4c7862','--ok-bg':'#e9f2ed'}}
 };
+// Keep the theme collection manageable while giving every new choice a full-page palette.
+['executive','graphite','ivory','evergreen'].forEach(id => delete THEMES[id]);
+function createExtraTheme(spec) {
+  const [id,name,mascot,friends,bg,ink,mute,line,acc,hover,soft,chip,story1,story2,story3,wash,wash2,shadow,border,bad,ok] = spec;
+  return { id, name, mascot, friends, colors: {
+    '--bg-app':bg,'--card-bg':'#fffefe','--ink':ink,'--mute':mute,'--line':line,
+    '--acc':acc,'--acc-hover':hover,'--acc-light':soft,'--acc-glow':`color-mix(in srgb, ${acc} 22%, transparent)`,
+    '--theme-soft':soft,'--theme-chip':chip,'--theme-input':'#fffdfd','--theme-wash':wash,'--theme-wash-2':wash2,
+    '--theme-story-1':story1,'--theme-story-2':story2,'--theme-story-3':story3,
+    '--theme-top-bg':'rgba(255,255,255,.96)','--theme-nav-bg':'rgba(255,255,255,.97)','--theme-shadow':shadow,
+    '--theme-border-strong':border,'--theme-warn-ink':'#8c672e','--theme-mascot-a':`"${friends[0]}"`,'--theme-mascot-b':`"${friends[1]}"`,
+    '--bad':bad,'--bad-bg':'#fff0f2','--ok':ok,'--ok-bg':'#edf7f1'
+  }};
+}
+[
+  ['cream','ครีมนม','🍮',['🍮','🍙','🍣'],'#fff9ef','#615444','#92836e','#eee2cf','#c99a5b','#aa7842','#fff2d9','#f6e4c6','#fff0d2','#fff7e9','#edf0dd','rgba(255,218,154,.32)','rgba(255,214,221,.25)','rgba(118,89,54,.12)','#e6d1ad','#bd7074','#719778'],
+  ['sky','ฟ้าคราม','☁️',['☁️','🐟','🍣'],'#f1f9ff','#3d536a','#73889c','#d7e7f2','#659fc8','#4b80a8','#e5f4ff','#cee7f7','#d8efff','#e7f7ff','#e2edff','rgba(153,210,248,.32)','rgba(201,225,255,.28)','rgba(63,105,145,.12)','#bcd7e9','#c27380','#5f9b93'],
+  ['rose','กุหลาบ','🌹',['🌹','🍙','🍡'],'#fff4f5','#65454f','#987b84','#f0d9de','#d77f96','#b95f7b','#ffebef','#f5d2da','#ffdee5','#fff0e2','#e9e4f7','rgba(255,178,194,.3)','rgba(238,203,232,.27)','rgba(143,76,99,.12)','#e9c0cb','#bd6c79','#6e9d87'],
+  ['blueberry','บลูเบอร์รี','🫐',['🫐','🐻','🍣'],'#f5f5ff','#494866','#817f9a','#e1e0f0','#8582bd','#6865a0','#efedff','#dddaf4','#e3e0ff','#f4eaff','#dff0ff','rgba(192,188,255,.3)','rgba(223,205,255,.27)','rgba(80,75,137,.13)','#cecae8','#bc718b','#709a88'],
+  ['melon','เมลอน','🍈',['🍈','🐸','🍙'],'#f3fbf3','#405849','#788d7c','#dcebdc','#79a887','#5e8d6c','#e8f5e9','#d4ead7','#ddf2d8','#fff2dd','#d9f0e8','rgba(176,222,176,.3)','rgba(249,225,170,.26)','rgba(72,117,83,.12)','#c5dfc8','#bd7073','#5f9475'],
+  ['strawberry','สตรอว์เบอร์รี','🍓',['🍓','🐰','🍣'],'#fff3f6','#673f4e','#977684','#efd9e1','#df718d','#c75070','#ffe9ef','#f7cad7','#ffd9e2','#fff0df','#f2e3fa','rgba(255,169,190,.33)','rgba(239,202,242,.27)','rgba(154,70,97,.13)','#e9bdca','#bd667b','#6c9a85'],
+  ['vanilla','วานิลลา','🍦',['🍦','🍮','🍙'],'#fffbed','#615a3f','#938b6d','#eee6c9','#c0a34f','#9e8237','#fff6d8','#f3e7b3','#fff1bd','#fff0d7','#e9f2d7','rgba(255,229,144,.34)','rgba(255,209,180,.26)','rgba(141,118,56,.12)','#e4d69d','#bd7269','#74966e'],
+  ['plum','บ๊วย','🍑',['🍑','🐦','🍣'],'#faf4f9','#5e4858','#907c8c','#e9dce7','#b079a5','#8d5d82','#f4e8f3','#e7d3e5','#f0d9ee','#fff0e1','#e2eafa','rgba(220,180,216,.32)','rgba(255,215,187,.26)','rgba(111,72,101,.12)','#ddc3da','#bf7180','#6d9983'],
+  ['pistachio','พิสตาชิโอ','🥜',['🥜','🍃','🍙'],'#f6f9ec','#4f5940','#828c70','#e1e8ce','#91a458','#72863c','#edf3d9','#dfe8be','#e5efc6','#fff2d7','#dceee5','rgba(205,222,154,.32)','rgba(255,218,165,.25)','rgba(91,111,55,.12)','#d1ddb0','#b9756c','#648b67'],
+  ['cocoa','โกโก้','🍫',['🍫','🐻','🍣'],'#faf5f0','#5b493f','#8c7b70','#e8dcd2','#a9785c','#86583f','#f3e7dc','#e6d2c1','#edd8c9','#fff0dd','#e8e4f1','rgba(221,181,151,.3)','rgba(229,209,242,.24)','rgba(101,72,53,.13)','#d8c2b2','#ba6e69','#718b77'],
+  ['apricot','แอปริคอต','🍊',['🍊','🐥','🍣'],'#fff7ed','#654d3d','#967d69','#f0dfca','#df9863','#bd7545','#ffedde','#f5d7bb','#ffe1c6','#fff1d7','#e9e9f7','rgba(255,194,147,.32)','rgba(255,225,166,.26)','rgba(142,91,54,.12)','#e9c5a5','#c36e68','#739779'],
+  ['hydrangea','ไฮเดรนเยีย','💠',['💠','🐸','🍙'],'#f5f7ff','#4d536c','#8189a0','#dfe3f2','#8e9fce','#6d7fb0','#ebefff','#d9e1f6','#dde6ff','#f3e9ff','#dff2f1','rgba(185,200,248,.3)','rgba(221,195,246,.27)','rgba(76,91,139,.12)','#cbd5ed','#bd7082','#65968f'],
+  ['peachtea','ชาพีช','🧋',['🧋','🍑','🍙'],'#fff6f1','#624b45','#927a70','#efddd4','#d88e79','#b96c5b','#ffede6','#f4d4c9','#ffddd1','#fff0d9','#ece8f8','rgba(255,190,168,.32)','rgba(243,213,164,.27)','rgba(145,87,76,.12)','#e8c4b9','#c16d73','#72977f'],
+  ['oceanfoam','ฟองคลื่น','🪼',['🪼','🐬','🍣'],'#effbfc','#3e5d62','#739195','#d4e9e8','#63aaa7','#478b89','#def4f1','#c4e8e3','#d3f3ec','#e1f4ff','#e5e5fa','rgba(145,221,209,.3)','rgba(166,215,247,.27)','rgba(54,120,116,.12)','#b8dcda','#bd6c82','#57998d'],
+  ['sunset','ตะวันยามเย็น','🌅',['🌅','🐟','🍣'],'#fff5ef','#614b4b','#947b79','#f0ddd7','#d98270','#b96559','#ffebe5','#f5d1c6','#ffd8c7','#ffe9c8','#eee1f5','rgba(255,181,155,.32)','rgba(255,218,146,.28)','rgba(139,75,69,.13)','#e9bfb6','#bd6972','#71967d'],
+  ['polar','หิมะขั้วโลก','🐧',['🐧','❄️','🍙'],'#f1f8fb','#465b68','#7d909b','#d9e6eb','#7caaba','#5d899b','#e4f2f6','#d0e5eb','#d9eef1','#f0f5ff','#e6ebfa','rgba(172,215,227,.3)','rgba(199,211,248,.25)','rgba(67,101,119,.12)','#c4dce4','#bd7180','#66928e'],
+  ['honey','น้ำผึ้ง','🐝',['🐝','🍯','🍣'],'#fff9eb','#60513d','#928066','#eee2c8','#c69b4a','#a87b2e','#fff2d4','#f2e2b7','#ffedbb','#fff2d6','#e8efda','rgba(255,221,135,.32)','rgba(255,203,159,.25)','rgba(130,101,47,.12)','#e5d09e','#be706b','#748e67'],
+  ['lilac','ไลแลค','🪻',['🪻','🐰','🍙'],'#faf5ff','#594c68','#897c9c','#e7dcf1','#a487bf','#82629f','#f2eaff','#e3d5f0','#eddef9','#ffeaf1','#e1efff','rgba(212,188,239,.32)','rgba(255,207,225,.27)','rgba(100,75,132,.12)','#d7c3e6','#bd718a','#6f9b89'],
+  ['sakuradusk','ซากุระยามค่ำ','🌙',['🌙','🌸','🍣'],'#f7f3fb','#51465f','#82778e','#e4dce9','#a37c9f','#805b7d','#f1e8f2','#e2d2e3','#eeddf0','#f9e8dc','#dce8f6','rgba(211,179,216,.3)','rgba(238,204,183,.25)','rgba(87,64,96,.13)','#d5c2da','#b96c82','#6b9185'],
+  ['seaglass','แก้วทะเล','🐚',['🐚','🐠','🍣'],'#f0faf7','#415b55','#758f87','#d5e9e2','#70a99a','#518b7c','#e2f3ed','#cce7dc','#d4eee4','#e4f4ef','#e2eff9','rgba(164,219,196,.3)','rgba(168,212,241,.26)','rgba(58,111,93,.12)','#badbcf','#bd6d7a','#5d927e'],
+  ['berrycream','เบอร์รีครีม','🧁',['🧁','🍓','🍙'],'#fff5f8','#604858','#92798b','#eddae4','#c47f9f','#a25d7d','#f8e8f0','#efd2e0','#f8dce8','#fff0df','#e7e8fa','rgba(237,178,207,.3)','rgba(255,218,169,.24)','rgba(129,76,103,.12)','#dfc1d1','#bd6f82','#6e9985']
+].forEach(spec => { THEMES[spec[0]] = createExtraTheme(spec); });
 const THEME_CARD_FRIENDS = {
   sakura:['🍣','🍙','🍤','🐟','🍥','🦐','🥢','🐡'], matcha:['🍵','🍙','🥑','🍃','🐸','🍡','🍣','🥬'], ocean:['🐟','🍣','🦀','🐳','🐙','🐬','🪼','🦑'], lavender:['🍙','🍣','🐙','🦄','🌙','⭐','🍡','🐰'], peach:['🍤','🍣','🍋','🦐','🍑','🐥','🍡','🦆'], lemon:['🍋','🍣','🍙','🐤','🍊','🌼','🍮','🐝'], mint:['🐳','🍣','🍙','🐬','🫧','🦭','🧊','🐠'], grape:['🍇','🍙','🍣','🐱','🫐','🍡','🐙','🐻'], coral:['🦀','🍣','🐟','🐠','🐚','🪸','🦐','🐢'], ramune:['🫧','🐟','🍣','🐬','🦭','🐠','🪼','🧊'], taro:['🍠','🍙','🍣','🐰','🍡','🐻','🌸','🐼'], nori:['🌿','🍣','🍙','🐢','🥬','🫛','🍃','🐸'], midnight:['🐙','🌙','🍣','⭐','🪐','🐈‍⬛','🌟','👾'], cosmos:['🚀','🪐','🍣','👾','🌙','⭐','🛰️','🌠'], kawaii:['🐱','🍙','🐙','🐻','🐰','🍡','🐥','🦄'], cyber:['🤖','🛰️','🪼','💫','👾','🐬','🛸','🦾'], executive:[],graphite:[],ivory:[],evergreen:[]
 };
@@ -1814,6 +1876,9 @@ function dashboardView() {
 /* ---------- Settings View ---------- */
 function settingsView() {
   const canViewStorage = !!(me?.owner || me?.role === 'admin');
+  const themeList = Object.values(THEMES);
+  const themePages = [];
+  for (let i = 0; i < themeList.length; i += 20) themePages.push(themeList.slice(i, i + 20));
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm bad branch-close-btn" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button><button type="button" class="btn sm branch-enter-btn" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</span></div>`).join('')}</div></div>` : ''}
@@ -1821,8 +1886,9 @@ function settingsView() {
     <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
     <div class="dash-card">
       <h3>🎨 เลือกธีม</h3>
-      <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมซูชิหรือธีมทางการแบบเรียบหรู ธีมจะบันทึกแยกในอุปกรณ์นี้</p>
-      <div class="theme-picker" id="themePicker">${Object.values(THEMES).map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${theme.name}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${theme.name}</span></button>`).join('')}</div>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม</p>
+      <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
+      <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
     </div>
     <div class="dash-card">
       <h3>💾 จัดการข้อมูลสำรอง</h3>
@@ -1842,16 +1908,15 @@ function settingsView() {
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div>
-    ${can.reset() ? `<div class="dash-card"><h3>♻️ รีเซ็ตข้อมูล</h3><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${lastReset ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div>` : ''}
+    ${can.reset() ? `<div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${lastReset ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card">
-      <h3>🔐 สิทธิ์ผู้ใช้งาน</h3>
-      <p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
+      <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="permissionDisclosurePanel"><span>🔐 สิทธิ์ผู้ใช้งาน</span><span class="disclosure-count">${U.filter(user => !fullAccessUser(user)).length} บัญชี</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="permissionDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
           ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
-      </section>`).join('')}</div>
+      </section>`).join('')}</div></div></div>
     </div>` : ''}
   </div>`;
 }
@@ -1873,6 +1938,15 @@ function bindSettings() {
   if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
   document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
   document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
+  document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => {
+    const panel = document.getElementById(button.getAttribute('aria-controls'));
+    if (!panel) return;
+    const open = button.getAttribute('aria-expanded') !== 'true';
+    button.setAttribute('aria-expanded', String(open));
+    panel.setAttribute('aria-hidden', String(!open));
+    panel.inert = !open;
+    panel.classList.toggle('open', open);
+  });
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
     const scope = $('#resetScope').value;
@@ -1918,6 +1992,28 @@ function bindSettings() {
     document.querySelectorAll('.theme-opt').forEach(o => { const selected = o.dataset.th === currentTheme; o.classList.toggle('active', selected); o.setAttribute('aria-pressed', selected); });
     toast(`เปลี่ยนเป็นธีม${THEMES[currentTheme].name}แล้ว`);
   };
+  const themePicker = $('#themePicker'), themePageDots = $('#themePageDots');
+  const syncThemePageIndicator = () => {
+    if (!themePicker || !themePageDots) return;
+    const pageIndex = Math.max(0, Math.min(themePageDots.children.length - 1, Math.round(themePicker.scrollLeft / Math.max(1, themePicker.clientWidth))));
+    [...themePageDots.children].forEach((dot, index) => {
+      const active = index === pageIndex;
+      dot.classList.toggle('active', active);
+      dot.setAttribute('aria-current', active ? 'true' : 'false');
+    });
+    const number = $('#themePageNumber'); if (number) number.textContent = String(pageIndex + 1);
+  };
+  if (themePicker) {
+    const selectedTheme = themePicker.querySelector('.theme-opt.active')?.closest('.theme-page');
+    if (selectedTheme) themePicker.scrollLeft = selectedTheme.offsetLeft;
+    themePicker.addEventListener('scroll', () => requestAnimationFrame(syncThemePageIndicator), { passive: true });
+  }
+  if (themePageDots) themePageDots.onclick = e => {
+    const dot = e.target.closest('[data-theme-page-target]'); if (!dot || !themePicker) return;
+    const page = themePicker.querySelector(`[data-theme-page="${dot.dataset.themePageTarget}"]`); if (!page) return;
+    themePicker.scrollTo({ left: page.offsetLeft, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  };
+  syncThemePageIndicator();
 
   $('#backupBtn').onclick = () => {
     const data = { branch: { id: currentBranch.id, name: currentBranch.name }, users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS };
