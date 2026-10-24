@@ -206,7 +206,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .drag-handle {
   position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
   width: 28px; height: 38px; display: grid; place-items: center;
-  color: var(--mute); border-radius: 9px; cursor: grab; touch-action: none;
+  color: var(--mute); border-radius: 9px; cursor: grab; touch-action: none; overscroll-behavior: contain;
   user-select: none; -webkit-user-select: none; transition: color .18s, background .18s, opacity .18s;
 }
 .drag-handle svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
@@ -773,6 +773,8 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
   .row .c-loc>span:last-child{flex:1 1 90px;min-width:0;white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere}
 }
 @media(max-width:360px){.row{grid-template-columns:31px minmax(0,1fr) minmax(120px,42%);column-gap:6px;padding-left:10px;padding-right:8px}.row .c-qty>b{font-size:17px}.row .c-loc{font-size:11px}}
+@media(max-width:680px){.row{grid-template-columns:36px minmax(0,1fr) minmax(128px,42%)}.row .drag-handle{width:36px;height:42px;border-radius:11px;touch-action:none;-webkit-tap-highlight-color:transparent}.row .drag-handle svg{width:20px;height:20px}.list.is-reordering .row:not(.is-dragging){will-change:transform;transition:transform .22s cubic-bezier(.2,.78,.22,1),box-shadow .22s ease}}
+@media(max-width:360px){.row{grid-template-columns:34px minmax(0,1fr) minmax(120px,42%)}.row .drag-handle{width:34px;height:40px}}
 /* Mobile navigation: a larger capsule with a smoothly sliding active tab */
 #nav.nav{--nav-pill-x:0px;--nav-pill-width:0px;isolation:isolate;overflow:hidden;align-items:stretch;gap:3px;padding:6px;border-radius:999px;background:var(--theme-nav-bg);border:1px solid var(--theme-border-strong);box-shadow:0 10px 28px var(--theme-shadow)}
 #nav.nav::before{content:"";position:absolute;z-index:0;top:6px;bottom:6px;left:0;width:var(--nav-pill-width);border-radius:999px;background:var(--acc-hover);background:color-mix(in srgb,var(--acc-hover) 72%,#302b3a);box-shadow:0 4px 12px var(--acc-glow);transform:translateX(var(--nav-pill-x));transition:transform .38s cubic-bezier(.22,.78,.22,1),background-color .25s ease;pointer-events:none}
@@ -1017,7 +1019,7 @@ let CATS = store.get('inv_categories', ['ปลาและอาหารทะ
 let UNITS = store.get('inv_units', ['กิโลกรัม', 'กรัม', 'ลิตร', 'มิลลิลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง', 'ขวด', 'ถุง']);
 const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || String(user?.name || '').toLowerCase() === 'kiangkai');
 const globalAdminDirectoryUser = Object.freeze({ name: 'kiangkai', role: 'admin', active: true, owner: true, globalAdmin: true });
-const isGlobalBranchAdmin = user => String(user?.name || '').toLowerCase() === 'kiangkai' && !!user?.owner;
+const isGlobalBranchAdmin = user => !!user?.owner && !user?.branchManagerAccess;
 const defaultPermissions = role => role === 'admin'
   ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false }
   : role === 'supervisor'
@@ -1152,7 +1154,7 @@ function enter(u, branch = currentBranch) {
   setCurrentBranch(branch);
   me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
   $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
-  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess || !(u.owner || u.role === 'admin')); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
+  $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
   tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
 }
 
@@ -1210,7 +1212,7 @@ async function refreshCloudState() {
     if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
     if (result.version !== syncVersion) {
       applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess || !(me.owner || me.role === 'admin')); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
+      me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
       build(); showSyncUpdateStatus();
     }
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
@@ -1457,8 +1459,10 @@ function bindStockReorder() {
   const placePlaceholder = y => {
     if (!drag?.placeholder) return;
     const siblings = [...list.children].filter(row => row !== drag.row && row !== drag.placeholder);
-    const before = new Map(siblings.map(row => [row, row.getBoundingClientRect().top]));
-    const next = siblings.find(row => y < row.getBoundingClientRect().top + row.getBoundingClientRect().height / 2) || null;
+    // Read each row position once per frame to avoid repeated layout flushes while dragging.
+    const positions = siblings.map(row => { const rect = row.getBoundingClientRect(); return { row, top: rect.top, mid: rect.top + rect.height / 2 }; });
+    const before = new Map(positions.map(position => [position.row, position.top]));
+    const next = positions.find(position => y < position.mid)?.row || null;
     if (drag.placeholder.nextElementSibling === next) return;
     list.insertBefore(drag.placeholder, next);
     animateRows(before);
@@ -1471,8 +1475,8 @@ function bindStockReorder() {
       const y = drag.lastY;
       const edge = 76;
       let speed = 0;
-      if (y < edge) speed = -Math.min(15, Math.ceil((edge - y) * .22));
-      else if (y > innerHeight - edge) speed = Math.min(15, Math.ceil((y - (innerHeight - edge)) * .22));
+      if (y < edge) speed = -Math.min(11, Math.ceil((edge - y) * .16));
+      else if (y > innerHeight - edge) speed = Math.min(11, Math.ceil((y - (innerHeight - edge)) * .16));
       if (speed) window.scrollBy(0, speed);
       drag.row.style.transform = `translate3d(0,${drag.lastY - drag.startY}px,0)`;
       placePlaceholder(drag.lastY);
@@ -2363,7 +2367,7 @@ function usersView() {
   <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
-  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
 document.addEventListener('click', e => {
@@ -2382,17 +2386,20 @@ document.addEventListener('click', e => {
 });
 
 function userModal(name, draft = {}) {
-  const target = name ? U.find(x => x.name === name) : null;
+  let target = name ? U.find(x => x.name === name) : null;
   const u = target ? { ...target, ...draft } : { name: '', role: 'staff', active: true, ...draft };
+  const canEditUsername = !name || (!!target && !target.globalAdmin && (target.name === me?.name || can.users()));
   const canAssignAdminRole = me?.role === 'admin' || isGlobalBranchAdmin(me);
-  if (name && target?.role === 'admin' && !canAssignAdminRole) return toast('เฉพาะผู้ดูแลระบบเท่านั้นที่แก้ไขบัญชีผู้ดูแลระบบได้', 1);
-  if (name && !target || (name && target.name !== me.name && ['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์แก้ไขบัญชีตำแหน่งนี้', 1);
+  const canEditDetails = !target || target.name === me?.name || (can.permissions() && (target.role !== 'admin' || canAssignAdminRole)) || !['admin', 'supervisor'].includes(target.role);
+  if (name && !target) return toast('ไม่พบบัญชีผู้ใช้นี้', 1);
+  if (name && !canEditUsername) return toast('ไม่มีสิทธิ์แก้ไขชื่อบัญชีนี้', 1);
   const roleOptions = Object.entries(ROLE).filter(([key]) => key === 'admin' ? canAssignAdminRole : (can.permissions() || (!['admin', 'supervisor'].includes(key) || key === u.role)));
   openModal(`<h3>${name ? 'แก้ไขผู้ใช้' : 'เพิ่มผู้ใช้'}</h3><form id="uf">
-   <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required pattern="[\p{L}\p{M}0-9_]{3,20}" ${name ? 'readonly' : ''} value="${esc(u.name)}"></label>
-   <label class="fld"><span>${name ? 'รหัส ใหม่ (เว้นว่าง)' : 'รหัส 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name ? '' : 'required'} placeholder="••••••" value="${esc(u.pinInput || '')}"></label>
-   <label class="fld"><span>ตำแหน่ง</span><div class="select-tools"><select class="in" name="role" ${u.owner ? 'disabled' : ''}>${roleOptions.map(([k, v]) => `<option value="${esc(k)}" ${u.role === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>${can.lists() ? `<button type="button" class="icon-tool" id="editRoles" aria-label="แก้ไขตำแหน่ง">✎</button><button type="button" class="icon-tool add-tool" id="addRole" aria-label="เพิ่มตำแหน่ง">+</button>` : ''}</div></label>
-   <label class="fld" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="act" ${u.active ? 'checked' : ''} ${u.owner ? 'disabled' : ''}><span style="margin:0">เปิดใช้งาน</span></label>
+   <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="name" required minlength="3" maxlength="20" pattern="[\\p{L}\\p{M}0-9_]{3,20}" autocomplete="username" autocapitalize="none" spellcheck="false" ${canEditUsername ? '' : 'readonly'} value="${esc(u.name)}"></label>
+   ${name && target.name === me?.name && canEditUsername ? '<label class="fld"><span>ยืนยันรหัสปัจจุบัน 6 หลัก เมื่อเปลี่ยนชื่อของตัวเอง</span><input class="in" name="verifyPin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="current-password" placeholder="••••••"></label>' : ''}
+   <label class="fld"><span>${name ? 'รหัสใหม่ (เว้นว่างหากไม่เปลี่ยน)' : 'รหัส 6 หลัก *'}</span><input class="in" name="pin" inputmode="numeric" pattern="\\d{6}" maxlength="6" ${name ? '' : 'required'} placeholder="••••••" value="${esc(u.pinInput || '')}" ${canEditDetails ? '' : 'disabled'}></label>
+   <label class="fld"><span>ตำแหน่ง</span><div class="select-tools"><select class="in" name="role" ${u.owner || !canEditDetails ? 'disabled' : ''}>${roleOptions.map(([k, v]) => `<option value="${esc(k)}" ${u.role === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select>${can.lists() && canEditDetails ? `<button type="button" class="icon-tool" id="editRoles" aria-label="แก้ไขตำแหน่ง">✎</button><button type="button" class="icon-tool add-tool" id="addRole" aria-label="เพิ่มตำแหน่ง">+</button>` : ''}</div></label>
+   <label class="fld" style="display:flex;gap:8px;align-items:center"><input type="checkbox" name="act" ${u.active ? 'checked' : ''} ${u.owner || !canEditDetails ? 'disabled' : ''}><span style="margin:0">เปิดใช้งาน</span></label>
    <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
 
   const captureUserDraft = () => { const f = $('#uf'); return { name: fv(f, 'name'), role: f.elements.role.value, pinInput: f.elements.pin.value, active: f.elements.act.checked }; };
@@ -2400,12 +2407,32 @@ function userModal(name, draft = {}) {
   if ($('#addRole')) $('#addRole').onclick = () => addOption('roles', { type: 'user', name, draft: captureUserDraft() });
 
   $('#uf').onsubmit = async e => {
-    e.preventDefault(); const f = e.target, n = fv(f, 'name').toLowerCase(), pn = f.elements.pin.value;
+    e.preventDefault(); const f = e.target, n = fv(f, 'name').toLowerCase(), pn = canEditDetails ? f.elements.pin.value : '';
+    const usernameChanged = !!name && n !== target.name.toLowerCase();
     if (!name && U.some(x => x.name === n)) return toast('ชื่อผู้ใช้ซ้ำ', 1);
     if (!name && n === 'boykiangkai') return toast('ชื่อผู้ใช้นี้ถูกสงวนไว้', 1);
+    if (usernameChanged && !canEditUsername) return toast('ไม่มีสิทธิ์เปลี่ยนชื่อบัญชีนี้', 1);
+    if (usernameChanged && U.some(x => x !== target && x.name.toLowerCase() === n)) return toast('ชื่อผู้ใช้นี้มีคนใช้แล้ว', 1);
     if (pn && !/^\d{6}$/.test(pn)) return toast('รหัส ต้องเป็นตัวเลข 6 หลัก', 1);
-    const role = f.elements.role.value, act = f.elements.act.checked;
-    if (name) { const oldRole = target.role; Object.assign(target, { role: target.owner ? oldRole : role, active: act }); if (!target.owner && role !== oldRole) target.permissions = defaultPermissions(role); if (pn) { target.pin = await hash(pn); target.must = false; } if (target.name === me.name) me = target; }
+    const role = canEditDetails ? f.elements.role.value : target?.role, act = canEditDetails ? f.elements.act.checked : target?.active;
+    if (usernameChanged) {
+      const verifyPin = f.elements.verifyPin?.value || '';
+      if (target.name === me?.name && !/^\d{6}$/.test(verifyPin)) return toast('กรุณายืนยันรหัสปัจจุบันให้ครบ 6 หลัก', 1);
+      try {
+        const result = await cloudRpc('api_manage_username', { p_token: cloudToken, p_target_name: target.name, p_new_name: n, p_old_hash: target.name === me?.name ? await hash(verifyPin) : '' });
+        if (!result.ok) return toast(result.error || 'เปลี่ยนชื่อผู้ใช้ไม่สำเร็จ', 1);
+        applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1; me = result.me || me;
+        target = U.find(user => user.name.toLowerCase() === n);
+        if (!target) return toast('เปลี่ยนชื่อแล้ว แต่โหลดข้อมูลบัญชีไม่สำเร็จ กรุณาโหลดหน้าใหม่', 1);
+        if (target.name === me?.name) me = target;
+        if (!pn && role === target.role && act === target.active) {
+          $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role;
+          closeModal(); build(); toast('เปลี่ยนชื่อผู้ใช้แล้ว'); return;
+        }
+        name = target.name;
+      } catch (error) { return toast(error.message || 'เปลี่ยนชื่อผู้ใช้ไม่สำเร็จ', 1); }
+    }
+    if (name) { const currentTarget = U.find(user => user.name === name); const oldRole = currentTarget.role; Object.assign(currentTarget, { role: currentTarget.owner ? oldRole : role, active: act }); if (!currentTarget.owner && role !== oldRole) currentTarget.permissions = defaultPermissions(role); if (pn) { currentTarget.pin = await hash(pn); currentTarget.must = false; } if (currentTarget.name === me.name) me = currentTarget; }
     else U.push({ name: n, pin: await hash(pn), role, active: act, must: false, permissions: defaultPermissions(role) });
     save(); $('#meRole').textContent = ROLE[me.role] || me.role; closeModal(); build(); toast('บันทึกผู้ใช้แล้ว');
   };
@@ -2449,19 +2476,20 @@ function delUser(name) {
 }
 
 function editMyUsernameModal() {
-  if (!(me?.owner || me?.role === 'admin')) return toast('เฉพาะผู้ดูแลระบบและผู้ดูแลหลักเท่านั้นที่แก้ไขชื่อผู้ใช้ได้', 1);
+  if (!me || me.branchManagerAccess) return toast('ไม่สามารถแก้ไขบัญชีนี้ได้', 1);
   openModal(`<h3>แก้ไขชื่อผู้ใช้</h3><form id="myUsernameForm">
    <label class="fld"><span>ชื่อผู้ใช้</span><div class="select-tools"><input class="in" name="username" required minlength="3" maxlength="20" pattern="[\\p{L}\\p{M}0-9_]{3,20}" autocomplete="username" readonly value="${esc(me.name)}"><button type="button" class="icon-tool" id="editMyUsername" title="แก้ไขชื่อผู้ใช้" aria-label="แก้ไขชื่อผู้ใช้">✎</button></div></label>
    <label class="fld"><span>ยืนยันรหัสปัจจุบัน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="\\d{6}" maxlength="6" autocomplete="current-password" required></label>
-   <p class="settings-hint">เปลี่ยนชื่อได้เฉพาะผู้ดูแลระบบและผู้ดูแลหลัก ชื่อผู้ใช้ต้องไม่ซ้ำกัน</p>
+   <p class="settings-hint">ทุกบัญชีเปลี่ยนชื่อผู้ใช้ของตนเองได้ ผู้มีสิทธิจัดการบัญชีเปลี่ยนชื่อบัญชีอื่นในสาขาได้ และ kiangkai จัดการได้ทุกสาขา ชื่อต้องไม่ซ้ำกัน</p>
    <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึกชื่อ</button></div></form>`);
   const f = $('#myUsernameForm');
   $('#editMyUsername').onclick = () => { f.elements.username.readOnly = false; f.elements.username.focus(); };
   f.onsubmit = async e => {
     e.preventDefault(); const username = f.elements.username.value.trim().toLowerCase();
     if (!/^[\p{L}\p{M}0-9_]{3,20}$/u.test(username)) return toast('ชื่อผู้ใช้ต้องมี 3–20 ตัวอักษร ตัวเลข หรือ _', 1);
+    if (username === me.name.toLowerCase()) return toast('ชื่อผู้ใช้ยังไม่มีการเปลี่ยนแปลง');
     try {
-      const result = await cloudRpc('api_update_username', { p_token: cloudToken, p_old_hash: await hash(f.elements.pin.value), p_new_name: username });
+      const result = await cloudRpc('api_manage_username', { p_token: cloudToken, p_target_name: me.name, p_old_hash: await hash(f.elements.pin.value), p_new_name: username });
       if (!result.ok) return toast(result.error || 'เปลี่ยนชื่อผู้ใช้ไม่สำเร็จ', 1);
       applyCloudState(result.state); me = result.me; syncSnapshot = cloneData(result.state); syncVersion = result.version;
       $('#meName').textContent = me.name; closeModal(); build(); toast('เปลี่ยนชื่อผู้ใช้แล้ว');
