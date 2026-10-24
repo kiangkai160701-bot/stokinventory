@@ -214,6 +214,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 .drag-handle:active { cursor: grabbing; }
 .drag-handle:disabled { opacity: .32; cursor: not-allowed; }
 .row.is-dragging { opacity: .98; z-index: 1000; border-color: var(--acc); box-shadow: 0 16px 34px var(--theme-shadow); cursor: grabbing; will-change: transform; }
+.row.is-dragging{transition:none!important}
 .row.is-dragging .drag-handle { color: var(--acc-hover); background: var(--acc-light); cursor: grabbing; }
 .list.is-reordering .row:not(.is-dragging) { transition: transform .16s cubic-bezier(.2,.8,.2,1), box-shadow .16s ease; }
 
@@ -550,6 +551,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .history-badge.import{background:var(--theme-soft);color:var(--acc)}
 .user-activity-card{cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease}
 .user-activity-card:hover,.user-activity-card:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:var(--acc);outline:none}
+.user-activity-meta{display:block;margin-top:3px;color:var(--mute);font-size:11px;line-height:1.35;font-variant-numeric:tabular-nums}
 .user-history-hint{padding:5px 8px;border:1px solid var(--theme-border-strong);border-radius:999px;background:var(--acc-light);color:var(--acc-hover);font-size:11px;font-weight:650;white-space:nowrap}
 /* Polished stock balance bars and compact, consistent movement rows */
 .meter{height:7px;background:linear-gradient(180deg,var(--theme-soft),var(--card-bg));border:1px solid var(--line);box-shadow:inset 0 1px 2px rgba(90,60,75,.08),0 1px 0 rgba(255,255,255,.9);margin:5px 0 2px}
@@ -682,6 +684,12 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 .storage-card{grid-column:1/-1}.storage-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.storage-heading h3{margin-bottom:3px}.storage-heading .settings-hint{margin-bottom:10px}.storage-usage-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.storage-metric{min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);display:grid;gap:2px}.storage-metric small{font-size:11px;color:var(--mute)}.storage-metric b{font-size:17px;line-height:1.35;font-variant-numeric:tabular-nums;color:var(--ink);overflow-wrap:anywhere}.storage-progress{height:10px;margin:12px 0 8px;border-radius:99px;overflow:hidden;background:var(--theme-soft);border:1px solid var(--line)}.storage-progress span{display:block;width:0;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8fc6a8,var(--ok));transition:width .4s ease,background-color .3s ease}.storage-progress span.warn{background:linear-gradient(90deg,#f4d17f,var(--warn))}.storage-progress span.danger{background:linear-gradient(90deg,#f0a8b7,var(--bad))}.storage-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--mute)}.storage-footer small{font-size:10px}.storage-error{display:block;margin-top:6px;color:var(--bad);font-size:11px}
 @media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
 @media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:11px;line-height:1;white-space:nowrap;opacity:.9}.card-mascot{width:21px;height:21px;right:6px;bottom:6px;font-size:18px}.card-mascot.corner-top{top:5px}.card-mascot.corner-left{left:6px}.stats .st.has-card-mascot{padding-right:36px}.dash-activity-stats>div.has-card-mascot{padding-right:36px}.branch-confirm-actions{grid-template-columns:1fr}}
+/* Safer branch controls: deactivate stays small on the left, enter is prominent on the right */
+.branch-actions{justify-content:space-between;flex-wrap:nowrap}
+.branch-actions .branch-close-btn{order:1;width:82px;min-width:82px;height:36px;min-height:36px;padding:6px 8px;font-size:10px;line-height:1;opacity:.86}
+.branch-actions .branch-enter-btn{order:2;background:linear-gradient(135deg,#51a971,#368b58)!important;border-color:#368b58!important;color:#fff!important;box-shadow:0 3px 9px rgba(54,139,88,.18)}
+.branch-actions .branch-enter-btn:hover{background:linear-gradient(135deg,#438f60,#2f764b)!important}
+@media(max-width:680px){.branch-actions{grid-template-columns:82px minmax(0,1fr);gap:8px}.branch-actions .branch-close-btn{grid-column:1;justify-self:start;width:82px;min-width:82px;height:36px;min-height:36px}.branch-actions .branch-enter-btn{grid-column:2;justify-self:stretch;width:100%;min-width:0;height:44px;min-height:44px;font-weight:700}}
 /* Roomier stock rows with clear item, quantity and supplier columns */
 .head{display:none!important}
 .row{grid-template-columns:42px minmax(0,1fr) minmax(185px,220px);grid-template-rows:auto auto;align-items:center;column-gap:12px;row-gap:7px;padding:12px 16px 12px 18px;min-height:82px}
@@ -1139,9 +1147,10 @@ function logout() {
   const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
   sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
-let onlineUsers = new Set(), presenceTimer = null, presenceBusy = false;
-function updateOnlineUsers(users = []) {
+let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
+function updateOnlineUsers(users = [], lastOnline = {}) {
   onlineUsers = new Set(users.map(name => String(name).trim().toLowerCase()).filter(Boolean));
+  lastOnlineByUser = new Map(Object.entries(lastOnline || {}).map(([name, value]) => [String(name).trim().toLowerCase(), new Date(value).getTime()]).filter(([name, time]) => name && Number.isFinite(time)));
   document.querySelectorAll('[data-online-user]').forEach(badge => {
     const online = onlineUsers.has(badge.dataset.onlineUser.toLowerCase());
     badge.hidden = false;
@@ -1149,13 +1158,18 @@ function updateOnlineUsers(users = []) {
     badge.classList.toggle('is-offline', !online);
     badge.textContent = online ? 'กำลังใช้งาน' : 'Offline';
   });
+  document.querySelectorAll('[data-last-online-user]').forEach(label => {
+    const key = label.dataset.lastOnlineUser.toLowerCase(), last = lastOnlineByUser.get(key);
+    const text = last ? new Date(last).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : onlineUsers.has(key) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล';
+    label.textContent = `ออนไลน์ล่าสุด: ${text}`;
+  });
 }
 async function refreshPresence() {
   if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
   presenceBusy = true;
   try {
     const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-    if (result.ok) updateOnlineUsers(result.users || []);
+    if (result.ok) updateOnlineUsers(result.users || [], result.lastOnline || {});
     else if (result.error?.includes('หมดเวลา')) logout();
   } catch { /* คงสถานะล่าสุดไว้ชั่วคราวเมื่ออินเทอร์เน็ตขัดข้อง */ }
   finally { presenceBusy = false; }
@@ -1403,12 +1417,12 @@ function bindStockReorder() {
     }
     if (!deltas.length) return;
     for (const [row, delta] of deltas) {
-      row.style.transition = 'none';
+      row.style.setProperty('transition', 'none', 'important');
       row.style.transform = `translate3d(0,${delta}px,0)`;
     }
     requestAnimationFrame(() => {
       for (const [row] of deltas) {
-        row.style.transition = '';
+        row.style.removeProperty('transition');
         row.style.transform = '';
       }
     });
@@ -1474,7 +1488,8 @@ function bindStockReorder() {
         drag.placeholder.style.height = `${box.height}px`;
         drag.placeholder.setAttribute('aria-hidden', 'true');
         list.insertBefore(drag.placeholder, drag.row);
-        Object.assign(drag.row.style, { position: 'fixed', left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px`, margin: '0', zIndex: '1000', pointerEvents: 'none', transition: 'none', willChange: 'transform' });
+        Object.assign(drag.row.style, { position: 'fixed', left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px`, margin: '0', zIndex: '1000', pointerEvents: 'none', willChange: 'transform' });
+        drag.row.style.setProperty('transition', 'none', 'important');
         drag.row.classList.add('is-dragging');
         list.classList.add('is-reordering');
         drag.active = true;
@@ -1487,21 +1502,35 @@ function bindStockReorder() {
       if (frame) { cancelAnimationFrame(frame); frame = 0; }
       const current = drag;
       const shouldCommit = e.type === 'pointerup' && current.active;
+      if (shouldCommit && current.placeholder?.parentElement === list) {
+        const baseTop = parseFloat(current.row.style.top) || current.row.getBoundingClientRect().top;
+        const targetTop = current.placeholder.getBoundingClientRect().top;
+        list.insertBefore(current.row, current.placeholder);
+        current.row.classList.remove('is-dragging');
+        current.row.style.setProperty('transition', 'transform 230ms cubic-bezier(.2,.8,.2,1)', 'important');
+        void current.row.offsetHeight;
+        current.row.style.transform = `translate3d(0,${targetTop - baseTop}px,0)`;
+        drag = null;
+        setTimeout(() => {
+          current.placeholder?.remove();
+          restoreDragStyles(current.row);
+          list.classList.remove('is-reordering');
+          const order = [...list.querySelectorAll('.row')].map(row => row.dataset.id);
+          const byId = new Map(P.map(product => [product.id, product]));
+          if (order.length === P.length && order.some((id, index) => id !== P[index]?.id)) {
+            P = order.map(id => byId.get(id)).filter(Boolean);
+            save(); toast('บันทึกลำดับวัตถุดิบแล้ว');
+          }
+        }, 245);
+        return;
+      }
       if (current.active) {
-        if (shouldCommit && current.placeholder?.parentElement === list) list.insertBefore(current.row, current.placeholder);
         current.placeholder?.remove();
         restoreDragStyles(current.row);
         list.classList.remove('is-reordering');
       }
       drag = null;
-      if (shouldCommit) {
-        const order = [...list.querySelectorAll('.row')].map(row => row.dataset.id);
-        const byId = new Map(P.map(product => [product.id, product]));
-        if (order.length === P.length && order.some((id, index) => id !== P[index]?.id)) {
-          P = order.map(id => byId.get(id)).filter(Boolean);
-          save(); toast('บันทึกลำดับวัตถุดิบแล้ว');
-        }
-      } else if (current.active) {
+      if (current.active) {
         const rowsById = new Map([...list.querySelectorAll('.row')].map(row => [row.dataset.id, row]));
         for (const id of current.originalOrder) if (rowsById.has(id)) list.appendChild(rowsById.get(id));
       }
@@ -1737,7 +1766,7 @@ function settingsView() {
   const canViewStorage = !!(me?.owner || me?.role === 'admin');
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid">
-    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm sec" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button><button type="button" class="btn sm bad" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button>`:''}</span></div>`).join('')}</div></div>` : ''}
+    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm bad branch-close-btn" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button><button type="button" class="btn sm branch-enter-btn" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</span></div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
     <div class="dash-card">
@@ -2306,7 +2335,7 @@ function usersView() {
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
   <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
-  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs} · ล่าสุด ${activity(u).last}</small></div>
+  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
   <div style="display:flex;gap:6px;align-items:center"><span class="user-history-hint">ดูประวัติ ›</span>${!u.globalAdmin && (can.permissions() || u.name === me.name || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
@@ -2354,9 +2383,38 @@ function userModal(name, draft = {}) {
 function delUser(name) {
   if (!can.delUsers()) return toast('ไม่มีสิทธิ์ลบบัญชีผู้ใช้', 1);
   const target = U.find(user => user.name === name);
-  if (!target || target.owner || (['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์ลบบัญชีตำแหน่งนี้', 1);
-  openModal(`<h3>ลบผู้ใช้ ${esc(name)}?</h3><div class="acts"><button class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn bad" id="dy">ลบ</button></div>`);
-  $('#dy').onclick = () => { U = U.filter(x => x.name !== name); save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว'); };
+  if (!target || target.owner || target.name === me?.name || (['admin', 'supervisor'].includes(target.role) && !can.permissions())) return toast('ไม่มีสิทธิ์ลบบัญชีตำแหน่งนี้', 1);
+  const activeName = String(me?.name || '');
+  openModal(`<h3>ยืนยันลบผู้ใช้ ${esc(name)}</h3><p class="settings-hint">เพื่อยืนยัน ให้กรอกชื่อผู้ใช้และรหัสผ่าน 6 หลักของบัญชีที่กำลังใช้งาน</p><form id="deleteUserForm"><label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="username" required autocomplete="username" autocapitalize="none" spellcheck="false"></label><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" required></label><small id="deleteUserError" class="storage-error" role="alert" aria-live="polite"></small><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn bad" id="confirmDeleteUser">ยืนยันลบ</button></div></form>`);
+  const form = $('#deleteUserForm');
+  form.elements.pin.addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6); });
+  form.onsubmit = async e => {
+    e.preventDefault();
+    const button = e.submitter, errorBox = $('#deleteUserError');
+    const username = form.elements.username.value.trim().toLowerCase(), pin = form.elements.pin.value;
+    errorBox.textContent = '';
+    if (username !== activeName.toLowerCase()) { errorBox.textContent = 'ชื่อผู้ใช้ต้องตรงกับบัญชีที่กำลังใช้งาน'; return; }
+    if (!/^\d{6}$/.test(pin)) { errorBox.textContent = 'กรุณากรอกรหัสผ่านให้ครบ 6 หลัก'; return; }
+    button.disabled = true;
+    let verificationToken = '';
+    try {
+      const verification = await cloudRpc('api_branch_login', { p_branch_id: currentBranch.id, p_name: username, p_pin_hash: await hash(pin) });
+      if (!verification.ok || !verification.token) throw new Error(verification.error || 'ยืนยันชื่อผู้ใช้หรือรหัสผ่านไม่สำเร็จ');
+      verificationToken = verification.token;
+      if (String(verification.me?.name || '').toLowerCase() !== activeName.toLowerCase()) throw new Error('ยืนยันบัญชีที่กำลังใช้งานไม่สำเร็จ');
+      const currentTarget = U.find(user => user.name === name);
+      if (!currentTarget || currentTarget.owner || currentTarget.name === me?.name) throw new Error('ไม่สามารถลบบัญชีนี้ได้');
+      U = U.filter(user => user.name !== name);
+      save(); closeModal(); render(); toast('ลบผู้ใช้แล้ว');
+    } catch (error) {
+      errorBox.textContent = error.message || 'ยืนยันตัวตนไม่สำเร็จ';
+      form.elements.pin.value = '';
+      button.disabled = false;
+      form.elements.pin.focus();
+    } finally {
+      if (verificationToken) cloudRpc('api_logout', { p_token: verificationToken }).catch(() => {});
+    }
+  };
 }
 
 function editMyUsernameModal() {
