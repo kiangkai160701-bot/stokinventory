@@ -298,7 +298,7 @@ svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width:
 :root{--bg:#fff7f5;--bg-app:#fff7f5;--card-bg:#fffefd;--card-border:#f3e2e8;--ink:#634c5b;--mute:#927d8c;--line:#f0dfe5;--acc:#e78fa9;--acc-hover:#d87593;--acc-light:#fff0f4;--acc-glow:rgba(231,143,169,.2);--warn:#bd8549;--warn-bg:#fff5df;--bad:#c96f83;--bad-bg:#fff0f3;--ok:#78a993;--ok-bg:#edf7f1;--r:18px;--shadow-sm:0 3px 12px rgba(150,102,124,.06);--shadow-md:0 10px 24px rgba(150,102,124,.11)}
 body[data-theme="indigo"]{--acc:#a392c9;--acc-hover:#8978b5;--acc-light:#f3effb;--acc-glow:rgba(163,146,201,.2)}body[data-theme="emerald"]{--acc:#e8b77e;--acc-hover:#d59d60;--acc-light:#fff5e8;--acc-glow:rgba(232,183,126,.22)}body[data-theme="ruby"]{--acc:#df839e;--acc-hover:#cf6d8b;--acc-light:#fff0f4;--acc-glow:rgba(223,131,158,.2)}
 html,body{background:var(--bg-app);color:var(--ink)}#app{background:radial-gradient(ellipse at 0% 0%,rgba(255,220,231,.38),transparent 35%),radial-gradient(ellipse at 100% 100%,rgba(226,233,255,.45),transparent 36%),var(--bg-app)}
-#app{position:relative;isolation:isolate}#app main{position:relative;z-index:1}#app::before,#app::after{position:fixed;z-index:0;pointer-events:none;opacity:.09;filter:saturate(.82)}#app::before{content:"🍙";right:16px;top:86px;font-size:42px;transform:rotate(12deg)}#app::after{content:"🍣";left:13px;bottom:96px;font-size:34px;transform:rotate(-12deg)}.theme-opt{transition:transform .18s ease,box-shadow .18s ease;box-shadow:0 3px 8px rgba(125,83,105,.1)}.theme-opt:hover{transform:scale(1.08)}.theme-opt.active{outline:3px solid rgba(133,89,111,.28);outline-offset:2px;transform:scale(1.06)}.top{background:rgba(255,249,250,.94);color:#634c5b;border-bottom:1px solid #f2dfe6;box-shadow:0 4px 18px rgba(146,105,127,.08)}.brand small{color:#a18495}.brand-badge{background:linear-gradient(135deg,#ffdce6,#ffedce);border:1px solid #fff;color:#bd6f88;box-shadow:0 4px 10px rgba(190,132,153,.12)}
+#app{position:relative;isolation:isolate}#app main{position:relative;z-index:1}#app::before,#app::after{position:fixed;z-index:0;pointer-events:none;opacity:.075;filter:saturate(.9);user-select:none}#app::before{content:"🍙";right:18px;top:88px;font-size:54px;transform:rotate(12deg)}#app::after{content:"🍣";left:15px;bottom:104px;font-size:46px;transform:rotate(-12deg)}.theme-opt{transition:transform .18s ease,box-shadow .18s ease;box-shadow:0 3px 8px rgba(125,83,105,.1)}.theme-opt:hover{transform:scale(1.08)}.theme-opt.active{outline:3px solid rgba(133,89,111,.28);outline-offset:2px;transform:scale(1.06)}.top{background:rgba(255,249,250,.94);color:#634c5b;border-bottom:1px solid #f2dfe6;box-shadow:0 4px 18px rgba(146,105,127,.08)}.brand small{color:#a18495}.brand-badge{background:linear-gradient(135deg,#ffdce6,#ffedce);border:1px solid #fff;color:#bd6f88;box-shadow:0 4px 10px rgba(190,132,153,.12)}
 .dtabs button{color:#987f8e}.dtabs button:hover,.dtabs button.on{background:#ffeaf0;color:#795263}.me{background:#fff0f4;border-color:#f4dce5}.me-info b{color:#634c5b}.me-info span{color:#987f8e}.me-btn{background:#fff;color:#bd6f88;border:1px solid #f3dce4}.me-btn:hover{background:#ffe5ed}
 .nav{background:rgba(255,250,251,.96);border-color:#f0dce4;box-shadow:0 12px 30px rgba(143,96,117,.18)}.nav button{color:#a48796}.nav button.on{color:#785064;background:#ffe8ef}.nav button.on::after{background:var(--acc);box-shadow:0 0 8px var(--acc)}
 .st,.row,.card,.dash-card,.empty{background:rgba(255,254,253,.96);border-color:#f1e1e6;box-shadow:var(--shadow-sm)}.row:hover{border-color:#e8a2b7;box-shadow:var(--shadow-md)}.row::before{background:var(--ok)}.row.low::before{background:#e9b970}.row.out::before{background:#df8b9e}.meter{background:#f8eaf0}.meter u{background:#90b9a5}.low .meter u{background:#e9b970}.out .meter u{background:#df8b9e}
@@ -517,7 +517,6 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .card .t.has-card-mascot{padding-right:24px}
 .dash-card.has-card-mascot>h3,.dash-chart.has-card-mascot>h3,.permission-user.has-card-mascot .permission-heading{padding-right:26px}
 .theme-opt .theme-emoji{position:relative;z-index:1}
-#app::before,#app::after{display:none!important}
 .card-mascot:nth-of-type(1){animation-delay:-.8s}
 @keyframes cardMascotBob{50%{translate:0 -3px;rotate:4deg}}
 @media(prefers-reduced-motion:reduce){.card-mascot{animation:none}}
@@ -813,6 +812,11 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-panel.open{grid-template-rows:1fr}
 .disclosure-inner{min-height:0;overflow:hidden;padding:0 14px 0;opacity:0;transform:translateY(-7px);transition:opacity .24s ease,transform .32s cubic-bezier(.22,.78,.22,1),padding .32s ease}
 .disclosure-panel.open .disclosure-inner{padding:2px 14px 14px;opacity:1;transform:translateY(0)}
+.settings-grid{align-items:stretch;gap:12px}
+.settings-grid>.dash-card{min-width:0;border:1px solid var(--line);border-radius:var(--r);background:var(--card-bg);box-shadow:var(--shadow-sm)}
+.disclosure-inner.has-card-mascot{padding-right:44px!important}
+.settings-grid>.disclosure-card{padding:0!important}
+.settings-grid>.disclosure-card>.disclosure-summary{min-height:54px}
 @media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 </style>
@@ -1132,8 +1136,15 @@ function createExtraTheme(spec) {
   ['berrycream','เบอร์รีครีม','🧁',['🧁','🍓','🍙'],'#fff5f8','#604858','#92798b','#eddae4','#c47f9f','#a25d7d','#f8e8f0','#efd2e0','#f8dce8','#fff0df','#e7e8fa','rgba(237,178,207,.3)','rgba(255,218,169,.24)','rgba(129,76,103,.12)','#dfc1d1','#bd6f82','#6e9985']
 ].forEach(spec => { THEMES[spec[0]] = createExtraTheme(spec); });
 const THEME_CARD_FRIENDS = {
-  sakura:['🍣','🍙','🍤','🐟','🍥','🦐','🥢','🐡'], matcha:['🍵','🍙','🥑','🍃','🐸','🍡','🍣','🥬'], ocean:['🐟','🍣','🦀','🐳','🐙','🐬','🪼','🦑'], lavender:['🍙','🍣','🐙','🦄','🌙','⭐','🍡','🐰'], peach:['🍤','🍣','🍋','🦐','🍑','🐥','🍡','🦆'], lemon:['🍋','🍣','🍙','🐤','🍊','🌼','🍮','🐝'], mint:['🐳','🍣','🍙','🐬','🫧','🦭','🧊','🐠'], grape:['🍇','🍙','🍣','🐱','🫐','🍡','🐙','🐻'], coral:['🦀','🍣','🐟','🐠','🐚','🪸','🦐','🐢'], ramune:['🫧','🐟','🍣','🐬','🦭','🐠','🪼','🧊'], taro:['🍠','🍙','🍣','🐰','🍡','🐻','🌸','🐼'], nori:['🌿','🍣','🍙','🐢','🥬','🫛','🍃','🐸'], midnight:['🐙','🌙','🍣','⭐','🪐','🐈‍⬛','🌟','👾'], cosmos:['🚀','🪐','🍣','👾','🌙','⭐','🛰️','🌠'], kawaii:['🐱','🍙','🐙','🐻','🐰','🍡','🐥','🦄'], cyber:['🤖','🛰️','🪼','💫','👾','🐬','🛸','🦾'], executive:[],graphite:[],ivory:[],evergreen:[]
+  sakura:['🌸','🎎','🪭','🎐'], matcha:['🍵','🐸','🥬','🫛'], ocean:['🐬','🦈','🐳','🦑'], lavender:['🦄','🪽','🧚','🦋'], peach:['🍑','🐥','🦆','🍊'], lemon:['🍋','🐝','🍍','🥭'], mint:['🦭','🧊','🐧','🐠'], grape:['🍇','🫐','🍷','🧃'], coral:['🦀','🪸','🐢','🐙'], ramune:['🫧','🥤','🐡','🦐'], taro:['🍠','🐼','🍮','🧸'], nori:['🌿','🥑','🪴','🌱'], midnight:['🐈‍⬛','🌙','⭐','🌌'], cosmos:['🚀','🪐','👾','🛰️'], kawaii:['🐱','🐰','🦝','🐹'], cyber:['🤖','🦾','💾','📡'],
+  cream:['🐄','🧈','🥛','🥐'], sky:['☁️','🌈','🌤️','🪁'], rose:['🌹','💌','💐','🎀'], blueberry:['🪺','🦉','🧿','🦤'], melon:['🍈','🥒','🐊','🦎'], strawberry:['🍓','🍰','🍬','🍡'], vanilla:['🍦','🍨','🥄','🧇'], plum:['🍏','🦚','🦜','🪶'], pistachio:['🥜','🌰','🌻','🐿️'], cocoa:['🍫','☕','🫘','🐻'], apricot:['🦒','🦓','🐆','🦩'], hydrangea:['💠','🪻','🪷','🦢'], peachtea:['🧋','🫖','🍶','🍸'], oceanfoam:['🌊','🐚','🛟','⛵'], sunset:['🌅','🏜️','🌄','🌇'], polar:['❄️','🐻‍❄️','🛷','🧣'], honey:['🐜','🪲','🕸️','🐌'], lilac:['🦇','🪄','🧙','👻'], sakuradusk:['🌃','🌠','🛸','🗼'], seaglass:['🪼','🪿','🦞','🧜‍♀️'], berrycream:['🧁','🍧','🍩','🥧']
 };
+Object.entries(THEME_CARD_FRIENDS).forEach(([id, friends]) => {
+  const theme = THEMES[id]; if (!theme) return;
+  theme.mascot = friends[0]; theme.friends = friends;
+  theme.colors['--theme-mascot-a'] = `"${friends[1]}"`;
+  theme.colors['--theme-mascot-b'] = `"${friends[2]}"`;
+});
 let currentTheme = store.get('inv_theme', 'sakura');
 function applyTheme(id) {
   const aliases = { teal:'sakura', indigo:'lavender', emerald:'peach', ruby:'ocean' };
@@ -1364,7 +1375,8 @@ function updatePageMascots() {
   } else if (tab === 'users') {
     add('.user-activity-card .t', 'mascot-user');
   } else if (tab === 'settings') {
-    add('.dash-grid > .dash-card,.permission-user', 'mascot-top-right');
+    add('.branch-admin-card,.text-scale-card,.theme-picker-card,.permission-user', 'mascot-top-right');
+    add('.disclosure-panel.open .disclosure-inner', 'mascot-top-right');
   }
   cards.forEach(({ card, placement }, index) => {
     const mascot = document.createElement('span');
@@ -1880,18 +1892,17 @@ function settingsView() {
   const themePages = [];
   for (let i = 0; i < themeList.length; i += 20) themePages.push(themeList.slice(i, i + 20));
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
-  <div class="dash-grid">
+  <div class="dash-grid settings-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm bad branch-close-btn" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button><button type="button" class="btn sm branch-enter-btn" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</span></div>`).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
-    <div class="dash-card">
+    <div class="dash-card theme-picker-card">
       <h3>🎨 เลือกธีม</h3>
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม</p>
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
     </div>
-    <div class="dash-card">
-      <h3>💾 จัดการข้อมูลสำรอง</h3>
+    <div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm sec" id="backupBtn">${ic('dl')} สำรองข้อมูล</button>
@@ -1907,9 +1918,9 @@ function settingsView() {
         <div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" class="btn sm" id="confirmImportBtn">${ic('up')} ยืนยันนำเข้า</button><button type="button" class="btn sm sec" id="cancelImportBtn">ยกเลิก</button></div>
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
-    </div>
+    </div></div></div>
     ${can.reset() ? `<div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${lastReset ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
-    ${can.permissions() ? `<div class="dash-card permissions-card">
+    ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
       <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="permissionDisclosurePanel"><span>🔐 สิทธิ์ผู้ใช้งาน</span><span class="disclosure-count">${U.filter(user => !fullAccessUser(user)).length} บัญชี</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="permissionDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
@@ -1946,6 +1957,7 @@ function bindSettings() {
     panel.setAttribute('aria-hidden', String(!open));
     panel.inert = !open;
     panel.classList.toggle('open', open);
+    updatePageMascots();
   });
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
