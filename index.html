@@ -1083,7 +1083,7 @@ const store = {
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
 
-const TEXT_SCALE_PRESETS = [92, 100, 108];
+const TEXT_SCALE_PRESETS = [92, 100, 112];
 const savedTextScale = Number(store.get('inv_text_scale', 100)) || 100;
 let uiTextScale = TEXT_SCALE_PRESETS.reduce((closest, value) => Math.abs(value - savedTextScale) < Math.abs(closest - savedTextScale) ? value : closest, 100);
 const textScaleBaseInline = new WeakMap();
@@ -1114,7 +1114,8 @@ function applyTextScale(root = document.querySelector('#app')) {
     return [...element.childNodes].some(node => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
   });
   const sizes = elements.map(element => {
-    if (!textScaleBaseInline.has(element)) { textScaleBaseInline.set(element, element.style.fontSize); textScaleTracked.add(element); }
+    if (!textScaleBaseInline.has(element)) textScaleBaseInline.set(element, element.style.fontSize);
+    textScaleTracked.add(element);
     return Number.parseFloat(getComputedStyle(element).fontSize) || 14;
   });
   elements.forEach((element, index) => { element.style.fontSize = `${(sizes[index] * uiTextScale / 100).toFixed(2)}px`; });
