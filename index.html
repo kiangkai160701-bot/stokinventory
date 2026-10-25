@@ -865,6 +865,47 @@ html,body{scroll-behavior:auto!important}
 @media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}.top,.nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.btn::after{display:none!important}#app::before,#app::after{filter:none}.dash-card,.st,.row,.card,.history-item,.empty,.permission-user{background-image:none!important;transition:none!important}.btn,.nav button,.dtabs button{transition:transform .14s ease,background-color .14s ease,color .14s ease!important}.btn:hover,.theme-opt:hover{transform:none;filter:none}.card-mascot{filter:none}}
 @media(prefers-reduced-motion:reduce){html,body{scroll-behavior:auto!important}#app::before,#app::after,.card-mascot{animation:none!important}.btn::after{display:none}.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition-duration:.01ms!important}}
 </style>
+<style id="smooth-motion">
+/* ===== Smooth motion layer (mobile-first, GPU friendly: transform/opacity only) ===== */
+html{-webkit-text-size-adjust:100%}
+button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+
+/* --- Bottom bar: one pill glides between tabs --- */
+#nav.nav{transform:translate3d(0,0,0);backface-visibility:hidden}
+#nav .nav-pill{position:absolute;left:0;top:0;width:0;height:0;box-sizing:border-box;border-radius:12px;background:var(--acc);border:1px solid color-mix(in srgb,var(--acc-hover) 55%,transparent);box-shadow:0 3px 10px var(--acc-glow);pointer-events:none;z-index:0;opacity:0;transform:translate3d(0,0,0);will-change:transform;backface-visibility:hidden}
+#nav .nav-pill.ready{opacity:1;transition:transform .5s cubic-bezier(.32,.72,0,1)}
+#nav .nav-pill.snap{transition:none!important}
+#app.font-scale-instant #nav .nav-pill.ready{transition:transform .5s cubic-bezier(.32,.72,0,1)!important}
+#app.font-scale-instant #nav .nav-pill.snap{transition:none!important}
+#nav.nav button{z-index:1}
+#nav.nav.has-pill button.on{background:transparent;border-color:transparent;box-shadow:none}
+#nav.nav button{transition:color .32s cubic-bezier(.32,.72,0,1),transform .16s ease!important}
+@media(max-width:380px){#nav .nav-pill{border-radius:10px}}
+@media(hover:none){#nav.nav button:hover{background:transparent}}
+
+/* --- Page content --- */
+#main{backface-visibility:hidden}
+
+/* --- Bottom sheet: slides up / down, animated from JS (transform + opacity only) --- */
+#modal .ov{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important;opacity:1!important}
+#modal .ov .sheet{animation:none!important;transition:none!important;position:relative;z-index:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;backface-visibility:hidden}
+#modal .ov .ov-backdrop{position:absolute;inset:0;z-index:0;background:rgba(92,63,79,.4);pointer-events:none}
+
+/* --- Dropdown / accordion panels --- */
+.disclosure-panel{transition:grid-template-rows .44s cubic-bezier(.32,.72,0,1)!important}
+.disclosure-inner{transition:opacity .32s ease,transform .44s cubic-bezier(.32,.72,0,1),padding .44s cubic-bezier(.32,.72,0,1)!important}
+.disclosure-chevron{transition:transform .44s cubic-bezier(.32,.72,0,1)!important}
+
+/* --- No sticky "hover lift" on touch screens (it causes jumps after a tap) --- */
+@media(hover:none){
+  .row:hover,.st[data-stock-filter]:hover,.filter-stat:hover,.stats .st[data-dashboard-stock-filter]:hover,.dash-action-card:hover,.user-activity-card:hover,.icon-tool:hover,.btn:hover,.brand-badge:hover,.story-mark:hover{transform:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  #nav .nav-pill.ready{transition-duration:.01ms!important}
+  .disclosure-panel,.disclosure-inner,.disclosure-chevron{transition-duration:.01ms!important}
+}
+</style>
 </head>
 <body data-theme="teal">
 
@@ -1401,18 +1442,77 @@ function tabs() {
 function build() {
   if (tab === 'users' && !can.users()) tab = 'settings';
   const nav = $('#nav');
-  nav.innerHTML = tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
+  nav.innerHTML = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
   $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
   render();
+  placeNavPill(true);
+  if (!navPillObserver && 'ResizeObserver' in window) {
+    navPillObserver = new ResizeObserver(() => placeNavPill(true));
+    navPillObserver.observe(nav);
+  }
 }
 
+/* ---------- Smooth navigation: sliding pill + staged page transition ---------- */
+let navPillObserver = null;
+function placeNavPill(instant) {
+  const nav = document.getElementById('nav');
+  if (!nav) return;
+  const pill = nav.querySelector('.nav-pill');
+  const active = nav.querySelector('button.on');
+  if (!pill || !active || !active.offsetWidth) return;
+  if (!pill.classList.contains('ready')) instant = true;
+  if (instant) pill.classList.add('snap');
+  pill.style.width = active.offsetWidth + 'px';
+  pill.style.height = active.offsetHeight + 'px';
+  pill.style.transform = `translate3d(${active.offsetLeft}px,${active.offsetTop}px,0)`;
+  nav.classList.add('has-pill');
+  if (instant) {
+    void pill.offsetWidth;
+    pill.classList.add('ready');
+    requestAnimationFrame(() => requestAnimationFrame(() => pill.classList.remove('snap')));
+  }
+}
+function syncNav() {
+  document.querySelectorAll('[data-t]').forEach(button => {
+    const active = button.dataset.t === tab;
+    button.classList.toggle('on', active);
+    if (button.closest('#nav')) button.setAttribute('aria-current', active ? 'page' : 'false');
+  });
+  placeNavPill(false);
+}
+let navPending = false, exitAnim = null;
+function runPageExit() {
+  const main = $('#main');
+  let called = false;
+  const go = () => {
+    if (called) return;
+    called = true; navPending = false;
+    const leaving = exitAnim; exitAnim = null;
+    try { render(true); }
+    finally { if (leaving) { try { leaving.cancel(); } catch (err) {} } }
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !main || typeof main.animate !== 'function') {
+    requestAnimationFrame(go);
+    return;
+  }
+  const dx = pageDirection === 'prev' ? 10 : -10;
+  exitAnim = main.animate(
+    [{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: `translate3d(${dx}px,0,0)` }],
+    { duration: 110, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }
+  );
+  exitAnim.onfinish = go;
+  setTimeout(go, 420);
+}
 document.addEventListener('click', e => {
   const button = e.target.closest('[data-t]');
   if (!button || !me) return;
   const availableTabs = tabs().map(item => item[0]);
   pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
   tab = button.dataset.t;
-  render(true);
+  syncNav();
+  if (navPending) return;
+  navPending = true;
+  runPageExit();
 });
 
 function updatePageMascots() {
@@ -1452,7 +1552,17 @@ function updatePageMascots() {
 }
 
 let pageAnimation = null;
+let deferredRender = null;
+function flushDeferredRender() {
+  if (deferredRender === null) return;
+  const animate = deferredRender;
+  deferredRender = null;
+  render(animate);
+}
 function render(animatePage = false) {
+  // While a sheet is sliding down, hold the heavy redraw until it has finished
+  // so the closing animation never competes with layout work.
+  if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
@@ -1460,11 +1570,7 @@ function render(animatePage = false) {
   // The page redraw replaces many nodes at once; pause the observer so it doesn't
   // trigger a second full typography pass while the transition is beginning.
   if (textScaleObserver) textScaleObserver.disconnect();
-  document.querySelectorAll('[data-t]').forEach(button => {
-    const active = button.dataset.t === tab;
-    button.classList.toggle('on', active);
-    if (button.closest('#nav')) button.setAttribute('aria-current', active ? 'page' : 'false');
-  });
+  syncNav();
   const paintPage = () => {
     if (tab === 'stock') main.innerHTML = stockView();
     else if (tab === 'dashboard') main.innerHTML = dashboardView();
@@ -1486,11 +1592,11 @@ function render(animatePage = false) {
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
-    const offset = pageDirection === 'prev' ? -6 : 6;
-    main.style.willChange = 'transform';
+    const offset = pageDirection === 'prev' ? -22 : 22;
+    main.style.willChange = 'transform, opacity';
     pageAnimation = main.animate(
-      [{ transform: `translate3d(${offset}px,0,0)` }, { transform: 'translate3d(0,0,0)' }],
-      { duration: 220, easing: 'cubic-bezier(.2,.68,.25,1)', fill: 'both' }
+      [{ opacity: 0, transform: `translate3d(${offset}px,0,0)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
+      { duration: 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
     );
     const activeAnimation = pageAnimation;
     activeAnimation.onfinish = () => {
@@ -2025,7 +2131,8 @@ function bindSettings() {
     panel.setAttribute('aria-hidden', String(!open));
     panel.inert = !open;
     panel.classList.toggle('open', open);
-    updatePageMascots();
+    clearTimeout(window.__mascotTimer);
+    window.__mascotTimer = setTimeout(updatePageMascots, 480);
   });
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
@@ -2337,18 +2444,58 @@ function addOption(kind, context = null) {
 }
 
 /* ---------- Modals (คลิกเข้ามาเบิก-จ่าย และจัดการด้านใน) ---------- */
+const SHEET_OPEN_MS = 600, SHEET_CLOSE_MS = 520;
+const SHEET_EASE_OPEN = 'cubic-bezier(.25,.8,.25,1)', SHEET_EASE_CLOSE = 'cubic-bezier(.4,0,.2,1)';
 function openModal(html, kind = '') {
-  $('#modal').innerHTML = `<div class="ov${kind ? ` ov-${kind}` : ''}" id="ov"><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
-  $('#ov').onmousedown = e => { if (e.target.id === 'ov' && !$('#ov').dataset.lock) closeModal(); };
+  const host = $('#modal');
+  host.innerHTML = '';
+  flushDeferredRender();
+  host.innerHTML = `<div class="ov${kind ? ` ov-${kind}` : ''}" id="ov"><div class="ov-backdrop" aria-hidden="true"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
+  const overlay = $('#ov');
+  overlay.onmousedown = e => { if (e.target.id === 'ov' && !$('#ov').dataset.lock) closeModal(); };
+  const sheet = overlay.querySelector('.sheet'), backdrop = overlay.querySelector('.ov-backdrop');
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || typeof sheet.animate !== 'function') return;
+  sheet.style.willChange = 'transform';
+  const sheetAnim = sheet.animate(
+    [{ transform: 'translate3d(0,100%,0)' }, { transform: 'translate3d(0,0,0)' }],
+    { duration: SHEET_OPEN_MS, easing: SHEET_EASE_OPEN }
+  );
+  const backdropAnim = backdrop.animate([{ opacity: 0 }, { opacity: 1 }], { duration: SHEET_OPEN_MS, easing: 'ease-out' });
+  overlay._anims = [sheetAnim, backdropAnim];
+  sheetAnim.onfinish = () => { sheet.style.willChange = ''; overlay._anims = null; };
 }
 function closeModal() {
   const overlay = $('#ov');
   if (!overlay || overlay.dataset.closing) return;
   overlay.dataset.closing = 'true';
-  overlay.classList.add('closing');
-  const sheet = overlay.querySelector('.sheet');
-  if (sheet) sheet.classList.add('closing');
-  setTimeout(() => { if (overlay.isConnected) overlay.remove(); }, 230);
+  overlay.style.pointerEvents = 'none';
+  const sheet = overlay.querySelector('.sheet'), backdrop = overlay.querySelector('.ov-backdrop');
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    if (overlay.isConnected) overlay.remove();
+    flushDeferredRender();
+  };
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !sheet || typeof sheet.animate !== 'function') { finish(); return; }
+  let startY = 0, startOpacity = 1;
+  if (overlay._anims) {
+    try {
+      startY = new DOMMatrixReadOnly(getComputedStyle(sheet).transform).m42 || 0;
+      startOpacity = Number.parseFloat(getComputedStyle(backdrop).opacity);
+      if (!Number.isFinite(startOpacity)) startOpacity = 1;
+    } catch (err) {}
+    overlay._anims.forEach(anim => anim.cancel());
+    overlay._anims = null;
+  }
+  sheet.style.willChange = 'transform';
+  const sheetAnim = sheet.animate(
+    [{ transform: `translate3d(0,${startY}px,0)` }, { transform: 'translate3d(0,100%,0)' }],
+    { duration: SHEET_CLOSE_MS, easing: SHEET_EASE_CLOSE, fill: 'forwards' }
+  );
+  if (backdrop) backdrop.animate([{ opacity: startOpacity }, { opacity: 0 }], { duration: SHEET_CLOSE_MS, easing: 'ease-in', fill: 'forwards' });
+  sheetAnim.onfinish = finish;
+  setTimeout(finish, SHEET_CLOSE_MS + 300);
 }
 
 function toast(t, err) {
