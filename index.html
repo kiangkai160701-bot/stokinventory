@@ -819,6 +819,51 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .settings-grid>.disclosure-card>.disclosure-summary{min-height:54px}
 @media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
+/* ---------- Polished theme surfaces, tactile buttons and mascot stickers ---------- */
+:root{--theme-ease:cubic-bezier(.2,.78,.22,1);--theme-card-gloss:linear-gradient(145deg,color-mix(in srgb,var(--theme-soft) 54%,white),transparent 68%)}
+html,body{scroll-behavior:smooth}
+#app{background-color:var(--bg-app);background-image:radial-gradient(ellipse at 0% 0%,var(--theme-wash),transparent 39%),radial-gradient(ellipse at 100% 100%,var(--theme-wash-2),transparent 42%),linear-gradient(135deg,var(--bg-app),var(--theme-soft))}
+#app::before,#app::after{font-family:var(--font);filter:drop-shadow(0 8px 13px var(--theme-shadow)) saturate(.9);opacity:.09;transition:opacity .35s var(--theme-ease),transform .5s var(--theme-ease)}
+#app::before{transform:rotate(12deg);animation:themeFloatA 7s ease-in-out infinite}
+#app::after{transform:rotate(-12deg);animation:themeFloatB 8s ease-in-out infinite}
+@keyframes themeFloatA{50%{translate:0 -9px;rotate:18deg}}
+@keyframes themeFloatB{50%{translate:0 8px;rotate:-18deg}}
+.top,.nav,.login-wrap,.sheet,.dash-card,.st,.row,.card,.history-item,.empty,.branch-admin-card,.permission-user{transition:background-color .28s var(--theme-ease),border-color .28s var(--theme-ease),box-shadow .28s var(--theme-ease)}
+.dash-card,.st,.row,.card,.history-item,.empty,.permission-user{background-image:var(--theme-card-gloss)!important}
+.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition:transform .26s var(--theme-ease),color .26s var(--theme-ease),background-color .26s var(--theme-ease),border-color .26s var(--theme-ease),box-shadow .26s var(--theme-ease),filter .26s var(--theme-ease)}
+.btn{position:relative;isolation:isolate;overflow:hidden;box-shadow:0 5px 14px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.24)}
+.btn::after{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:linear-gradient(115deg,transparent 22%,rgba(255,255,255,.2) 48%,transparent 74%);mix-blend-mode:screen;opacity:.65;transform:translateX(-115%);transition:transform .55s var(--theme-ease);pointer-events:none}
+.btn:hover{transform:translateY(-2px);filter:saturate(1.05);box-shadow:0 9px 20px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.27)}
+.btn:hover::after{transform:translateX(115%)}
+.btn:active,.me-btn:active,.nav button:active,.dtabs button:active,.theme-opt:active,.icon-tool:active,.history-filter button:active,.quantity-stepper button:active{transform:scale(.96)}
+.btn.sec{box-shadow:0 3px 9px var(--theme-shadow),inset 0 1px 0 rgba(255,255,255,.85)}
+.btn.sec:hover{background:var(--theme-soft);border-color:var(--theme-border-strong);box-shadow:0 7px 15px var(--theme-shadow)}
+.btn.bad:hover{box-shadow:0 8px 18px var(--bad-bg);filter:saturate(1.08)}
+.me-btn:hover,.icon-tool:hover{border-color:var(--theme-border-strong);box-shadow:0 5px 12px var(--theme-shadow)}
+.nav button.on{box-shadow:inset 0 1px 0 rgba(255,255,255,.76),0 3px 9px var(--theme-shadow)}
+.theme-opt{position:relative;isolation:isolate;overflow:hidden;background-image:linear-gradient(145deg,rgba(255,255,255,.82),transparent 62%)!important;box-shadow:0 3px 9px var(--theme-shadow),inset 0 1px 0 rgba(255,255,255,.8)}
+.theme-opt:hover{transform:translateY(-2px) scale(1.025);border-color:var(--theme-border-strong)!important;box-shadow:0 8px 16px var(--theme-shadow),inset 0 1px 0 rgba(255,255,255,.9)}
+.theme-opt.active{transform:translateY(-1px);border-color:var(--acc)!important;box-shadow:0 0 0 2px var(--acc-glow),0 7px 16px var(--theme-shadow),inset 0 1px 0 rgba(255,255,255,.9)!important}
+.theme-opt .theme-emoji{display:grid;place-items:center;width:30px;height:30px;border-radius:11px;background:linear-gradient(145deg,rgba(255,255,255,.92),var(--theme-soft));box-shadow:0 2px 6px var(--theme-shadow);filter:drop-shadow(0 1px 1px rgba(60,40,50,.12));transition:transform .32s var(--theme-ease)}
+.theme-opt:hover .theme-emoji{transform:translateY(-2px) rotate(-5deg) scale(1.08)}
+.login-story{background-image:radial-gradient(circle at 88% 18%,rgba(255,255,255,.56) 0 4px,transparent 5px),radial-gradient(circle at 13% 83%,rgba(255,255,255,.46) 0 7px,transparent 8px),linear-gradient(145deg,var(--theme-story-1),var(--theme-story-2) 55%,var(--theme-story-3))}
+.login-wrap{box-shadow:0 22px 58px var(--theme-shadow),0 2px 8px rgba(255,255,255,.7) inset}
+.brand-badge,.story-mark,.boot-mascot,.lg-icon{filter:drop-shadow(0 4px 6px var(--theme-shadow));transition:transform .3s var(--theme-ease),filter .3s var(--theme-ease)}
+.brand-badge:hover,.story-mark:hover{transform:translateY(-2px) rotate(-4deg)}
+.card-mascot{z-index:1;width:27px;height:27px;border:1px solid color-mix(in srgb,var(--theme-border-strong) 72%,white);border-radius:11px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.98),var(--theme-soft) 65%);font-size:19px;opacity:.9;filter:drop-shadow(0 3px 4px var(--theme-shadow));animation:mascotStickerBob 4.8s ease-in-out infinite}
+.card-mascot.mascot-top-right,.card-mascot.mascot-bottom-right{border-radius:11px}
+.card-mascot.mascot-stock,.card-mascot.mascot-history,.card-mascot.mascot-user{border:0;background:transparent;filter:drop-shadow(0 2px 2px var(--theme-shadow))}
+@keyframes mascotStickerBob{0%,100%{translate:0 0;rotate:-2deg}50%{translate:0 -3px;rotate:3deg}}
+.has-card-mascot{isolation:isolate}
+.has-card-mascot>:not(.card-mascot){position:relative;z-index:1}
+.has-card-mascot>.card-mascot{z-index:2}
+.row .c-name.has-card-mascot{padding-right:27px}
+.dash-card.has-card-mascot>h3,.dash-chart.has-card-mascot>h3,.permission-user.has-card-mascot .permission-heading{padding-right:34px}
+.history-main.has-card-mascot{padding-right:25px}
+.top{backdrop-filter:blur(14px)}
+.nav{backdrop-filter:blur(18px)}
+@media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}}
+@media(prefers-reduced-motion:reduce){html,body{scroll-behavior:auto!important}#app::before,#app::after,.card-mascot{animation:none!important}.btn::after{display:none}.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition-duration:.01ms!important}}
 </style>
 </head>
 <body data-theme="teal">
