@@ -821,11 +821,11 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 /* ---------- Polished theme surfaces, tactile buttons and mascot stickers ---------- */
 :root{--theme-ease:cubic-bezier(.2,.78,.22,1);--theme-card-gloss:linear-gradient(145deg,color-mix(in srgb,var(--theme-soft) 54%,white),transparent 68%)}
-html,body{scroll-behavior:smooth}
+html,body{scroll-behavior:auto!important}
 #app{background-color:var(--bg-app);background-image:radial-gradient(ellipse at 0% 0%,var(--theme-wash),transparent 39%),radial-gradient(ellipse at 100% 100%,var(--theme-wash-2),transparent 42%),linear-gradient(135deg,var(--bg-app),var(--theme-soft))}
 #app::before,#app::after{font-family:var(--font);filter:drop-shadow(0 8px 13px var(--theme-shadow)) saturate(.9);opacity:.09;transition:opacity .35s var(--theme-ease),transform .5s var(--theme-ease)}
-#app::before{transform:rotate(12deg);animation:themeFloatA 7s ease-in-out infinite}
-#app::after{transform:rotate(-12deg);animation:themeFloatB 8s ease-in-out infinite}
+#app::before{transform:rotate(12deg)}
+#app::after{transform:rotate(-12deg)}
 @keyframes themeFloatA{50%{translate:0 -9px;rotate:18deg}}
 @keyframes themeFloatB{50%{translate:0 8px;rotate:-18deg}}
 .top,.nav,.login-wrap,.sheet,.dash-card,.st,.row,.card,.history-item,.empty,.branch-admin-card,.permission-user{transition:background-color .28s var(--theme-ease),border-color .28s var(--theme-ease),box-shadow .28s var(--theme-ease)}
@@ -850,7 +850,7 @@ html,body{scroll-behavior:smooth}
 .login-wrap{box-shadow:0 22px 58px var(--theme-shadow),0 2px 8px rgba(255,255,255,.7) inset}
 .brand-badge,.story-mark,.boot-mascot,.lg-icon{filter:drop-shadow(0 4px 6px var(--theme-shadow));transition:transform .3s var(--theme-ease),filter .3s var(--theme-ease)}
 .brand-badge:hover,.story-mark:hover{transform:translateY(-2px) rotate(-4deg)}
-.card-mascot{z-index:1;width:27px;height:27px;border:1px solid color-mix(in srgb,var(--theme-border-strong) 72%,white);border-radius:11px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.98),var(--theme-soft) 65%);font-size:19px;opacity:.9;filter:drop-shadow(0 3px 4px var(--theme-shadow));animation:mascotStickerBob 4.8s ease-in-out infinite}
+.card-mascot{z-index:1;width:27px;height:27px;border:1px solid color-mix(in srgb,var(--theme-border-strong) 72%,white);border-radius:11px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.98),var(--theme-soft) 65%);font-size:19px;opacity:.9;filter:drop-shadow(0 3px 4px var(--theme-shadow));animation:none}
 .card-mascot.mascot-top-right,.card-mascot.mascot-bottom-right{border-radius:11px}
 .card-mascot.mascot-stock,.card-mascot.mascot-history,.card-mascot.mascot-user{border:0;background:transparent;filter:drop-shadow(0 2px 2px var(--theme-shadow))}
 @keyframes mascotStickerBob{0%,100%{translate:0 0;rotate:-2deg}50%{translate:0 -3px;rotate:3deg}}
@@ -860,8 +860,8 @@ html,body{scroll-behavior:smooth}
 .row .c-name.has-card-mascot{padding-right:27px}
 .dash-card.has-card-mascot>h3,.dash-chart.has-card-mascot>h3,.permission-user.has-card-mascot .permission-heading{padding-right:34px}
 .history-main.has-card-mascot{padding-right:25px}
-.top{backdrop-filter:blur(14px)}
-.nav{backdrop-filter:blur(18px)}
+.top{backdrop-filter:none}
+.nav{backdrop-filter:none;-webkit-backdrop-filter:none}
 @media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}}
 @media(prefers-reduced-motion:reduce){html,body{scroll-behavior:auto!important}#app::before,#app::after,.card-mascot{animation:none!important}.btn::after{display:none}.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition-duration:.01ms!important}}
 </style>
@@ -1050,6 +1050,19 @@ const textScaleTracked = new Set();
 function applyTextScale(root = document.querySelector('#app')) {
   if (!root) return;
   root.classList.add('font-scale-instant');
+  if (uiTextScale === 100) {
+    for (const element of textScaleTracked) {
+      if (element.isConnected) element.style.fontSize = textScaleBaseInline.get(element) || '';
+    }
+    textScaleTracked.clear();
+    document.querySelectorAll('[data-text-scale]').forEach(button => {
+      const selected = Number(button.dataset.textScale) === uiTextScale;
+      button.setAttribute('aria-pressed', String(selected));
+      button.classList.toggle('active', selected);
+    });
+    root.classList.remove('font-scale-instant');
+    return;
+  }
   for (const element of [...textScaleTracked]) {
     if (!element.isConnected) { textScaleTracked.delete(element); continue; }
     element.style.fontSize = textScaleBaseInline.get(element) || '';
@@ -1080,6 +1093,10 @@ function watchTextScale() {
     if (records.some(record => record.addedNodes.length)) applyTextScale(appRoot);
   });
   textScaleObserver.observe(appRoot, { childList: true, subtree: true });
+}
+function resumeTextScaleWatch() {
+  const appRoot = document.querySelector('#app');
+  if (appRoot && textScaleObserver) textScaleObserver.observe(appRoot, { childList: true, subtree: true });
 }
 
 const sess = {
@@ -1439,7 +1456,10 @@ function render(animatePage = false) {
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
-  if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; }
+  if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; main.style.willChange = ''; }
+  // The page redraw replaces many nodes at once; pause the observer so it doesn't
+  // trigger a second full typography pass while the transition is beginning.
+  if (textScaleObserver) textScaleObserver.disconnect();
   document.querySelectorAll('[data-t]').forEach(button => {
     const active = button.dataset.t === tab;
     button.classList.toggle('on', active);
@@ -1459,22 +1479,25 @@ function render(animatePage = false) {
     if (tab === 'users') refreshPresence();
     watchTextScale();
     applyTextScale();
+    resumeTextScaleWatch();
   };
   if (animatePage) window.scrollTo(0, 0);
   paintPage();
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
-    const offset = pageDirection === 'prev' ? -12 : 12;
+    const offset = pageDirection === 'prev' ? -7 : 7;
+    main.style.willChange = 'transform, opacity';
     pageAnimation = main.animate(
-      [{ transform: `translate3d(${offset}px,0,0)` }, { transform: 'translate3d(0,0,0)' }],
-      { duration: 440, easing: 'cubic-bezier(.22,.78,.22,1)', fill: 'both' }
+      [{ opacity: .72, transform: `translate3d(0,5px,0) translateX(${offset}px)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
+      { duration: 270, easing: 'cubic-bezier(.2,.72,.22,1)', fill: 'both' }
     );
     const activeAnimation = pageAnimation;
     activeAnimation.onfinish = () => {
       if (pageAnimation !== activeAnimation) return;
       activeAnimation.cancel();
       pageAnimation = null;
+      main.style.willChange = '';
     };
   }
 }
