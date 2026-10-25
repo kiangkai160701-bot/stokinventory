@@ -832,7 +832,7 @@ html,body{scroll-behavior:auto!important}
 .dash-card,.st,.row,.card,.history-item,.empty,.permission-user{background-image:var(--theme-card-gloss)!important}
 .btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition:transform .26s var(--theme-ease),color .26s var(--theme-ease),background-color .26s var(--theme-ease),border-color .26s var(--theme-ease),box-shadow .26s var(--theme-ease),filter .26s var(--theme-ease)}
 .btn{position:relative;isolation:isolate;overflow:hidden;box-shadow:0 5px 14px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.24)}
-.btn::after{content:"";position:absolute;inset:0;z-index:0;border-radius:inherit;background:linear-gradient(115deg,transparent 22%,rgba(255,255,255,.2) 48%,transparent 74%);mix-blend-mode:screen;opacity:.65;transform:translateX(-115%);transition:transform .55s var(--theme-ease);pointer-events:none}
+.btn::after{display:none}
 .btn:hover{transform:translateY(-2px);filter:saturate(1.05);box-shadow:0 9px 20px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.27)}
 .btn:hover::after{transform:translateX(115%)}
 .btn:active,.me-btn:active,.nav button:active,.dtabs button:active,.theme-opt:active,.icon-tool:active,.history-filter button:active,.quantity-stepper button:active{transform:scale(.96)}
@@ -862,7 +862,7 @@ html,body{scroll-behavior:auto!important}
 .history-main.has-card-mascot{padding-right:25px}
 .top{backdrop-filter:none}
 .nav{backdrop-filter:none;-webkit-backdrop-filter:none}
-@media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}}
+@media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}.top,.nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.btn::after{display:none!important}#app::before,#app::after{filter:none}.dash-card,.st,.row,.card,.history-item,.empty,.permission-user{background-image:none!important;transition:none!important}.btn,.nav button,.dtabs button{transition:transform .14s ease,background-color .14s ease,color .14s ease!important}.btn:hover,.theme-opt:hover{transform:none;filter:none}.card-mascot{filter:none}}
 @media(prefers-reduced-motion:reduce){html,body{scroll-behavior:auto!important}#app::before,#app::after,.card-mascot{animation:none!important}.btn::after{display:none}.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition-duration:.01ms!important}}
 </style>
 </head>
@@ -1486,11 +1486,11 @@ function render(animatePage = false) {
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
-    const offset = pageDirection === 'prev' ? -7 : 7;
-    main.style.willChange = 'transform, opacity';
+    const offset = pageDirection === 'prev' ? -6 : 6;
+    main.style.willChange = 'transform';
     pageAnimation = main.animate(
-      [{ opacity: .72, transform: `translate3d(0,5px,0) translateX(${offset}px)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
-      { duration: 270, easing: 'cubic-bezier(.2,.72,.22,1)', fill: 'both' }
+      [{ transform: `translate3d(${offset}px,0,0)` }, { transform: 'translate3d(0,0,0)' }],
+      { duration: 220, easing: 'cubic-bezier(.2,.68,.25,1)', fill: 'both' }
     );
     const activeAnimation = pageAnimation;
     activeAnimation.onfinish = () => {
