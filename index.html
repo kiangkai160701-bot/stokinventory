@@ -941,6 +941,39 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   #nav .nav-pill.ready{transition-duration:.01ms!important}
   .disclosure-panel,.disclosure-inner,.disclosure-chevron{transition-duration:.01ms!important}
 }
+/* Dashboard charts and independent date ranges for the two ranked lists */
+.dash-chart-heading,.dash-rank-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.dash-chart-heading h3,.dash-rank-heading h3{min-width:0;margin:0}
+.dash-chart-heading>small,.dash-rank-heading>small{flex:none;color:var(--mute);font-size:10px}
+.chart-series-legend{display:flex;gap:12px;margin:2px 0 0;color:var(--mute);font-size:10px}
+.chart-series-legend span{display:inline-flex;align-items:center;gap:5px}
+.dash-rank-filter{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:7px;margin:9px 0 10px;padding:9px;background:var(--theme-wash);border:1px solid var(--line);border-radius:12px}
+.dash-rank-date{display:grid;gap:4px;min-width:0;color:var(--mute);font-size:10px}
+.dash-rank-date input{width:100%;min-width:0;height:34px;min-height:34px;padding:4px 7px;border:1px solid var(--line);border-radius:9px;background:var(--theme-input);color:var(--ink);font:inherit;font-size:11px}
+.dash-rank-date input:focus{outline:2px solid var(--acc-glow);border-color:var(--acc)}
+.dash-rank-filter>button{height:34px;min-height:34px;padding:5px 9px;border:1px solid var(--line);border-radius:9px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:10px;white-space:nowrap}
+.dash-rank-filter>button:hover{border-color:var(--theme-border-strong);background:var(--theme-soft)}
+@media(max-width:680px){
+  .dash-charts{grid-template-columns:minmax(0,1fr);gap:9px;margin:10px 0}
+  .dash-chart{padding:13px;border-radius:15px}
+  .dash-chart h3{font-size:13px}
+  .chart-pie-wrap{justify-content:flex-start;gap:16px;min-height:104px;padding:4px 8px}
+  .chart-pie{width:88px;height:88px}
+  .chart-pie::before{inset:14px}
+  .chart-pie b{font-size:17px}
+  .chart-legend{gap:7px;font-size:11px}
+  .chart-dot{width:8px;height:8px;flex:none}
+  .chart-bars{height:112px;gap:4px;padding:7px 2px 0}
+  .chart-sticks{height:78px;gap:3px}
+  .chart-stick{width:min(10px,2.4vw);max-height:74px}
+  .chart-day small{font-size:9px;white-space:nowrap}
+  .chart-series-legend{font-size:11px;margin-top:5px}
+  .dash-rank-card{padding:12px!important}
+  .dash-rank-heading h3{font-size:13px}
+  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;padding:8px;margin:8px 0}
+  .dash-rank-date input{height:36px;min-height:36px;font-size:12px}
+  .dash-rank-filter>button{grid-column:1/-1;justify-self:start;height:32px;min-height:32px;padding:4px 10px}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -1603,6 +1636,23 @@ function updatePageMascots() {
   });
 }
 
+function updateStockRowMascots() {
+  const list = $('#list');
+  if (!list) return;
+  list.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
+  list.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
+  if (THEMES[currentTheme]?.formal) return;
+  const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
+  list.querySelectorAll('.row .c-name').forEach((card, index) => {
+    const mascot = document.createElement('span');
+    mascot.className = 'card-mascot mascot-stock';
+    mascot.setAttribute('aria-hidden', 'true');
+    mascot.textContent = friends[index % friends.length];
+    card.classList.add('has-card-mascot');
+    card.append(mascot);
+  });
+}
+
 let pageAnimation = null;
 let deferredRender = null;
 function flushDeferredRender() {
@@ -1729,7 +1779,7 @@ function rows() {
 }
 
 function bindStock() {
-  const refreshList = () => { $('#list').innerHTML = rows(); };
+  const refreshList = () => { $('#list').innerHTML = rows(); updateStockRowMascots(); };
   $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
   $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
   $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
@@ -2045,20 +2095,34 @@ function dashboardView() {
   const dateFrom = params.get('dashFrom') || dayKey(fromDefault), dateTo = params.get('dashTo') || dayKey(today);
   const fromDate = new Date(`${dateFrom}T00:00:00`), endDate = new Date(`${dateTo}T00:00:00`); endDate.setDate(endDate.getDate()+1);
   const inRange = L.filter(x => { const d = new Date(x.ts); return d >= fromDate && d < endDate; });
+  const getRankRange = prefix => {
+    const key = prefix === 'out' ? 'dashOut' : 'dashIn';
+    const from = params.has(`${key}From`) ? params.get(`${key}From`) : dateFrom;
+    const to = params.has(`${key}To`) ? params.get(`${key}To`) : dateTo;
+    const start = from ? new Date(`${from}T00:00:00`) : null;
+    const end = to ? new Date(`${to}T00:00:00`) : null;
+    if (end) end.setDate(end.getDate()+1);
+    const logs = L.filter(row => {
+      const time = new Date(row.ts);
+      return (!start || time >= start) && (!end || time < end);
+    });
+    return { from, to, logs, key };
+  };
+  const outRankRange = getRankRange('out'), inRankRange = getRankRange('in');
   const inLogs = inRange.filter(x => x.type === 'in'), outLogs = inRange.filter(x => x.type === 'out'), adjustLogs = inRange.filter(x => x.type === 'adjust');
   const activeNames = [...new Set(inRange.map(x => x.user).filter(Boolean))];
   const quantityText = rows => { const units=new Map(); rows.forEach(x=>{const unit=x.unit||'หน่วย';units.set(unit,(units.get(unit)||0)+Math.abs(Number(x.amt)||0));}); return [...units].map(([unit,qty])=>`${num(qty)} ${esc(unit)}`).join(' · ')||'0'; };
   const activityDays = new Set(inRange.map(x => dayKey(new Date(x.ts)))).size;
   const categoryRows = [...new Set(P.map(p => p.cat || 'ไม่ระบุหมวดหมู่'))].map(name => ({name,count:P.filter(p => (p.cat || 'ไม่ระบุหมวดหมู่') === name).length})).sort((a,b)=>b.count-a.count).slice(0,5);
-  const rankItems = type => {
+  const rankItems = (type, source = inRange) => {
     const grouped = new Map();
-    for (const x of inRange.filter(row => row.type === type)) {
+    for (const x of source.filter(row => row.type === type)) {
       const key = `${x.pid || x.pname}|${x.unit || ''}`, current = grouped.get(key) || {name:x.pname || 'วัตถุดิบ',unit:x.unit || '',qty:0,count:0};
       current.qty += Math.abs(Number(x.amt)||0); current.count++; grouped.set(key,current);
     }
     return [...grouped.values()].sort((a,b)=>b.qty-a.qty).slice(0,4);
   };
-  const topOut = rankItems('out'), topIn = rankItems('in');
+  const topOut = rankItems('out', outRankRange.logs), topIn = rankItems('in', inRankRange.logs);
   const needsAttention = P.filter(p => status(p) !== 'ok').sort((a,b) => (status(a)==='out'?-1:0)-(status(b)==='out'?-1:0) || a.qty-b.qty).slice(0,5);
   const spanDays = Math.max(1,Math.ceil((endDate-fromDate)/86400000));
   const bucketMode = spanDays <= 14 ? 'day' : spanDays <= 90 ? 'week' : 'month';
@@ -2084,6 +2148,10 @@ function dashboardView() {
   const pieStyle = totalItems ? `conic-gradient(var(--ok) 0deg ${pieA}deg,var(--warn) ${pieA}deg ${pieB}deg,var(--bad) ${pieB}deg 360deg)` : 'conic-gradient(var(--line) 0deg 360deg)';
 
   const movementRows = (rows,empty) => rows.length ? rows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`).join('') : `<small class="dash-empty-note">${empty}</small>`;
+  const rankFilter = (type, range) => {
+    const title = type === 'out' ? 'เบิกจ่าย' : 'รับเข้า', prefix = type === 'out' ? 'Out' : 'In';
+    return `<div class="dash-rank-filter" aria-label="กรองรายการ${title}ตามช่วงวันที่"><label class="dash-rank-date"><span>ตั้งแต่</span><input id="dashboard${prefix}From" type="date" value="${range.from || ''}" aria-label="วันที่เริ่มต้นรายการ${title}"></label><label class="dash-rank-date"><span>ถึง</span><input id="dashboard${prefix}To" type="date" value="${range.to || ''}" aria-label="วันที่สิ้นสุดรายการ${title}"></label><button type="button" data-clear-dashboard-rank="${type}">ล้างตัวกรอง</button></div>`;
+  };
   return `<div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
   <div class="history-filter range-filter dashboard-range"><label>📅 ช่วงข้อมูล</label><label class="range-field"><span>ตั้งแต่</span><input id="dashboardFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นแดชบอร์ด"></label><label class="range-field"><span>ถึง</span><input id="dashboardTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดแดชบอร์ด"></label><button type="button" id="dashboardSevenDays">7 วันล่าสุด</button><small>${inRange.length} รายการเคลื่อนไหว · ${activityDays} วันที่มีรายการ</small></div>
   <div class="stats">
@@ -2100,12 +2168,12 @@ function dashboardView() {
   </div>
   <div class="dash-charts">
     <section class="dash-chart"><h3>🍣 สถานะวัตถุดิบ</h3><div class="chart-pie-wrap"><div class="chart-pie" style="background:${pieStyle}"><b>${totalItems}</b></div><div class="chart-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>ปกติ ${readyCount}</span><span><i class="chart-dot" style="--dot:var(--warn)"></i>ใกล้หมด ${lowCount}</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>หมด ${outCountItems}</span></div></div></section>
-    <section class="dash-chart"><h3>📊 รับเข้า · เบิกจ่าย ${bucketMode==='day'?'รายวัน':bucketMode==='week'?'รายสัปดาห์':'รายเดือน'}</h3><div class="chart-bars">${chartDays.map(d => `<div class="chart-day"><div class="chart-sticks"><i class="chart-stick" title="รับเข้า ${d.in} ครั้ง" style="height:${Math.max(d.in ? 8 : 3, d.in / maxMoves * 62)}px"></i><i class="chart-stick out" title="เบิกจ่าย ${d.out} ครั้ง" style="height:${Math.max(d.out ? 8 : 3, d.out / maxMoves * 62)}px"></i></div><small>${d.label}</small></div>`).join('') || '<small class="dash-empty-note">ยังไม่มีข้อมูลในช่วงนี้</small>'}</div></section>
+    <section class="dash-chart"><div class="dash-chart-heading"><h3>📊 รับเข้า · เบิกจ่าย</h3><small>${bucketMode==='day'?'รายวัน':bucketMode==='week'?'รายสัปดาห์':'รายเดือน'}</small></div><div class="chart-series-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>รับเข้า</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>เบิกจ่าย</span></div><div class="chart-bars">${chartDays.map(d => `<div class="chart-day"><div class="chart-sticks"><i class="chart-stick" title="รับเข้า ${d.in} ครั้ง" style="height:${Math.max(d.in ? 8 : 3, d.in / maxMoves * 62)}px"></i><i class="chart-stick out" title="เบิกจ่าย ${d.out} ครั้ง" style="height:${Math.max(d.out ? 8 : 3, d.out / maxMoves * 62)}px"></i></div><small>${d.label}</small></div>`).join('') || '<small class="dash-empty-note">ยังไม่มีข้อมูลในช่วงนี้</small>'}</div></section>
   </div>
   <div class="dash-grid">
     <div class="dash-card"><h3>⚠️ วัตถุดิบที่ควรจัดการ</h3><div class="dash-rank-list">${needsAttention.map(p=>`<div class="dash-rank-row"><b>${esc(p.name)}</b><span class="dash-status ${status(p)}">${num(p.qty)} ${esc(p.unit)} · ${STX[status(p)]}</span></div>`).join('')||'<small class="dash-empty-note">วัตถุดิบทุกชนิดอยู่ในระดับปกติ</small>'}</div></div>
-    <div class="dash-card"><h3>📦 รายการที่เบิกจ่ายมาก</h3><div class="dash-rank-list">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
-    <div class="dash-card"><h3>🚚 รายการรับเข้ามาก</h3><div class="dash-rank-list">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
     <div class="dash-card"><h3>🍱 ภาพรวมหมวดหมู่</h3><div class="dash-rank-list">${categoryRows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${row.count} รายการ</span></div>`).join('')||'<small class="dash-empty-note">ยังไม่มีหมวดหมู่</small>'}</div></div>
     <div class="dash-card"><h3>🍣 รายการเคลื่อนไหวล่าสุดในช่วงนี้</h3><div class="recent-movements">${inRange.slice(0,6).map(x=>`<div class="recent-movement"><div class="recent-movement-name"><b>${esc(x.pname||'วัตถุดิบ')}</b> <small>(${x.type==='in'?'รับเข้า':x.type==='out'?'เบิกจ่าย':x.type==='adjust'?'ปรับยอด':x.type==='delete'?'ลบรายการ':x.type==='create'?'เพิ่มวัตถุดิบ':'แก้ไขข้อมูล'}) · ${new Date(x.ts).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small></div><div class="amt ${x.type==='in'?'in':'out'}">${x.type==='in'?'+':x.type==='out'?'−':''}${num(Math.abs(x.amt||0))}</div></div>`).join('')||'<small class="dash-empty-note">ไม่มีรายการในช่วงวันที่เลือก</small>'}</div></div>
   </div>`;
@@ -2695,6 +2763,7 @@ function logView() {
 
 document.addEventListener('change', e => {
   const historyIds = ['historyFrom','historyTo'], dashboardIds = ['dashboardFrom','dashboardTo'];
+  const rankDashboardIds = ['dashboardOutFrom','dashboardOutTo','dashboardInFrom','dashboardInTo'];
   if (['historyTypeFilter','historyUserFilter'].includes(e.target.id)) {
     const url = new URL(location.href), type = $('#historyTypeFilter').value, user = $('#historyUserFilter').value;
     if (type) url.searchParams.set('historyType', type); else url.searchParams.delete('historyType');
@@ -2716,9 +2785,27 @@ document.addEventListener('change', e => {
     if (from) url.searchParams.set('dashFrom', from); else url.searchParams.delete('dashFrom');
     if (to) url.searchParams.set('dashTo', to); else url.searchParams.delete('dashTo');
     history.pushState({}, '', url); render();
+    return;
+  }
+  if (rankDashboardIds.includes(e.target.id)) {
+    const type = e.target.id.startsWith('dashboardOut') ? 'out' : 'in';
+    const prefix = type === 'out' ? 'Out' : 'In';
+    const from = $(`#dashboard${prefix}From`).value, to = $(`#dashboard${prefix}To`).value;
+    if (from && to && from > to) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = e.target.id.endsWith('From') ? to : from; return; }
+    const url = new URL(location.href), key = type === 'out' ? 'dashOut' : 'dashIn';
+    url.searchParams.set(`${key}From`, from);
+    url.searchParams.set(`${key}To`, to);
+    history.pushState({}, '', url); render();
   }
 });
 document.addEventListener('click', e => {
+  const clearRank = e.target.closest('[data-clear-dashboard-rank]');
+  if (clearRank && tab === 'dashboard') {
+    const key = clearRank.dataset.clearDashboardRank === 'out' ? 'dashOut' : 'dashIn';
+    const url = new URL(location.href);
+    url.searchParams.delete(`${key}From`); url.searchParams.delete(`${key}To`);
+    history.pushState({}, '', url); render(); return;
+  }
   const dashboardStockCard = e.target.closest('[data-dashboard-stock-filter]');
   if (dashboardStockCard && tab === 'dashboard') {
     F.q = ''; F.cat = '';
