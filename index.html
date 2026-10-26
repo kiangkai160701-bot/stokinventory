@@ -864,6 +864,34 @@ html,body{scroll-behavior:auto!important}
 .nav{backdrop-filter:none;-webkit-backdrop-filter:none}
 @media(max-width:680px){.card-mascot{width:23px;height:23px;font-size:17px}.card-mascot.mascot-top-right{top:7px;right:7px}.card-mascot.mascot-bottom-right{right:7px;bottom:7px}.row .c-name.has-card-mascot{padding-right:25px}.dash-card.has-card-mascot>h3{padding-right:30px}.top,.nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}.btn::after{display:none!important}#app::before,#app::after{filter:none}.dash-card,.st,.row,.card,.history-item,.empty,.permission-user{background-image:none!important;transition:none!important}.btn,.nav button,.dtabs button{transition:transform .14s ease,background-color .14s ease,color .14s ease!important}.btn:hover,.theme-opt:hover{transform:none;filter:none}.card-mascot{filter:none}}
 @media(prefers-reduced-motion:reduce){html,body{scroll-behavior:auto!important}#app::before,#app::after,.card-mascot{animation:none!important}.btn::after{display:none}.btn,.me-btn,.nav button,.dtabs button,.theme-opt,.icon-tool,.filter-stat,.history-filter button,.quantity-stepper button{transition-duration:.01ms!important}}
+
+/* ---------- Dark cartoon themes ---------- */
+html.dark-theme{color-scheme:dark;--theme-card-gloss:linear-gradient(145deg,rgba(255,255,255,.05),transparent 68%)}
+html.dark-theme :is(.st,.row,.card,.dash-card,.empty,.permission-user,.branch-row,.sheet):not(.alert):not(.bad){background-color:var(--card-bg)!important;border-color:var(--line)}
+html.dark-theme :is(.sect h2,.dash-card h3,.sheet h3,.history-title b,.permission-heading,.operator-note b,.history-result strong,.history-result span,.row .c-name){color:var(--ink)!important}
+html.dark-theme :is(.history-time,.history-result span i,.seg span){color:var(--mute)!important}
+html.dark-theme .history-result strong.in,html.dark-theme .amt.in{color:var(--ok)!important}
+html.dark-theme .history-result strong.out,html.dark-theme .amt.out{color:var(--bad)!important}
+html.dark-theme :is(.history-badge.in,.p-ok){background:var(--ok-bg)!important;color:var(--ok)!important}
+html.dark-theme :is(.history-badge.out,.p-out){background:var(--bad-bg)!important;color:var(--bad)!important}
+html.dark-theme :is(.p-low,.owner-tag){background:var(--warn-bg)!important;color:var(--warn)!important}
+html.dark-theme .seg input:checked+span{background:var(--theme-chip);color:var(--ink)!important}
+html.dark-theme :is(.permission-option,.icon-tool,.operator-note){background:var(--theme-soft)!important;color:var(--ink)}
+html.dark-theme .sushi-friend i{background:var(--card-bg);color:var(--ink)}
+html.dark-theme .btn.sec{color:var(--ink)!important;box-shadow:0 3px 9px var(--theme-shadow)}
+html.dark-theme .btn.sec:hover{background:var(--theme-soft)!important}
+html.dark-theme .meter{box-shadow:inset 0 1px 2px rgba(0,0,0,.45)}
+html.dark-theme :is(.story-brand,.story-copy h2){color:var(--ink)}
+html.dark-theme :is(.story-copy p,.story-foot,.story-brand-sub,.art-caption){color:var(--mute)}
+html.dark-theme :is(.eyebrow,.lg .eyebrow){color:var(--acc)}
+html.dark-theme .story-mark{background:var(--theme-soft);border-color:var(--line);color:var(--acc)}
+html.dark-theme .toast{background:var(--theme-chip);color:var(--ink)}
+/* theme picker chips: keep every chip readable no matter which theme is active */
+.theme-opt[data-dark="1"]{background-image:linear-gradient(145deg,rgba(255,255,255,.1),transparent 62%)!important}
+.theme-opt[data-dark="1"] .theme-emoji{background:rgba(255,255,255,.14)}
+html:not(.dark-theme) .theme-opt[data-dark="1"]{color:#f3eefa!important}
+html.dark-theme .theme-opt:not([data-dark="1"]){color:#3a3342!important}
+html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-gradient(145deg,rgba(255,255,255,.92),rgba(255,255,255,.5))}
 </style>
 <style id="smooth-motion">
 /* ===== Smooth motion layer (mobile-first, GPU friendly: transform/opacity only) ===== */
@@ -1249,6 +1277,19 @@ Object.entries(THEME_CARD_FRIENDS).forEach(([id, friends]) => {
   theme.colors['--theme-mascot-a'] = `"${friends[1]}"`;
   theme.colors['--theme-mascot-b'] = `"${friends[2]}"`;
 });
+// ---- 30 new cartoon themes: 20 light + 10 dark (each has its own unique character) ----
+function createHueTheme([id,name,friends,h,s,dark]) {
+  const a=d=>(h+d+360)%360, f=(hh,sa,l,al)=>`hsl(${hh} ${sa}% ${l}%${al==null?'':' / '+al})`, yl=h>38&&h<70;
+  const C = dark ? {bg:f(h,26,10),card:f(h,22,15),ink:f(h,35,90),mute:f(h,16,67),line:f(h,20,26),acc:f(h,s,52),hov:f(h,s,44),soft:f(h,26,21),chip:f(h,26,26),input:f(h,24,12),wash:f(h,65,45,.2),wash2:f(a(40),60,50,.14),s1:f(h,40,22),s2:f(a(35),35,17),s3:f(a(-40),35,19),top:f(h,26,12,.96),nav:f(h,24,14,.97),shadow:'rgba(0,0,0,.45)',border:f(h,28,32),warn:'#e8c27a',bad:'#f28b9d',badBg:f(350,38,20),ok:'#7fd1a6',okBg:f(150,28,18)}
+    : {bg:f(h,100,97),card:'#fffefe',ink:f(h,28,28),mute:f(h,14,52),line:f(h,55,90),acc:f(h,s,yl?44:56),hov:f(h,s,yl?36:46),soft:f(h,90,94),chip:f(h,70,88),input:'#fffdfd',wash:f(h,100,80,.32),wash2:f(a(40),100,85,.28),s1:f(h,100,91),s2:f(a(35),100,94),s3:f(a(-40),100,93),top:'rgba(255,255,255,.96)',nav:'rgba(255,255,255,.97)',shadow:f(h,40,35,.12),border:f(h,50,82),warn:'#8c672e',bad:'#c0697a',badBg:'#fff0f2',ok:'#6b9a84',okBg:'#edf7f1'};
+  const colors = {'--bg-app':C.bg,'--card-bg':C.card,'--ink':C.ink,'--mute':C.mute,'--line':C.line,'--acc':C.acc,'--acc-hover':C.hov,'--acc-light':C.soft,'--acc-glow':`color-mix(in srgb, ${C.acc} 24%, transparent)`,'--theme-soft':C.soft,'--theme-chip':C.chip,'--theme-input':C.input,'--theme-wash':C.wash,'--theme-wash-2':C.wash2,'--theme-story-1':C.s1,'--theme-story-2':C.s2,'--theme-story-3':C.s3,'--theme-top-bg':C.top,'--theme-nav-bg':C.nav,'--theme-shadow':C.shadow,'--theme-border-strong':C.border,'--theme-warn-ink':C.warn,'--theme-mascot-a':`"${friends[1]}"`,'--theme-mascot-b':`"${friends[2]}"`,'--bad':C.bad,'--bad-bg':C.badBg,'--ok':C.ok,'--ok-bg':C.okBg};
+  if (dark) { colors['--warn']=C.warn; colors['--warn-bg']=f(40,30,17); }
+  return { id, name, mascot:friends[0], friends, dark:!!dark, colors };
+}
+const NEW_LIGHT_THEMES = [["koala","โคอาล่า",["🐨","🍀","🌳","🎋"],150,30],["fox","จิ้งจอก",["🦊","🍂","🍁","🍘"],22,78],["piglet","หมูน้อย",["🐷","🥓","🍖","🌷"],340,70],["tigercub","เสือน้อย",["🐯","🥕","🎾","🔔"],36,82],["lioncub","สิงโตน้อย",["🦁","👑","🌞","🌼"],48,80],["monkey","ลิงน้อย",["🐵","🍌","🥥","🌴"],28,42],["puppy","ลูกหมา",["🐶","🦴","🐾","🪀"],205,60],["chick","ลูกเจี๊ยบ",["🐣","🥚","🍳","🥞"],56,85],["hedgehog","เม่นน้อย",["🦔","🍄","🍎","🍐"],8,55],["sloth","สลอธ",["🦥","🥝","🌲","🫒"],95,35],["otter","นากน้อย",["🦦","🦪","🪨","💧"],188,55],["lamb","ลูกแกะ",["🐑","🧶","🧵","🪡"],270,40],["llama","ลามะ",["🦙","🌵","🏔️","🪅"],168,55],["elephant","ช้างน้อย",["🐘","🎈","🎪","🍿"],222,38],["ladybug","เต่าทอง",["🐞","🌺","🍒","🍅"],355,72],["mouse","หนูน้อย",["🐭","🧀","🍪","🥨"],300,30],["deer","กวางน้อย",["🦌","🎄","⛄","🌟"],135,40],["pony","ม้าโพนี่",["🐴","🎠","🏇","🎡"],315,60],["kangaroo","จิงโจ้",["🦘","🥊","🪃","🏉"],75,45],["hippo","ฮิปโป",["🦛","🛁","🧼","🪣"],255,45]];
+const NEW_DARK_THEMES = [["wolfnight","หมาป่ายามค่ำ",["🐺","🌕","🔮","✨"],225,60],["skunkdark","สกั๊งค์มืด",["🦨","🎩","🖤","🌫️"],320,55],["badgerdusk","แบดเจอร์ราตรี",["🦡","🕯️","📖","📜"],28,55],["trexnight","ไดโนราตรี",["🦖","🌋","🔥","💥"],140,45],["alien","เอเลี่ยนอวกาศ",["👽","🔭","☄️","🧪"],165,65],["pumpkin","ฟักทองฮาโลวีน",["🎃","🕷️","🍭","🥮"],25,85],["ninja","นินจาเงา",["🥷","🎴","🏯","🌀"],350,65],["genie","จินนี่ราตรี",["🧞","🪔","💎","🏺"],270,55],["beaver","บีเวอร์ไนท์",["🦫","🪵","🌉","💦"],195,50],["dragongold","มังกรทอง",["🐉","🏮","🀄","💫"],45,70]];
+NEW_LIGHT_THEMES.forEach(s => { THEMES[s[0]] = createHueTheme(s); });
+NEW_DARK_THEMES.forEach(s => { THEMES[s[0]] = createHueTheme([...s, true]); });
 let currentTheme = store.get('inv_theme', 'sakura');
 function applyTheme(id) {
   const aliases = { teal:'sakura', indigo:'lavender', emerald:'peach', ruby:'ocean' };
@@ -1256,6 +1297,8 @@ function applyTheme(id) {
   const theme = THEMES[currentTheme];
   document.body.setAttribute('data-theme', currentTheme);
   document.documentElement.classList.toggle('formal-theme', !!theme.formal);
+  document.documentElement.classList.toggle('dark-theme', !!theme.dark);
+  ['--warn','--warn-bg'].forEach(k => document.documentElement.style.removeProperty(k));
   Object.entries(theme.colors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
   if (theme.friends.length) document.querySelectorAll('.sushi-friend').forEach((friend, index) => { const first = friend.childNodes[0]; if (first?.nodeType === Node.TEXT_NODE) first.nodeValue = theme.friends[index % theme.friends.length]; });
   document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.classList.contains('theme-emoji')) return; mark.textContent = theme.mascot; });
@@ -2074,7 +2117,7 @@ function settingsView() {
     <div class="dash-card theme-picker-card">
       <h3>🎨 เลือกธีม</h3>
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม</p>
-      <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
+      <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
     </div>
     <div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
