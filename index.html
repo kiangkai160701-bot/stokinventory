@@ -974,6 +974,30 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   .dash-rank-date input{height:36px;min-height:36px;font-size:12px}
   .dash-rank-filter>button{grid-column:1/-1;justify-self:start;height:32px;min-height:32px;padding:4px 10px}
 }
+/* Dashboard mobile polish: clear chart labels and reserved mascot space */
+.chart-pie{box-shadow:0 5px 14px var(--theme-shadow),inset 0 0 0 1px rgba(255,255,255,.5)}
+.chart-pie b,.chart-pie small{display:block;position:relative;z-index:1;text-align:center;line-height:1.15}
+.chart-pie small{margin-top:-2px;color:var(--mute);font-size:8px;font-weight:500}
+.chart-legend span{display:grid;grid-template-columns:9px minmax(0,1fr) auto;align-items:center;gap:6px;white-space:normal}
+.chart-legend span strong{color:var(--ink);font-size:11px;font-variant-numeric:tabular-nums}
+.chart-bars{position:relative;background-image:linear-gradient(to bottom,transparent 32%,var(--line) 33%,transparent 34%,transparent 65%,var(--line) 66%,transparent 67%)}
+.dash-activity-stats>div.has-card-mascot{padding:11px 12px 34px}
+.dash-activity-stats>div.has-card-mascot>:not(.card-mascot){min-width:0}
+.dash-activity-stats>div.has-card-mascot .card-mascot{right:9px;bottom:7px;width:22px;height:22px;font-size:16px}
+.dash-activity-stats>div.has-card-mascot span{display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:680px){
+  .chart-pie-wrap{gap:clamp(12px,5vw,22px);padding:5px 10px}
+  .chart-pie{width:92px;height:92px}
+  .chart-pie::before{inset:13px}
+  .chart-pie b{font-size:18px}
+  .chart-pie small{font-size:9px}
+  .chart-legend{flex:1;gap:8px;font-size:11px}
+  .chart-legend span strong{font-size:12px}
+  .dash-activity-stats>div.has-card-mascot{padding:9px 10px 32px!important}
+  .dash-activity-stats>div.has-card-mascot .card-mascot{right:8px;bottom:6px;width:21px;height:21px;font-size:15px}
+  .dash-activity-stats>div.has-card-mascot small,.dash-activity-stats>div.has-card-mascot span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .chart-bars{background-size:100% 100%}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -1615,7 +1639,7 @@ function updatePageMascots() {
     add('.row .c-name', 'mascot-stock');
   } else if (tab === 'dashboard') {
     add('.stats .st', 'mascot-bottom-right');
-    add('.dash-activity-stats > div', 'mascot-top-right');
+    add('.dash-activity-stats > div', 'mascot-bottom-right');
     add('.dash-chart,.dash-grid > .dash-card', 'mascot-top-right');
   } else if (tab === 'log') {
     add('.history-main', 'mascot-history', 3);
@@ -2131,7 +2155,7 @@ function dashboardView() {
     const step = bucketMode === 'day' ? 1 : 7;
     for (let d = new Date(fromDate); d < endDate; d.setDate(d.getDate()+step)) {
       const start = new Date(d), end = new Date(d); end.setDate(end.getDate()+step);
-      buckets.push({start,end,label:bucketMode==='day'?start.toLocaleDateString('th-TH',{day:'numeric',month:'short'}):start.toLocaleDateString('th-TH',{day:'numeric',month:'short'})});
+      buckets.push({start,end,label:bucketMode==='day'?start.toLocaleDateString('th-TH',{day:'numeric'}):start.toLocaleDateString('th-TH',{day:'numeric',month:'short'})});
     }
   } else {
     const months = Math.max(1,(endDate.getFullYear()-fromDate.getFullYear())*12+endDate.getMonth()-fromDate.getMonth()+1), step = Math.max(1,Math.ceil(months/12));
@@ -2167,8 +2191,8 @@ function dashboardView() {
     <div><small>พนักงานที่ทำรายการ</small><b>${activeNames.length}</b><span>${activeNames.length ? activeNames.map(esc).join(', ') : 'ยังไม่มีรายการ'}</span></div>
   </div>
   <div class="dash-charts">
-    <section class="dash-chart"><h3>🍣 สถานะวัตถุดิบ</h3><div class="chart-pie-wrap"><div class="chart-pie" style="background:${pieStyle}"><b>${totalItems}</b></div><div class="chart-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>ปกติ ${readyCount}</span><span><i class="chart-dot" style="--dot:var(--warn)"></i>ใกล้หมด ${lowCount}</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>หมด ${outCountItems}</span></div></div></section>
-    <section class="dash-chart"><div class="dash-chart-heading"><h3>📊 รับเข้า · เบิกจ่าย</h3><small>${bucketMode==='day'?'รายวัน':bucketMode==='week'?'รายสัปดาห์':'รายเดือน'}</small></div><div class="chart-series-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>รับเข้า</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>เบิกจ่าย</span></div><div class="chart-bars">${chartDays.map(d => `<div class="chart-day"><div class="chart-sticks"><i class="chart-stick" title="รับเข้า ${d.in} ครั้ง" style="height:${Math.max(d.in ? 8 : 3, d.in / maxMoves * 62)}px"></i><i class="chart-stick out" title="เบิกจ่าย ${d.out} ครั้ง" style="height:${Math.max(d.out ? 8 : 3, d.out / maxMoves * 62)}px"></i></div><small>${d.label}</small></div>`).join('') || '<small class="dash-empty-note">ยังไม่มีข้อมูลในช่วงนี้</small>'}</div></section>
+    <section class="dash-chart"><h3>🍣 สถานะวัตถุดิบ</h3><div class="chart-pie-wrap"><div class="chart-pie" role="img" aria-label="วัตถุดิบทั้งหมด ${totalItems} รายการ: ปกติ ${readyCount} ใกล้หมด ${lowCount} หมด ${outCountItems}" style="background:${pieStyle}"><b>${totalItems}</b><small>รายการ</small></div><div class="chart-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i><b>ปกติ</b><strong>${readyCount}</strong></span><span><i class="chart-dot" style="--dot:var(--warn)"></i><b>ใกล้หมด</b><strong>${lowCount}</strong></span><span><i class="chart-dot" style="--dot:var(--bad)"></i><b>หมดสต็อก</b><strong>${outCountItems}</strong></span></div></div></section>
+    <section class="dash-chart"><div class="dash-chart-heading"><h3>📊 รับเข้า · เบิกจ่าย</h3><small>${bucketMode==='day'?'รายวัน':bucketMode==='week'?'รายสัปดาห์':'รายเดือน'}</small></div><div class="chart-series-legend"><span><i class="chart-dot" style="--dot:var(--ok)"></i>รับเข้า</span><span><i class="chart-dot" style="--dot:var(--bad)"></i>เบิกจ่าย</span></div><div class="chart-bars">${chartDays.map(d => `<div class="chart-day" title="${d.start.toLocaleDateString('th-TH',{dateStyle:'medium'})}: รับเข้า ${d.in} ครั้ง, เบิกจ่าย ${d.out} ครั้ง"><div class="chart-sticks"><i class="chart-stick" title="รับเข้า ${d.in} ครั้ง" style="height:${Math.max(d.in ? 8 : 3, d.in / maxMoves * 62)}px"></i><i class="chart-stick out" title="เบิกจ่าย ${d.out} ครั้ง" style="height:${Math.max(d.out ? 8 : 3, d.out / maxMoves * 62)}px"></i></div><small>${d.label}</small></div>`).join('') || '<small class="dash-empty-note">ยังไม่มีข้อมูลในช่วงนี้</small>'}</div></section>
   </div>
   <div class="dash-grid">
     <div class="dash-card"><h3>⚠️ วัตถุดิบที่ควรจัดการ</h3><div class="dash-rank-list">${needsAttention.map(p=>`<div class="dash-rank-row"><b>${esc(p.name)}</b><span class="dash-status ${status(p)}">${num(p.qty)} ${esc(p.unit)} · ${STX[status(p)]}</span></div>`).join('')||'<small class="dash-empty-note">วัตถุดิบทุกชนิดอยู่ในระดับปกติ</small>'}</div></div>
