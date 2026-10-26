@@ -886,6 +886,14 @@ html.dark-theme :is(.story-copy p,.story-foot,.story-brand-sub,.art-caption){col
 html.dark-theme :is(.eyebrow,.lg .eyebrow){color:var(--acc)}
 html.dark-theme .story-mark{background:var(--theme-soft);border-color:var(--line);color:var(--acc)}
 html.dark-theme .toast{background:var(--theme-chip);color:var(--ink)}
+html.dark-theme :is(.fld span,.lg .fld span,.lg h1,.sect small,.settings-hint){color:var(--ink)!important}
+html.dark-theme :is(.fld small,.sect small,.settings-hint,.branch-help,.storage-metric small,.login-note){color:var(--mute)!important}
+html.dark-theme :is(.in,.lg .in,.flt select,.srch .in,textarea.in){background-color:var(--theme-input)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html.dark-theme .in::placeholder{color:var(--mute);opacity:.75}
+html.dark-theme .seg{background:var(--theme-soft)!important;border-color:var(--line)}
+html.dark-theme :is(.history-icon,.history-badge,.me,.me-btn,.pill){background:var(--theme-soft)!important;color:var(--ink);border-color:var(--line)}
+html.dark-theme :is(.storage-metric,.dash-rank-row,.recent-movement,.branch-confirm-note){background:var(--theme-wash)!important;color:var(--ink)}
+html.dark-theme .quantity-stepper button{background:var(--theme-soft)!important;color:var(--acc)}
 /* theme picker chips: keep every chip readable no matter which theme is active */
 .theme-opt[data-dark="1"]{background-image:linear-gradient(145deg,rgba(255,255,255,.1),transparent 62%)!important}
 .theme-opt[data-dark="1"] .theme-emoji{background:rgba(255,255,255,.14)}
@@ -2560,7 +2568,7 @@ function itemDetailModal(id) {
   if (!p) return;
   const canMove = can.edit();
   openModal(`<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
-  <div style="background:#fff7f8;padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);">
+  <div style="background:var(--theme-soft);padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);color:var(--ink);">
     <div>หมวดหมู่: <b>${esc(p.cat)}</b></div>
     <div>คงเหลือ: <b style="font-size:16px;color:var(--acc);">${num(p.qty)}</b> ${esc(p.unit)} (ขั้นต่ำ: ${p.min})</div>
     <div>สถานะ: <b>${STX[status(p)]}</b> | ซัพพลายเออร์: <b>${esc(p.loc || '-')}</b></div>
