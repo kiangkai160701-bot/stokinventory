@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ไข่หวานบ้านซูชิ | ระบบจัดการสต็อกวัตถุดิบ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0f172a;
+  --bg-app: #fff7f8;
+  --card-bg: #ffffff;
+  --card-border: #e2e8f0;
+  --ink: #0f172a;
+  --mute: #64748b;
+  --line: #e2e8f0;
+  --acc: #0d9488;
+  --acc-hover: #0f766e;
+  --acc-light: #f0fdfa;
+  --acc-glow: rgba(13, 148, 136, 0.15);
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --bad: #e11d48;
+  --bad-bg: #fff1f2;
+  --ok: #10b981;
+  --ok-bg: #ecfdf5;
+  --r: 16px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 8px 20px -4px rgba(0, 0, 0, 0.04);
+  --font: 'Prompt', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body[data-theme="indigo"] { --acc: #4f46e5; --acc-hover: #4338ca; --acc-light: #e0e7ff; --acc-glow: rgba(79, 70, 229, 0.15); }
+body[data-theme="emerald"] { --acc: #059669; --acc-hover: #047857; --acc-light: #ecfdf5; --acc-glow: rgba(5, 150, 105, 0.15); }
+body[data-theme="ruby"] { --acc: #be123c; --acc-hover: #9f1239; --acc-light: #fff1f2; --acc-glow: rgba(190, 18, 60, 0.15); }
+
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;font-family:var(--font);background:var(--bg-app);color:var(--ink);font-size:14.5px;line-height:1.45;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;user-select:none}
+:focus-visible{outline:2.5px solid var(--acc);outline-offset:2px}
+.hide{display:none!important}
+
+#login{min-height:100vh;padding:28px;background:#f5f2eb;background-image:radial-gradient(ellipse at 10% 5%,rgba(229,190,144,.2),transparent 35%),radial-gradient(ellipse at 90% 95%,rgba(46,103,92,.12),transparent 32%)}
+.login-wrap{width:min(100%,920px);min-height:590px;display:grid;grid-template-columns:1fr 1fr;border-radius:28px;overflow:hidden;background:#fff;box-shadow:0 28px 80px rgba(38,46,39,.16);border:1px solid rgba(255,255,255,.85)}
+.login-story{position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:34px;color:#fff;background:linear-gradient(155deg,#173b35 0%,#285b4e 55%,#a87953 150%)}
+.login-story:after{content:'';position:absolute;width:370px;height:370px;border:1px solid rgba(255,255,255,.12);border-radius:50%;right:-150px;top:130px;box-shadow:0 0 0 30px rgba(255,255,255,.025),0 0 0 70px rgba(255,255,255,.02)}
+.story-brand{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:700;letter-spacing:2px;z-index:1}.story-mark{width:42px;height:42px;border:1px solid rgba(255,255,255,.38);border-radius:14px;display:grid;place-items:center;font-family:serif;font-size:23px;color:#e7c89f}.story-brand-sub{display:block;font-size:9px;letter-spacing:3px;color:#d2ded6;font-weight:400}
+.story-copy{z-index:1;margin-top:30px}.eyebrow{display:block;color:#b5d1bf;font-size:10px;font-weight:600;letter-spacing:2px}.story-copy h2{font-size:32px;line-height:1.45;margin:12px 0;font-weight:600}.story-copy p{color:#d6e0d9;font-size:13px}
+.ingredient-art{position:relative;height:190px;z-index:1}.ingredient{position:absolute;display:grid;place-items:center;border-radius:50%;box-shadow:0 18px 36px rgba(0,0,0,.18);background:linear-gradient(145deg,#fff,#eee6d9)}.rice{width:116px;height:116px;left:15%;top:22px;font-size:60px}.fish{width:138px;height:138px;left:39%;top:0;font-size:68px;background:linear-gradient(145deg,#fff7ed,#f2d6bd)}.leaf{width:82px;height:82px;left:65%;top:78px;font-size:40px}.art-caption{position:absolute;left:8px;bottom:2px;font-size:9px;letter-spacing:2px;color:#d7e0d8}.story-foot{display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,.2);padding-top:16px;color:#d6e0d9;font-size:10px;letter-spacing:1px;z-index:1}
+
+#login .lg{width:100%;max-width:none;align-self:center;padding:48px 46px;border:0;border-radius:0;background:#fff;box-shadow:none;backdrop-filter:none}
+.lg-header{text-align:left;margin-bottom:26px}
+.lg-icon{width:48px;height:48px;border-radius:15px;margin:0 0 20px;background:linear-gradient(140deg,#356e5b,#1d493d);box-shadow:0 8px 18px rgba(36,91,72,.2)}
+.lg h1{font-size:23px;margin-top:7px}
+.lg p{font-size:13px}
+.lg .fld{margin-bottom:16px}
+.lg .fld span{color:#43554b}
+.lg .in{background:#fafaf8;border-color:#e5e8e2;border-radius:11px}
+.lg .in:focus{border-color:#487c65;box-shadow:0 0 0 4px rgba(72,124,101,.12)}
+.login-submit{width:100%;margin-top:2px;background:linear-gradient(135deg,#356e5b,#1d493d);box-shadow:0 7px 17px rgba(36,91,72,.18)}
+.login-submit span{font-size:18px}
+.hint{background:#fbf5e9;color:#826640;margin-top:12px;font-size:12px;padding:10px 14px;border-radius:12px}
+.login-note{text-align:center;font-size:10px!important;color:#9aa39c!important;margin-top:18px}
+
+@media(max-width:680px){
+  #login{padding:16px;align-items:flex-start}
+  .login-wrap{max-width:440px;min-height:0;grid-template-columns:1fr;border-radius:22px}
+  .login-story{min-height:210px;padding:22px 24px 18px}
+  .story-copy{margin-top:22px}
+  .story-copy h2{font-size:23px;margin:5px 0}
+  .story-copy p{font-size:11px}
+  .ingredient-art{display:none}
+  .story-foot{margin-top:22px;padding-top:10px;font-size:8px}
+  .story-brand{font-size:13px}
+  .story-mark{width:34px;height:34px}
+  .login-story:after{width:230px;height:230px;right:-95px;top:50px}
+  #login .lg{padding:27px 25px 24px}
+  .lg-header{margin-bottom:19px}
+  .lg-icon{display:none}
+  .lg h1{font-size:20px}
+  .lg .fld{margin-bottom:12px}
+  .login-note{margin-top:13px}
+}
+
+#login{background-color:#fff7f2;background-image:radial-gradient(ellipse at 8% 8%,rgba(255,190,205,.36),transparent 32%),radial-gradient(ellipse at 92% 88%,rgba(190,218,255,.38),transparent 34%),radial-gradient(ellipse at 84% 12%,rgba(255,229,162,.35),transparent 26%)}
+.login-wrap{background:#fffdfb;border-color:#fff;box-shadow:0 25px 65px rgba(181,130,145,.18)}
+.login-story{color:#67465a;background:linear-gradient(145deg,#ffe0e8 0%,#ffefdc 54%,#e5eaff 100%)}
+.login-story:after{content:'';position:absolute;inset:0;width:auto;height:auto;right:0;top:0;border:0;border-radius:0;box-shadow:none;pointer-events:none;background-image:radial-gradient(circle at 13% 77%,rgba(255,255,255,.55) 0 5px,transparent 6px),radial-gradient(circle at 88% 23%,rgba(255,255,255,.6) 0 7px,transparent 8px),radial-gradient(circle at 73% 80%,rgba(245,170,196,.2) 0 45px,transparent 46px),radial-gradient(circle at 19% 32%,rgba(255,255,255,.3) 0 60px,transparent 61px)}
+.story-brand,.story-copy,.ingredient-art,.story-foot{position:relative;z-index:1}
+.story-brand{color:#67465a}.story-mark{border:1px solid rgba(255,255,255,.9);background:rgba(255,255,255,.7);box-shadow:0 7px 16px rgba(184,121,146,.14);color:#dc7893}.story-brand-sub{color:#98778a}
+.eyebrow{color:#c26c88}.story-copy h2{color:#67465a}.story-copy p{color:#866c7b}.story-foot{border-color:rgba(146,105,127,.2);color:#866c7b}
+.ingredient{background:linear-gradient(145deg,#fff,#fff0f3);border:3px solid rgba(255,255,255,.85);box-shadow:0 12px 28px rgba(179,122,145,.2)}.rice{background:linear-gradient(145deg,#fff,#fff7df)}.fish{background:linear-gradient(145deg,#fff7fb,#ffd5df)}.leaf{background:linear-gradient(145deg,#fff,#e4f1ff)}.art-caption{color:#98778a}
+
+#app { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-app); }
+.top {
+  position: sticky; top: 0; z-index: 30; background: rgba(15, 23, 42, 0.94); backdrop-filter: blur(12px); color: #fff;
+  padding: 12px 18px; padding-top: calc(12px + env(safe-area-inset-top, 0px));
+  display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.brand { font-weight: 700; font-size: 17px; display: flex; align-items: center; gap: 10px; }
+.brand-badge { background: linear-gradient(135deg, var(--acc), var(--acc-hover)); width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-size: 13px; }
+.brand small { display: block; color: #94a3b8; font-weight: 400; font-size: 10.5px; }
+
+.dtabs { display: none; gap: 4px; }
+.dtabs button { color: #94a3b8; padding: 7px 14px; border-radius: 10px; font-weight: 500; font-size: 13.5px; transition: 0.2s; }
+.dtabs button.on { background: rgba(255,255,255,0.15); color: #fff; }
+
+.me { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 3px 5px 3px 12px; border: 1px solid rgba(255,255,255,0.1); }
+.me-info { font-size: 11.5px; line-height: 1.2; text-align: right; }
+.me-name-row{display:flex;align-items:center;justify-content:flex-end;gap:4px}.me-name-row b{display:block;color:#fff;font-weight:600}.username-edit{width:22px;height:22px;border-radius:8px;background:transparent;color:inherit;display:grid;place-items:center;font-size:14px;line-height:1}
+.me-info span { color: #94a3b8; font-size: 9.5px; }
+.me-btn { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.12); color: #fff; display: grid; place-items: center; transition: 0.2s; }
+
+main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 16px 14px calc(100px + env(safe-area-inset-bottom, 0px)); }
+
+.nav {
+  position: fixed; left: 14px; right: 14px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 22px; display: flex; padding: 5px 6px;
+  box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+}
+.nav button {
+  flex: 1; color: #94a3b8; font-size: 10px; font-weight: 500; padding: 6px 2px;
+  display: flex; flex-direction: column; align-items: center; gap: 3px; border-radius: 16px;
+  transition: color .24s ease,background-color .24s ease; position: relative;
+}
+.nav button.on { color: #fff; background: rgba(255, 255, 255, 0.12); }
+svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 14px; }
+.st {
+  background: var(--card-bg); border-radius: var(--r); padding: 14px; border: 1px solid var(--line);
+  box-shadow: var(--shadow-sm); position: relative; cursor: pointer; transition: transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+.st:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--acc); }
+.st small { color: var(--mute); font-size: 11.5px; font-weight: 500; display: block; }
+.st b { display: block; font-size: 20px; font-weight: 700; color: var(--ink); margin: 3px 0 1px; }
+.st.alert { background: #fffbf0; border-color: #fde68a; } .st.alert b { color: var(--warn); }
+.st.bad { background: #fff1f2; border-color: #fecdd3; } .st.bad b { color: var(--bad); }
+
+.tools { display: grid; gap: 10px; margin-bottom: 14px; }
+.srch { position: relative; }
+.srch svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--mute); }
+.srch .in { padding-left: 40px; background: var(--card-bg); border-radius: 12px; }
+.flt { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: none; }
+.flt::-webkit-scrollbar { display: none; }
+.flt select, .in {
+  width: 100%; padding: 11px 14px; border: 1.5px solid var(--line);
+  border-radius: 12px; background: var(--card-bg); font-size: 14px; color: var(--ink); font-weight: 500;
+}
+.in:focus { border-color: var(--acc); outline: 0; box-shadow: 0 0 0 4px var(--acc-glow); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 10px 16px; border-radius: 12px; font-weight: 600; font-size: 13.5px; min-height: 42px;
+  background: linear-gradient(135deg, var(--acc) 0%, var(--acc-hover) 100%); color: #fff;
+  box-shadow: 0 4px 12px var(--acc-glow); transition: transform .18s ease;
+}
+.btn:active { transform: scale(0.98); }
+.btn.sec { background: var(--card-bg); color: #334155; border: 1.5px solid var(--line); box-shadow: none; }
+.btn.bad { background: var(--bad); color: #fff; }
+
+.list { display: grid; gap: 8px; }
+.row {
+  background: var(--card-bg); border-radius: var(--r); padding: 12px 14px;
+  display: grid; grid-template-columns: 1fr auto; gap: 6px 10px;
+  border: 1px solid var(--line); box-shadow: var(--shadow-sm); position: relative;
+  transition: transform .2s ease,border-color .2s ease,box-shadow .2s ease; cursor: pointer;
+}
+.row:hover { border-color: var(--acc); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.row::before {
+  content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3.5px;
+  border-radius: 0 4px 4px 0; background: var(--ok);
+}
+.row.low::before { background: var(--warn); }
+.row.out::before { background: var(--bad); }
+
+.c-name b { display: block; font-weight: 600; font-size: 14.5px; color: var(--ink); }
+.c-name small { color: var(--mute); font-size: 11.5px; }
+.c-qty { text-align: right; }
+.c-qty b { font-size: 18px; font-weight: 700; color: var(--ink); }
+.c-loc { font-size: 12px; color: var(--mute); grid-column: 1 / -1; display: flex; align-items: center; gap: 4px; }
+
+.pill { display: inline-flex; align-items: center; padding: 1.5px 8px; border-radius: 999px; font-size: 10.5px; font-weight: 600; }
+.p-ok { background: var(--ok-bg); color: var(--ok); }
+.p-low { background: var(--warn-bg); color: var(--warn); }
+.p-out { background: var(--bad-bg); color: var(--bad); }
+
+.empty { background: var(--card-bg); border-radius: var(--r); padding: 32px 20px; text-align: center; color: var(--mute); border: 1px dashed var(--line); }
+.empty b { display: block; color: var(--ink); font-size: 15px; margin-bottom: 4px; }
+
+.fab {
+  position: fixed; right: 16px; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); z-index: 35;
+  border-radius: 999px; padding: 12px 20px; box-shadow: 0 8px 20px var(--acc-glow);
+}
+
+.sect { display: flex; justify-content: space-between; align-items: center; margin: 4px 0 12px; }
+.sect h2 { font-size: 17px; font-weight: 700; color: var(--ink); }
+
+/* Dashboard Modern UI Layout */
+.dash-grid { display: grid; gap: 12px; }
+.dash-card { background: var(--card-bg); border-radius: var(--r); padding: 16px; border: 1px solid var(--line); box-shadow: var(--shadow-sm); }
+.dash-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: var(--ink); display: flex; align-items: center; gap: 8px; }
+
+.dash-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+.dash-chart { min-width: 0; padding: 14px; border: 1px solid var(--line); border-radius: 16px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
+.dash-chart h3 { margin: 0 0 10px; font-size: 13px; color: var(--ink); font-weight: 600; }
+
+.chart-pie-wrap { display: flex; align-items: center; justify-content: space-around; gap: 8px; min-height: 100px; }
+.chart-pie { width: 84px; height: 84px; flex: none; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--ok) 0deg 120deg, var(--warn) 120deg 240deg, var(--bad) 240deg 360deg); position: relative; }
+.chart-pie::before { content: ""; position: absolute; inset: 14px; border-radius: 50%; background: var(--card-bg); }
+.chart-pie b { position: relative; z-index: 1; font-size: 14px; color: var(--ink); }
+.chart-legend { display: grid; gap: 4px; font-size: 11px; color: var(--mute); }
+.chart-legend span { display: flex; align-items: center; gap: 6px; }
+.chart-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--dot); }
+
+.chart-bars { height: 100px; display: flex; align-items: flex-end; justify-content: space-around; gap: 4px; padding-top: 5px; border-bottom: 1px solid var(--line); }
+.chart-day { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; }
+.chart-sticks { height: 72px; width: 100%; display: flex; align-items: flex-end; justify-content: center; gap: 3px; }
+.chart-stick { width: 6px; max-height: 68px; min-height: 4px; border-radius: 3px; background: var(--ok); }
+.chart-stick.out { background: var(--bad); }
+.chart-day small { font-size: 9px; color: var(--mute); white-space: nowrap; }
+
+/* Filter & Range styles for Dashboard */
+.history-filter { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card-bg); box-shadow: var(--shadow-sm); }
+.history-filter label { font-size: 12px; color: var(--mute); font-weight: 600; width: 100%; }
+.range-filter .range-field { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 120px; font-size: 11px; color: var(--mute); font-weight: 500; }
+.range-filter .range-field input { width: 100%; min-height: 38px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--card-bg); color: var(--ink); font-size: 13px; }
+.history-filter button { min-height: 38px; padding: 6px 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--theme-soft, #f1f5f9); color: var(--ink); font-weight: 600; font-size: 12px; cursor: pointer; }
+.dash-activity-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; }
+.dash-activity-stats > div { padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--card-bg); box-shadow: var(--shadow-sm); display: grid; gap: 2px; }
+.dash-activity-stats small { color: var(--mute); font-size: 11px; }
+.dash-activity-stats b { font-size: 18px; color: var(--ink); }
+
+.dash-rank-list { display: grid; gap: 6px; margin-top: 8px; }
+.dash-rank-row { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: rgba(0,0,0,0.01); font-size: 12px; }
+.dash-rank-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.dash-rank-row span { color: var(--ink); text-align: right; flex: none; font-weight: 600; }
+.dash-empty-note { color: var(--mute); font-size: 11px; text-align: center; display: block; padding: 8px; }
+
+.ov { position: fixed; inset: 0; z-index: 50; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-end; justify-content: center; }
+.sheet {
+  background: #fff; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto;
+  border-radius: 24px 24px 0 0; padding: 20px 18px calc(20px + env(safe-area-inset-bottom, 0px));
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.2);
+}
+.sheet h3 { font-size: 18px; font-weight: 700; margin-bottom: 14px; color: #0f172a; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 14px; background: #fff0f4; padding: 3px; border-radius: 12px; }
+.seg label { text-align: center; cursor: pointer; position: relative; }
+.seg input { position: absolute; opacity: 0; }
+.seg span { display: block; padding: 9px 4px; border-radius: 10px; font-weight: 600; font-size: 12.5px; color: var(--mute); }
+.seg input:checked + span { background: #fff; color: var(--ink); box-shadow: 0 2px 5px rgba(0,0,0,0.06); }
+.acts { display: flex; gap: 8px; margin-top: 14px; }
+.acts .btn { flex: 1; }
+
+.toast {
+  position: fixed; left: 50%; bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+  transform: translate(-50%, 20px); background: #0f172a; color: #fff; padding: 10px 20px;
+  border-radius: 99px; opacity: 0; pointer-events: none; transition: all .25s ease; z-index: 60;
+  font-size: 13px; font-weight: 500; box-shadow: 0 10px 20px rgba(0,0,0,0.2); max-width: 90%; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.toast.err { background: var(--bad); }
+
+@media(min-width: 860px) {
+  .nav, .fab-m { display: none; }
+  .dtabs { display: flex; }
+  main { padding: 22px 24px 40px; }
+  .stats { grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .dash-charts { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .dash-activity-stats { grid-template-columns: repeat(4, 1fr); }
+  .range-filter { display: grid; grid-template-columns: auto 1fr 1fr auto auto; align-items: flex-end; }
+  .range-filter label { width: auto; }
+}
+
+:root{--bg:#fff7f5;--bg-app:#fff7f5;--card-bg:#fffefd;--card-border:#f3e2e8;--ink:#634c5b;--mute:#927d8c;--line:#f0dfe5;--acc:#e78fa9;--acc-hover:#d87593;--acc-light:#fff0f4;--acc-glow:rgba(231,143,169,.2);--warn:#bd8549;--warn-bg:#fff5df;--bad:#c96f83;--bad-bg:#fff0f3;--ok:#78a993;--ok-bg:#edf7f1;--r:18px;--shadow-sm:0 3px 12px rgba(150,102,124,.06);--shadow-md:0 10px 24px rgba(150,102,124,.11)}
+html,body{background:var(--bg-app);color:var(--ink)}
+#app{background:radial-gradient(ellipse at 0% 0%,rgba(255,220,231,.38),transparent 35%),radial-gradient(ellipse at 100% 100%,rgba(226,233,255,.45),transparent 36%),var(--bg-app)}
+.top{background:rgba(255,249,250,.94);color:#634c5b;border-bottom:1px solid #f2dfe6}
+.nav{background:rgba(255,250,251,.96);border-color:#f0dce4;box-shadow:0 12px 30px rgba(143,96,117,.18)}
+.nav button{color:#a48796}.nav button.on{color:#785064;background:#ffe8ef}
+.st,.row,.card,.dash-card,.empty,.dash-chart{background:rgba(255,254,253,.96);border-color:#f1e1e6;box-shadow:var(--shadow-sm)}
+.row:hover{border-color:#e8a2b7;box-shadow:var(--shadow-md)}
+.flt select,.in{background:#fffdfc;border-color:#f0dfe5;color:#634c5b}
+.btn{background:linear-gradient(135deg,var(--acc),var(--acc-hover));color:#fff;box-shadow:0 5px 14px var(--acc-glow)}
+.btn.sec{background:#fffdfc;color:#765a69;border-color:#f0dfe5}
+</style>
+</head>
+<body data-theme="teal">
+
+<div id="bootScreen" role="status"><div class="boot-card" style="display:grid;justify-items:center;gap:12px;padding:40px;text-align:center"><span>🍣</span><strong>กำลังโหลดข้อมูล...</strong></div></div>
+
+<section id="login" class="hide">
+  <div class="login-wrap">
+    <div class="login-story" aria-hidden="true">
+      <div class="story-brand"><span class="story-mark">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ระบบจัดการวัตถุดิบ</span></span></div>
+      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span id="loginBranchTitle">สาขาหลัก</span></h2></div>
+      <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
+      <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
+    </div>
+    <form class="lg" id="lgForm">
+      <div class="lg-header">
+        <div class="lg-icon" style="font-size:27px;display:grid;place-items:center;color:#fff">🍣</div>
+        <h1>เข้าสู่ระบบ</h1>
+      </div>
+      <label class="fld"><span>สาขาที่ปฏิบัติงาน</span><select class="in" id="lgBranch" required><option value="main">สาขาหลัก</option></select></label>
+      <label class="fld"><span>ชื่อผู้ใช้</span><input class="in" id="lgUser" autocomplete="username" placeholder="ระบุชื่อผู้ใช้" required></label>
+      <label class="fld"><span>รหัสลับ 6 หลัก</span><input class="in" id="lgPinInput" type="password" inputmode="numeric" maxlength="6" placeholder="••••••" style="letter-spacing:5px;text-align:center;font-size:18px" required></label>
+      <div class="msg" id="lgMsg" style="color:var(--bad);min-height:20px;font-size:13px;margin-bottom:8px"></div>
+      <button type="submit" class="btn login-submit">เข้าสู่ระบบ <span>→</span></button>
+      <div class="hint hide" id="lgHint">เข้าใช้งานครั้งแรก กำหนดชื่อและรหัสผ่านได้ทันที</div>
+    </form>
+  </div>
+</section>
+
+<div id="app" class="hide">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-badge">🍣</div>
+      <div>
+        <span class="brand-title">ไข่หวานบ้านซูชิ</span>
+        <small id="branchName">สาขาหลัก</small>
+      </div>
+    </div>
+    <nav class="dtabs" id="dtabs"></nav>
+    <div class="me">
+      <div class="me-info">
+        <b id="meName">Admin</b>
+        <span id="meRole">ผู้ดูแลระบบ</span>
+      </div>
+      <button class="me-btn" id="btnOut" title="ออกจากระบบ"><svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
+    </div>
+  </header>
+  <main id="main"></main>
+  <nav class="nav" id="nav"></nav>
+</div>
+
+<div id="modal"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const num = n => Number(n).toLocaleString('th-TH');
+
+let currentUser = { name: 'admin', role: 'admin' };
+let tab = 'stock';
+let F = { q: '', cat: '', sort: 'name' };
+
+// Mock Data เริ่มต้นสำหรับทดสอบระบบ
+let P = [
+  { id: 'P-1001', name: 'ข้าวญี่ปุ่นซูชิ', cat: 'ข้าวและเส้น', unit: 'กิโลกรัม', qty: 45, min: 10, loc: 'makro' },
+  { id: 'P-1002', name: 'แซลมอนสดเกรดซูชิ', cat: 'ปลาและอาหารทะเล', unit: 'กิโลกรัม', qty: 4, min: 8, loc: 'ตลาดปลา' },
+  { id: 'P-1003', name: 'สาหร่ายแผ่นย่าง', cat: 'สาหร่ายและเครื่องปรุง', unit: 'แพ็ค', qty: 2, min: 5, loc: 'Makro' },
+  { id: 'P-1004', name: 'ไข่หวานญี่ปุ่น', cat: 'อื่นๆ', unit: 'ชิ้น', qty: 0, min: 10, loc: 'Supplier A' },
+  { id: 'P-1005', name: 'น้ำส้มสายชูหมักข้าว', cat: 'สาหร่ายและเครื่องปรุง', unit: 'ลิตร', qty: 12, min: 3, loc: 'Makro' }
+];
+
+let CATS = ['ปลาและอาหารทะเล', 'ข้าวและเส้น', 'สาหร่ายและเครื่องปรุง', 'ผักและผลไม้', 'บรรจุภัณฑ์', 'อื่นๆ'];
+let UNITS = ['กิโลกรัม', 'กรัม', 'ลิตร', 'ชิ้น', 'แพ็ค', 'กล่อง'];
+
+let L = [
+  { ts: Date.now() - 86400000 * 2, user: 'admin', type: 'in', pname: 'ข้าวญี่ปุ่นซูชิ', unit: 'กิโลกรัม', amt: 50, before: 10, after: 60, note: 'รับเข้าล็อตใหม่' },
+  { ts: Date.now() - 86400000, user: 'staff1', type: 'out', pname: 'แซลมอนสดเกรดซูชิ', unit: 'กิโลกรัม', amt: 6, before: 10, after: 4, note: 'ใช้ทำออเดอร์หน้าร้าน' },
+  { ts: Date.now() - 3600000 * 4, user: 'admin', type: 'out', pname: 'ข้าวญี่ปุ่นซูชิ', unit: 'กิโลกรัม', amt: 15, before: 60, after: 45, note: 'หุงเตรียมขายรอบบ่าย' }
+];
+
+const I = {
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5zM3 8l9 5 9-5M12 13v8"/>',
+  log: '<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
+  dashboard: '<rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1/>'
+};
+const ic = n => `<svg viewBox="0 0 24 24">${I[n] || ''}</svg>`;
+
+// เริ่มต้นระบบแสดงหน้า Login ชั่วคราว
+setTimeout(() => {
+  $('#bootScreen').classList.add('hide');
+  $('#login').classList.remove('hide');
+}, 500);
+
+$('#lgForm').onsubmit = e => {
+  e.preventDefault();
+  const user = $('#lgUser').value.trim();
+  if(!user) return;
+  currentUser.name = user;
+  $('#login').classList.add('hide');
+  $('#app').classList.remove('hide');
+  $('#meName').textContent = user;
+  build();
+};
+$('#btnOut').onclick = () => {
+  $('#app').classList.add('hide');
+  $('#login').classList.remove('hide');
+};
+
+const tabs = () => [
+  ['stock', 'สต็อก', 'box'],
+  ['dashboard', 'แดชบอร์ด', 'dashboard'],
+  ['log', 'ประวัติ', 'log']
+];
+
+function build() {
+  $('#nav').innerHTML = tabs().map(t => `<button type="button" data-t="${t[0]}" class="${tab===t[0]?'on':''}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
+  $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}" class="${tab===t[0]?'on':''}">${t[1]}</button>`).join('');
+  render();
+}
+
+document.addEventListener('click', e => {
+  const btn = e.target.closest('[data-t]');
+  if(btn) {
+    tab = btn.dataset.t;
+    build();
+  }
+});
+
+function toast(msg, err) {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (err ? ' err' : '');
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+// ----------------- 1. STOCK VIEW (แก้ปัญหาฟิลเตอร์การ์ดแล้วตัวการ์ตูนหาย/ไอคอนหาย) -----------------
+const status = p => p.qty <= 0 ? 'out' : p.qty <= p.min ? 'low' : 'ok';
+const STX = { ok: 'ปกติ', low: 'ใกล้หมด', out: 'หมดสต็อก' };
+
+function filtered() {
+  const q = F.q.toLowerCase();
+  const selectedStatus = F.sort === 'status-out' ? 'out' : F.sort === 'status-low' ? 'low' : F.sort === 'status-ok' ? 'ok' : '';
+  return P.filter(p => (!q || [p.name, p.cat, p.loc].some(x => String(x||'').toLowerCase().includes(q))) &&
+    (!F.cat || p.cat === F.cat) &&
+    (!selectedStatus || status(p) === selectedStatus) &&
+    (F.sort !== 'stock-in' || p.qty > 0));
+}
+
+function stockView() {
+  const inStock = P.filter(p => p.qty > 0).length;
+  const low = P.filter(p => status(p) === 'low').length;
+  const out = P.filter(p => status(p) === 'out').length;
+
+  return `
+  <!-- การ์ดสถิติด้านบนคงองค์ประกอบและอิโมจิ/ไอคอนตัวการ์ตูนให้ครบถ้วนเสมอเมื่อกดฟิลเตอร์ -->
+  <div class="stats">
+   <div class="st" data-stock-filter="all"><small>📦 วัตถุดิบทั้งหมด</small><b>${P.length}</b><small>รายการวัตถุดิบ</small></div>
+   <div class="st" data-stock-filter="stock-in"><small>✨ มีในคลัง</small><b>${inStock}</b><small>รายการพร้อมใช้</small></div>
+   <div class="st alert" data-stock-filter="status-low"><small>⚠️ ใกล้หมด</small><b>${low}</b><small>รายการ</small></div>
+   <div class="st bad" data-stock-filter="status-out"><small>🚨 หมดสต็อก</small><b>${out}</b><small>รายการ</small></div>
+  </div>
+
+  <div class="tools">
+   <div class="srch">${ic('search')}<input class="in" id="q" placeholder="ค้นหาชื่อหรือหมวดหมู่..." value="${esc(F.q)}"></div>
+   <div class="flt">
+    <select id="fc"><option value="">ทุกหมวดหมู่</option>${CATS.map(c => `<option ${F.cat===c?'selected':''}>${c}</option>`).join('')}</select>
+    <select id="fo">
+     <option value="name" ${F.sort==='name'?'selected':''}>ชื่อวัตถุดิบ ก–ฮ</option>
+     <option value="qty-asc" ${F.sort==='qty-asc'?'selected':''}>คงเหลือ น้อยไปมาก</option>
+     <option value="status-low" ${F.sort==='status-low'?'selected':''}>สถานะ: ใกล้หมด</option>
+     <option value="status-out" ${F.sort==='status-out'?'selected':''}>สถานะ: หมดสต็อก</option>
+    </select>
+   </div>
+   <button class="btn fab" id="add">${ic('plus')} เพิ่มวัตถุดิบ</button>
+  </div>
+  <div class="list" id="list">${rows()}</div>`;
+}
+
+function rows() {
+  const list = filtered();
+  if (!list.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>ลองเปลี่ยนคำค้นหาหรือตัวกรอง</div>`;
+  return list.map(p => {
+    const st = status(p);
+    return `<article class="row ${st}" data-id="${esc(p.id)}">
+    <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small></div>
+    <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><br><span class="pill p-${st}">${STX[st]}</span></div>
+    <div class="c-loc"><span>📍 ซัพพลายเออร์:</span> <span>${esc(p.loc || 'ไม่ระบุ')}</span></div>
+   </article>`;
+  }).join('');
+}
+
+function bindStock() {
+  const refreshList = () => { $('#list').innerHTML = rows(); };
+  $('#q').oninput = e => { F.q = e.target.value; refreshList(); };
+  $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
+  $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
+
+  document.querySelectorAll('[data-stock-filter]').forEach(card => {
+    card.onclick = () => {
+      const type = card.dataset.stockFilter;
+      F.q = ''; F.cat = '';
+      F.sort = type === 'all' ? 'name' : type;
+      $('#q').value = ''; $('#fc').value = ''; $('#fo').value = F.sort;
+      refreshList();
+    };
+  });
+
+  $('#add').onclick = () => prodModal();
+  $('#list').onclick = e => {
+    const row = e.target.closest('.row');
+    if(row) itemDetailModal(row.dataset.id);
+  };
+}
+
+
+// ----------------- 2 & 3. DASHBOARD VIEW (ปรับกราฟวงกลม/แท่งให้ทันสมัย + เพิ่ม Date Filter ช่วงวันที่) -----------------
+function dashboardView() {
+  const params = new URLSearchParams(location.search);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  
+  const fromDefault = new Date(today); fromDefault.setDate(fromDefault.getDate() - 7);
+  const dateFrom = params.get('dashFrom') || dayKey(fromDefault);
+  const dateTo = params.get('dashTo') || dayKey(today);
+
+  const fromDate = new Date(`${dateFrom}T00:00:00`), endDate = new Date(`${dateTo}T23:59:59`);
+  const inRange = L.filter(x => { const d = new Date(x.ts); return d >= fromDate && d <= endDate; });
+
+  const inLogs = inRange.filter(x => x.type === 'in');
+  const outLogs = inRange.filter(x => x.type === 'out');
+
+  // คำนวณอันดับรายการเบิกจ่ายมากและรับเข้ามาก
+  const rankItems = type => {
+    const map = new Map();
+    inRange.filter(x => x.type === type).forEach(x => {
+      const key = x.pname;
+      map.set(key, (map.get(key) || 0) + Math.abs(Number(x.amt)||0));
+    });
+    return [...map.entries()].sort((a,b) => b[1] - a[1]).slice(0, 4);
+  };
+  const topOut = rankItems('out'), topIn = rankItems('in');
+
+  const total = P.length || 1;
+  const okCount = P.filter(p => status(p) === 'ok').length;
+  const lowCount = P.filter(p => status(p) === 'low').length;
+  const outCount = P.filter(p => status(p) === 'out').length;
+
+  const p1 = (okCount / total) * 360, p2 = ((okCount + lowCount) / total) * 360;
+  const pieStyle = `conic-gradient(var(--ok) 0deg ${p1}deg, var(--warn) ${p1}deg ${p2}deg, var(--bad) ${p2}deg 360deg)`;
+
+  return `
+  <div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>วิเคราะห์สถิติสถานะคลังและการเบิกจ่าย</small></div>
+  
+  <!-- ฟิลเตอร์เลือกช่วงวันที่ พร้อมปุ่มล้างตัวกรอง -->
+  <div class="history-filter range-filter">
+    <label>📅 กรองข้อมูลช่วงวันที่</label>
+    <div class="range-field"><span>ตั้งแต่</span><input id="dashFrom" type="date" value="${dateFrom}"></div>
+    <div class="range-field"><span>ถึง</span><input id="dashTo" type="date" value="${dateTo}"></div>
+    <button type="button" id="clearDashFilter">ล้างตัวกรอง</button>
+  </div>
+
+  <div class="dash-activity-stats">
+    <div><small>📥 รับเข้าช่วงนี้</small><b>${inLogs.length} ครั้ง</b></div>
+    <div><small>📤 เบิกจ่ายช่วงนี้</small><b>${outLogs.length} ครั้ง</b></div>
+  </div>
+
+  <div class="dash-charts">
+    <section class="dash-chart">
+      <h3>🍣 สถานะวัตถุดิบปัจจุบัน</h3>
+      <div class="chart-pie-wrap">
+        <div class="chart-pie" style="background:${pieStyle}"><b>${P.length}</b></div>
+        <div class="chart-legend">
+          <span><i class="chart-dot" style="--dot:var(--ok)"></i> ปกติ (${okCount})</span>
+          <span><i class="chart-dot" style="--dot:var(--warn)"></i> ใกล้หมด (${lowCount})</span>
+          <span><i class="chart-dot" style="--dot:var(--bad)"></i> หมด (${outCount})</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="dash-chart">
+      <h3>📊 กราฟสรุปการเคลื่อนไหว</h3>
+      <div class="chart-bars">
+        <div class="chart-day"><div class="chart-sticks"><i class="chart-stick" style="height:${Math.min(60, inLogs.length * 12)}px"></i><i class="chart-stick out" style="height:${Math.min(60, outLogs.length * 12)}px"></i></div><small>ช่วงวันที่เลือก</small></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="dash-grid">
+    <div class="dash-card">
+      <h3>📤 รายการที่เบิกจ่ายมากที่สุด</h3>
+      <div class="dash-rank-list">
+        ${topOut.length ? topOut.map(([name, qty]) => `<div class="dash-rank-row"><b>${esc(name)}</b><span>${num(qty)} หน่วย</span></div>`).join('') : '<small class="dash-empty-note">ไม่มีข้อมูลการเบิกจ่ายในช่วงเวลานี้</small>'}
+      </div>
+    </div>
+
+    <div class="dash-card">
+      <h3>📥 รายการที่รับเข้ามากที่สุด</h3>
+      <div class="dash-rank-list">
+        ${topIn.length ? topIn.map(([name, qty]) => `<div class="dash-rank-row"><b>${esc(name)}</b><span>${num(qty)} หน่วย</span></div>`).join('') : '<small class="dash-empty-note">ไม่มีข้อมูลการรับเข้าในช่วงเวลานี้</small>'}
+      </div>
+    </div>
+  </div>`;
+}
+
+function bindDashboard() {
+  const updateDates = () => {
+    const f = $('#dashFrom').value, t = $('#dashTo').value;
+    const url = new URL(location.href);
+    if(f) url.searchParams.set('dashFrom', f); else url.searchParams.delete('dashFrom');
+    if(t) url.searchParams.set('dashTo', t); else url.searchParams.delete('dashTo');
+    history.pushState({}, '', url);
+    render();
+  };
+
+  if($('#dashFrom')) $('#dashFrom').onchange = updateDates;
+  if($('#dashTo')) $('#dashTo').onchange = updateDates;
+
+  const clearBtn = $('#clearDashFilter');
+  if(clearBtn) {
+    clearBtn.onclick = () => {
+      const url = new URL(location.href);
+      url.searchParams.delete('dashFrom');
+      url.searchParams.delete('dashTo');
+      history.pushState({}, '', url);
+      render();
+      toast('ล้างตัวกรองวันที่แล้ว');
+    };
+  }
+}
+
+
+// ----------------- LOG VIEW (ประวัติ) -----------------
+function logView() {
+  return `<div class="sect"><h2>ประวัติการเคลื่อนไหว</h2><small>รายการทำธุรกรรมทั้งหมดในระบบ</small></div>
+  <div class="list">${L.map(x => `<article class="row"><div class="c-name"><b>${esc(x.pname)}</b><small>${new Date(x.ts).toLocaleString('th-TH')}</small></div><div class="c-qty"><b class="${x.type==='in'?'p-ok':'p-out'}">${x.type==='in'?'+':'-'}${num(x.amt)} ${esc(x.unit)}</b><br><small>${esc(x.note||x.type)}</small></div></article>`).join('')}</div>`;
+}
+
+
+// ----------------- RENDER ENGINE -----------------
+function render() {
+  const m = $('#main');
+  if (tab === 'stock') {
+    m.innerHTML = stockView();
+    bindStock();
+  } else if (tab === 'dashboard') {
+    m.innerHTML = dashboardView();
+    bindDashboard();
+  } else if (tab === 'log') {
+    m.innerHTML = logView();
+  }
+}
+
+// ----------------- MODAL ACTIONS -----------------
+function openModal(html) {
+  $('#modal').innerHTML = `<div class="ov" id="ov"><div class="sheet">${html}</div></div>`;
+  $('#ov').onclick = e => { if(e.target.id === 'ov') closeModal(); };
+}
+function closeModal() { $('#modal').innerHTML = ''; }
+
+function itemDetailModal(id) {
+  const p = P.find(x => x.id === id);
+  if(!p) return;
+  openModal(`<h3>จัดการ: ${esc(p.name)}</h3>
+  <p style="margin-bottom:12px;color:var(--mute)">คงเหลือปัจจุบัน: <b>${num(p.qty)} ${esc(p.unit)}</b></p>
+  <form id="mf">
+   <div class="seg"><label><input type="radio" name="t" value="in"><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out" checked><span>เบิกจ่าย (-)</span></label></div>
+   <label class="fld"><span>จำนวน</span><input class="in" name="n" type="number" min="1" value="1" required></label>
+   <label class="fld"><span>หมายเหตุ</span><input class="in" name="note" placeholder="ระบุเหตุผล..."></label>
+   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">ยืนยัน</button></div>
+  </form>`);
+  
+  $('#mf').onsubmit = e => {
+    e.preventDefault();
+    const type = e.target.elements.t.value, amt = parseInt(e.target.elements.n.value, 10);
+    if(type === 'out' && amt > p.qty) return toast('วัตถุดิบไม่พอเบิก', true);
+    const before = p.qty;
+    p.qty = type === 'in' ? before + amt : before - amt;
+    L.unshift({ ts: Date.now(), user: currentUser.name, type, pname: p.name, unit: p.unit, amt, before, after: p.qty, note: e.target.elements.note.value });
+    closeModal(); render(); toast('บันทึกรายการสำเร็จ');
+  };
+}
+
+function prodModal() {
+  openModal(`<h3>เพิ่มวัตถุดิบใหม่</h3>
+  <form id="pf">
+   <label class="fld"><span>ชื่อวัตถุดิบ</span><input class="in" name="name" required></label>
+   <div class="g2">
+    <label class="fld"><span>หมวดหมู่</span><select class="in" name="cat">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+    <label class="fld"><span>หน่วยนับ</span><select class="in" name="unit">${UNITS.map(u=>`<option>${u}</option>`).join('')}</select></label>
+   </div>
+   <div class="g2">
+    <label class="fld"><span>จำนวนเริ่มต้น</span><input class="in" name="qty" type="number" min="0" value="0" required></label>
+    <label class="fld"><span>แจ้งเตือนขั้นต่ำ</span><label><input class="in" name="min" type="number" min="0" value="5" required></label>
+   </div>
+   <label class="fld"><span>ซัพพลายเออร์</span><input class="in" name="loc" placeholder="ชื่อร้านหรือแหล่งซื้อ"></label>
+   <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div>
+  </form>`);
+
+  $('#pf').onsubmit = e => {
+    e.preventDefault();
+    const f = e.target;
+    P.unshift({
+      id: 'P-' + Math.floor(1000 + Math.random() * 9000),
+      name: f.elements.name.value.trim(),
+      cat: f.elements.cat.value,
+      unit: f.elements.unit.value,
+      qty: parseInt(f.elements.qty.value, 10) || 0,
+      min: parseInt(f.elements.min.value, 10) || 0,
+      loc: f.elements.loc.value.trim()
+    });
+    closeModal(); render(); toast('เพิ่มวัตถุดิบสำเร็จ');
+  };
+}
+</script>
+</body>
+</html>
