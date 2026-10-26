@@ -1103,6 +1103,34 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
 .dc-pair .dc-b{box-sizing:border-box;flex:0 0 auto;width:11px;min-width:0;max-width:none;padding:0;margin:0;border:0;outline:0;font-size:0}
 .dc-pair .dc-b em{font-size:9px}
 @media(max-width:420px){.dc-pair .dc-b{width:9px}.dc-pair{gap:2px}}
+
+/* ===== Compact branch manager + reset UX (mobile-first) ===== */
+.dash-card.bm-card{padding:12px;border-radius:16px;overflow:hidden;min-width:0}
+.bm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px}
+.bm-card .bm-head h3{margin:0;min-width:0;font-size:15px}
+.bm-count{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:20px;padding:0 7px;border-radius:99px;background:var(--theme-soft);border:1px solid var(--theme-border-strong);font-size:11px;font-weight:700;color:var(--mute)}
+.bm-card .bm-add{flex:none;display:inline-flex;align-items:center;gap:5px;height:36px;min-height:36px;padding:0 13px;border-radius:11px;font-size:12.5px;white-space:nowrap}
+.bm-card .bm-add svg{width:15px;height:15px}
+.bm-info{margin:0 0 8px}
+.bm-info summary{display:flex;align-items:center;gap:5px;min-height:30px;font-size:11.5px;color:var(--mute);cursor:pointer;list-style:none;-webkit-tap-highlight-color:transparent}
+.bm-info summary::-webkit-details-marker{display:none}
+.bm-info summary::before{content:'ⓘ';font-size:13px}
+.bm-info[open] summary{color:var(--ink)}
+.bm-info .settings-hint{margin:2px 0 4px;font-size:11.5px;line-height:1.5;overflow-wrap:anywhere}
+.bm-list{display:grid;gap:6px}
+.bm-row{display:flex;align-items:center;gap:8px;min-height:50px;padding:5px 6px 5px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
+.bm-row.is-current{border-color:rgba(81,169,113,.45);background:linear-gradient(135deg,rgba(81,169,113,.1),var(--theme-wash))}
+.bm-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650;color:var(--ink)}
+.bm-actions{display:flex;flex:none;gap:6px}
+.bm-card .bm-btn{width:auto;min-width:54px;height:38px;min-height:38px;padding:0 14px;border-radius:11px;font-size:13px;font-weight:700;line-height:1;white-space:nowrap}
+.bm-card .bm-enter{background:linear-gradient(135deg,#51a971,#368b58)!important;border:1px solid #368b58!important;color:#fff!important;box-shadow:0 2px 7px rgba(54,139,88,.2)}
+.bm-card .bm-close{background:transparent!important;border:1px solid var(--line)!important;color:var(--bad)!important;box-shadow:none!important}
+.bm-badge{flex:none;padding:5px 10px;border-radius:99px;border:1px solid rgba(81,169,113,.35);background:rgba(81,169,113,.14);color:#2f7a4d;font-size:11px;font-weight:700}
+html.dark-theme .bm-badge{color:#8fd1a8}
+@media(max-width:360px){.bm-card .bm-btn{min-width:48px;padding:0 11px}.bm-row{padding-left:10px}}
+.reset-help{display:block;margin:-4px 0 12px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--theme-wash);color:var(--mute);font-size:11.5px;line-height:1.5}
+#resetScope{width:100%}
+#resetDataBtn{width:100%;min-height:46px;font-weight:700}
 </style>
 </head>
 <body data-theme="teal">
@@ -1252,6 +1280,14 @@ async function cloudRpc(name, args = {}) {
 }
 const cloneData = x => JSON.parse(JSON.stringify(x));
 let lastReset = null;
+const STOCK_RESET_NOTE = 'รีเซ็ตจำนวนคงเหลือ';
+const RESET_HELP = {
+  stock: 'ตั้งจำนวนคงเหลือของทุกรายการเป็น 0 เท่านั้น ชื่อรายการ หมวด หน่วย และประวัติทั้งหมดยังอยู่ครบ',
+  products: 'ลบรายการวัตถุดิบทั้งหมดพร้อมจำนวนคงเหลือ ประวัติยังอยู่',
+  history: 'ล้างประวัติการเคลื่อนไหวทั้งหมด รายการและจำนวนคงเหลือยังอยู่',
+  users: 'ลบบัญชีผู้ใช้ทั้งหมด ยกเว้นผู้ดูแลหลัก',
+  all: 'ล้างวัตถุดิบและประวัติทั้งหมด'
+};
 const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS, lastReset });
 function applyCloudState(state) {
   U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
@@ -2374,9 +2410,11 @@ function settingsView() {
   const themeList = Object.values(THEMES);
   const themePages = [];
   for (let i = 0; i < themeList.length; i += 20) themePages.push(themeList.slice(i, i + 20));
+  const stockResetLog = L.find(x => x.note === STOCK_RESET_NOTE);
+  const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Number(lastReset.ts || 0)) ? { scope: 'stock', user: stockResetLog.user, ts: stockResetLog.ts } : lastReset;
   return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
-    ${can.manageBranches() ? `<div class="dash-card branch-admin-card"><h3>🏬 จัดการสาขา</h3><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p><button type="button" class="btn sm" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button><div class="branch-list">${branches.map(b => `<div class="branch-row"><b>${esc(b.name)}${String(b.id)===String(currentBranch.id)?' · สาขาที่กำลังใช้งาน':''}</b><span class="branch-actions">${String(b.id)!==String(currentBranch.id)?`<button type="button" class="btn sm bad branch-close-btn" data-deactivate-branch="${esc(b.id)}">ปิดสาขา</button><button type="button" class="btn sm branch-enter-btn" data-switch-branch="${esc(b.id)}">เข้าสาขานี้</button>`:''}</span></div>`).join('')}</div></div>` : ''}
+    ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
     <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
     <div class="dash-card theme-picker-card">
@@ -2402,7 +2440,7 @@ function settingsView() {
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div></div></div>
-    ${can.reset() ? `<div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${lastReset ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[lastReset.scope] || lastReset.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(lastReset.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(lastReset.ts)) ? new Date(Number(lastReset.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
+    ${can.reset() ? `<div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
       <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="permissionDisclosurePanel"><span>🔐 สิทธิ์ผู้ใช้งาน</span><span class="disclosure-count">${U.filter(user => !fullAccessUser(user)).length} บัญชี</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="permissionDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
@@ -2443,10 +2481,12 @@ function bindSettings() {
     clearTimeout(window.__mascotTimer);
     window.__mascotTimer = setTimeout(updatePageMascots, 480);
   });
+  const resetScopeSelect = $('#resetScope');
+  if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
   const resetButton = $('#resetDataBtn');
   if (resetButton) resetButton.onclick = () => {
     const scope = $('#resetScope').value;
-    const labels = { products: 'รายการวัตถุดิบและยอดคงเหลือ', history: 'ประวัติการเคลื่อนไหว', users: 'บัญชีผู้ใช้ (ยกเว้นผู้ดูแลหลัก)', all: 'รายการวัตถุดิบและประวัติทั้งหมด' };
+    const labels = { stock: 'จำนวนคงเหลือของทุกรายการ (รายการยังอยู่ เหลือ 0)', products: 'รายการวัตถุดิบและยอดคงเหลือ', history: 'ประวัติการเคลื่อนไหว', users: 'บัญชีผู้ใช้ (ยกเว้นผู้ดูแลหลัก)', all: 'รายการวัตถุดิบและประวัติทั้งหมด' };
     const activeName = String(me?.name || '');
     openModal(`<h3>ยืนยันรีเซ็ตข้อมูล</h3><p style="margin-bottom:12px;color:var(--mute)">กำลังจะล้าง: <b>${labels[scope]}</b><br>การล้างข้อมูลนี้กู้คืนไม่ได้ เว้นแต่มีไฟล์สำรอง<br>กรอกชื่อผู้ใช้และรหัสผ่าน 6 หลักของบัญชีที่กำลังใช้งานเพื่อยืนยัน</p><form id="confirmResetForm"><label class="fld"><span>ชื่อผู้ใช้</span><input class="in" name="username" maxlength="30" autocomplete="username" autocapitalize="none" spellcheck="false" required></label><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" required></label><small class="storage-error" id="resetConfirmError" role="alert" aria-live="polite"></small><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="submit" class="btn bad" id="confirmReset">ยืนยันรีเซ็ต</button></div></form>`);
     const form = $('#confirmResetForm');
@@ -2467,6 +2507,23 @@ function bindSettings() {
         if (!verification.ok) throw new Error(verification.error || 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
         verificationToken = verification.token || '';
         if (!verificationToken || String(verification.me?.name || '').toLowerCase() !== activeName.toLowerCase()) throw new Error('ยืนยันตัวตนไม่สำเร็จ');
+        if (scope === 'stock') {
+          await syncQueue;
+          if (!cloudToken || !syncSnapshot) throw new Error('ยังไม่พร้อมบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง');
+          const affected = P.filter(product => Number(product.qty) > 0).length;
+          if (!affected) throw new Error('ไม่มีรายการที่มียอดคงเหลือให้รีเซ็ต');
+          const backup = { P: cloneData(P), L: cloneData(L) };
+          P = P.map(product => ({ ...product, qty: 0 }));
+          L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'adjust', pname: 'รีเซ็ตจำนวนคงเหลือทุกรายการ', unit: 'รายการ', amt: -affected, before: affected, after: 0, note: STOCK_RESET_NOTE });
+          try {
+            const synced = await cloudRpc('api_sync', { p_token: cloudToken, p_base: syncSnapshot, p_data: { users: U, products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS } });
+            if (!synced.ok) throw new Error(synced.error || 'รีเซ็ตไม่สำเร็จ');
+            applyCloudState(synced.state); syncSnapshot = cloneData(synced.state); syncVersion = synced.version || syncVersion + 1;
+            U.forEach(user => { delete user.pin; });
+            me = U.find(u => u.name === activeName) || me; closeModal(); build(); toast(`รีเซ็ตจำนวนคงเหลือแล้ว ${affected} รายการ`);
+          } catch (syncError) { P = backup.P; L = backup.L; throw syncError; }
+          return;
+        }
         const result = await cloudRpc('api_reset_data', { p_token: verificationToken, p_scope: scope });
         if (!result.ok) throw new Error(result.error || 'รีเซ็ตไม่สำเร็จ');
         applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version; me = U.find(u => u.name === activeName) || me; closeModal(); build(); toast('รีเซ็ตข้อมูลที่เลือกแล้ว');
