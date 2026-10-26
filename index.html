@@ -593,7 +593,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .c-qty .stock-dots{gap:5px;min-height:14px;margin:7px 0 6px;padding:2px 0}
 .c-qty .pill{font-size:11.5px;padding:2px 9px}
 .history-list{gap:9px}
-.history-item{grid-template-columns:44px minmax(0,1fr) auto;gap:13px;padding:13px 15px;background:linear-gradient(110deg,var(--card-bg),var(--theme-wash))!important;border-radius:15px;box-shadow:0 3px 10px rgba(100,70,85,.045)}
+.history-item{grid-template-columns:44px minmax(0,1fr) auto;gap:13px;padding:13px 15px;background-color:var(--card-bg)!important;content-visibility:auto;contain-intrinsic-size:auto 84px;border-radius:15px;box-shadow:0 3px 10px rgba(100,70,85,.045)}
 .history-item:has(.history-icon.in){border-left:3px solid var(--ok)!important}
 .history-item:has(.history-icon.out){border-left:3px solid var(--bad)!important}
 .history-item:has(.history-icon.adjust){border-left:3px solid var(--acc)!important}
@@ -1496,6 +1496,8 @@ const NEW_LIGHT_THEMES = [["koala","โคอาล่า",["🐨","🍀","🌳"
 const NEW_DARK_THEMES = [["wolfnight","หมาป่ายามค่ำ",["🐺","🌕","🔮","✨"],225,60],["skunkdark","สกั๊งค์มืด",["🦨","🎩","🖤","🌫️"],320,55],["badgerdusk","แบดเจอร์ราตรี",["🦡","🕯️","📖","📜"],28,55],["trexnight","ไดโนราตรี",["🦖","🌋","🔥","💥"],140,45],["alien","เอเลี่ยนอวกาศ",["👽","🔭","☄️","🧪"],165,65],["pumpkin","ฟักทองฮาโลวีน",["🎃","🕷️","🍭","🥮"],25,85],["ninja","นินจาเงา",["🥷","🎴","🏯","🌀"],350,65],["genie","จินนี่ราตรี",["🧞","🪔","💎","🏺"],270,55],["beaver","บีเวอร์ไนท์",["🦫","🪵","🌉","💦"],195,50],["dragongold","มังกรทอง",["🐉","🏮","🀄","💫"],45,70]];
 NEW_LIGHT_THEMES.forEach(s => { THEMES[s[0]] = createHueTheme(s); });
 NEW_DARK_THEMES.forEach(s => { THEMES[s[0]] = createHueTheme([...s, true]); });
+const NEW_DARK_THEMES2 = [["rhino","แรดราตรี",["🦏","🌾","🪨","🌑"],190,30],["camel","อูฐทะเลทราย",["🐫","🕌","🪬","🥙"],35,55],["gorilla","กอริลลาป่าลึก",["🦍","🥁","🪘","🏝️"],290,30],["vampire","แวมไพร์น้อย",["🧛","🩸","🏰","🦷"],345,60],["zombie","ซอมบี้ตลก",["🧟","🧠","⚰️","🪦"],62,35],["elf","เอลฟ์แสงจันทร์",["🧝","🏹","📿","🍃"],152,50],["snake","งูน้อยมรกต",["🐍","🪱","🦠","💚"],100,55],["eagle","อินทรีเวหา",["🦅","⛰️","🌬️","🎖️"],255,50],["rooster","ไก่แจ้ยามเช้ามืด",["🐓","🌽","🛖","🎶"],70,65],["whale","วาฬน้อย",["🐋","⚓","🧭","🏝️"],215,55],["poodle","พุดเดิ้ลหรู",["🐩","💅","🛍️","👒"],305,50],["scorpion","แมงป่องทราย",["🦂","🌶️","🧨","🏺"],5,75],["troll","ทรอลล์ป่าลึก",["🧌","🪓","🛖","🪨"],175,45]];
+NEW_DARK_THEMES2.forEach(s => { THEMES[s[0]] = createHueTheme([...s, true]); });
 let currentTheme = store.get('inv_theme', 'sakura');
 function applyTheme(id) {
   const aliases = { teal:'sakura', indigo:'lavender', emerald:'peach', ruby:'ocean' };
@@ -2975,15 +2977,15 @@ function logView() {
   const params = new URLSearchParams(location.search);
   let dateFrom = params.get('historyFrom') || '', dateTo = params.get('historyTo') || '';
   const requestedType = params.get('historyType') || '';
-  const typeFilter = ['in', 'out', 'adjust', 'create', 'edit', 'delete', 'import'].includes(requestedType) ? requestedType : '';
+  const typeFilter = ['in', 'out', 'adjust', 'create', 'note', 'edit', 'delete', 'import'].includes(requestedType) ? requestedType : '';
   const requestedUser = params.get('historyUser') || '';
   const userNames = [...new Set([...U.map(user => user.name), ...L.map(item => item.user).filter(Boolean)])].filter(Boolean).sort((a,b) => a.localeCompare(b, 'th'));
   const selectedUser = userNames.find(name => name.toLowerCase() === requestedUser.toLowerCase()) || '';
-  const typeLabels = { in: 'รับเข้า', out: 'เบิกจ่าย', adjust: 'ปรับยอด', create: 'เพิ่มวัตถุดิบ', edit: 'แก้ไขข้อมูล', delete: 'ลบวัตถุดิบ', import: 'นำเข้าวัตถุดิบ' };
+  const typeLabels = { in: 'รับเข้า', out: 'เบิกจ่าย', adjust: 'ปรับยอด', create: 'เพิ่มวัตถุดิบ', note: 'รายการที่มีหมายเหตุ', edit: 'แก้ไขข้อมูล', delete: 'ลบวัตถุดิบ', import: 'นำเข้าวัตถุดิบ' };
   const legacyDate = params.get('historyDate') || '';
   if (!dateFrom && !dateTo && legacyDate) dateFrom = dateTo = legacyDate;
   const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || x.type === typeFilter) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); }).slice(0, 300);
+  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || (typeFilter === 'note' ? !!String(x.note || '').trim() : x.type === typeFilter)) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); }).slice(0, 300);
   const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}${selectedUser ? ` · ผู้ทำรายการ ${selectedUser}` : ''}`;
   const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'], import: ['นำเข้าวัตถุดิบ', 'import'] };
   const historyIcons = {
