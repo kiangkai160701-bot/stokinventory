@@ -1039,6 +1039,7 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
 .dc-kpis small{font-size:10px;color:var(--mute)}
 .dc-kpis b{font-size:16px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dc-kpis .dc-k-in b{color:var(--ok)}.dc-kpis .dc-k-out b{color:var(--bad)}
+.dc-kpis .dc-k-peak b{font-size:13px;letter-spacing:-.25px}
 .dc-chart{display:grid;grid-template-columns:22px minmax(0,1fr);gap:6px;height:158px}
 .dc-axis{display:flex;flex-direction:column;justify-content:space-between;height:124px;text-align:right;font-size:9px;color:var(--mute);font-variant-numeric:tabular-nums;line-height:1;transform:translateY(-4px)}
 .dc-plot{position:relative;min-width:0}
@@ -1066,6 +1067,8 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   .dc-donut-center b{font-size:20px}
   .dc-row-main small{display:none}
   .dc-kpis b{font-size:14px}
+  .dc-kpis .dc-k-peak{padding-left:6px;padding-right:6px}
+  .dc-kpis .dc-k-peak b{font-size:11px;letter-spacing:-.3px}
   .dc-legend small{display:none}
 }
 @media(prefers-reduced-motion:reduce){.dc-b,.dc-bar i{transition:none}}
@@ -2349,6 +2352,7 @@ function dashboardView() {
   const niceMax = maxMoves<=4 ? 4 : Math.ceil(maxMoves/4)*4;
   const ticks = [niceMax, niceMax*3/4, niceMax/2, niceMax/4, 0];
   const modeText = bucketMode==='day'?'รายวัน':bucketMode==='week'?'รายสัปดาห์':'รายเดือน';
+  const peakPeriodLabel = peak ? `${bucketMode==='month'?'เดือน':'วันที่'} ${peak.label}` : '–';
   const netMove = totalIn-totalOut;
   const movementChartCard = `<section class="dash-chart dc-card">
     <div class="dc-head"><h3>📊 รับเข้า · เบิกจ่าย</h3><small>${modeText} · จำนวนครั้ง</small></div>
@@ -2356,7 +2360,7 @@ function dashboardView() {
       <div class="dc-k-in"><small>รับเข้า</small><b>${totalIn}</b></div>
       <div class="dc-k-out"><small>เบิกจ่าย</small><b>${totalOut}</b></div>
       <div class="net"><small>ผลต่าง</small><b>${netMove>0?'+':''}${netMove}</b></div>
-      <div><small>สูงสุด</small><b>${peak && (peak.in+peak.out)>0 ? esc(peak.label) : '–'}</b></div>
+      <div class="dc-k-peak"><small>ค่าสูงสุด</small><b>${peak && (peak.in+peak.out)>0 ? esc(peakPeriodLabel) : '–'}</b></div>
     </div>
     ${chartDays.length ? `<div class="dc-chart">
       <div class="dc-axis">${ticks.map(t=>`<span>${Number.isInteger(t)?t:''}</span>`).join('')}</div>
