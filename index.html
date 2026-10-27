@@ -970,9 +970,15 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   .chart-series-legend{font-size:11px;margin-top:5px}
   .dash-rank-card{padding:12px!important}
   .dash-rank-heading h3{font-size:13px}
-  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;padding:8px;margin:8px 0}
-  .dash-rank-date input{height:36px;min-height:36px;font-size:12px}
-  .dash-rank-filter>button{grid-column:1/-1;justify-self:start;height:32px;min-height:32px;padding:4px 10px}
+  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:8px;margin:8px 0}
+  .dash-rank-date input{height:38px;min-height:38px;font-size:13px;padding:6px 8px}
+  .dash-rank-filter>button{grid-column:1/-1;justify-self:stretch;height:34px;min-height:34px;padding:6px 10px;font-size:11px}
+}
+@media(max-width:420px){
+  .dash-rank-filter{grid-template-columns:1fr;gap:5px;padding:7px;margin:7px 0}
+  .dash-rank-date{gap:3px}
+  .dash-rank-date input{height:36px;min-height:36px;font-size:12px;padding:5px 7px}
+  .dash-rank-filter>button{grid-column:1;justify-self:start;width:auto;height:32px;min-height:32px;padding:4px 8px;font-size:10px}
 }
 /* Dashboard mobile polish: clear chart labels and reserved mascot space */
 .chart-pie{box-shadow:0 5px 14px var(--theme-shadow),inset 0 0 0 1px rgba(255,255,255,.5)}
@@ -1035,7 +1041,7 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
 .dc-foot.risk{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
 /* movement chart */
 .dc-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.dc-kpis>div{padding:7px 9px;border-radius:11px;background:color-mix(in srgb,var(--line) 45%,transparent);display:flex;flex-direction:column;gap:2px;min-width:0}
+.dc-kpis>div{padding:8px 9px;border-radius:11px;background:color-mix(in srgb,var(--line) 45%,transparent);display:flex;flex-direction:column;gap:2px;min-width:0;align-items:center;text-align:center;justify-content:center}
 .dc-kpis small{font-size:10px;color:var(--mute)}
 .dc-kpis b{font-size:16px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .dc-kpis .dc-k-in b{color:var(--ok)}.dc-kpis .dc-k-out b{color:var(--bad)}
@@ -1144,7 +1150,7 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
       <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
-      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ<br><span id="loginBranchTitle">สาขาพันท้ายนรสิงห์</span></h2></div>
+      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ</h2></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
       <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
     </div>
@@ -1170,7 +1176,7 @@ html.dark-theme .bm-badge{color:#8fd1a8}
       <div class="brand-badge">🍣</div>
       <div class="brand-copy">
         <div class="brand-title-row"><span class="brand-title">ไข่หวานบ้านซูชิ</span><span class="sync-status hide" id="syncStatus" role="status" aria-live="polite" aria-label="ข้อมูลอัปเดตจากเครื่องอื่นแล้ว"><i class="sync-status-dot" aria-hidden="true"></i><span>อัปเดต</span></span></div>
-        <small class="brand-branch" id="branchName">สาขาพันท้ายนรสิงห์</small>
+
         <small id="clock">กำลังโหลดเวลา...</small>
       </div>
     </div>
