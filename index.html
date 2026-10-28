@@ -817,6 +817,9 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-inner.has-card-mascot{padding-right:44px!important}
 .settings-grid>.disclosure-card{padding:0!important}
 .settings-grid>.disclosure-card>.disclosure-summary{min-height:54px}
+.settings-grid>.settings-bottom-row{display:contents}
+.settings-bottom-row>.disclosure-card{padding:0!important}
+.settings-bottom-row>.disclosure-card>.disclosure-summary{min-height:54px}
 @media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 /* ---------- Polished theme surfaces, tactile buttons and mascot stickers ---------- */
@@ -1140,6 +1143,201 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 .reset-help{display:block;margin:-4px 0 12px;padding:8px 10px;border-radius:10px;border:1px solid var(--line);background:var(--theme-wash);color:var(--mute);font-size:11.5px;line-height:1.5}
 #resetScope{width:100%}
 #resetDataBtn{width:100%;min-height:46px;font-weight:700}
+/* Desktop workspace: stock and dashboard side by side; mobile rules remain untouched. */
+.desktop-settings-shortcut{display:none}
+@media(min-width:1100px){
+  #app .top{position:sticky;top:12px;width:calc(100% - clamp(48px,6vw,112px));max-width:1680px;margin:12px auto 0;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;min-height:72px;padding:11px 28px;border:1px solid var(--theme-border-strong)!important;border-radius:24px;box-shadow:0 8px 24px var(--theme-shadow)}
+  #app .dtabs{display:none!important}
+  #app .me{margin-left:auto}
+  .desktop-settings-shortcut{display:grid!important}
+  .desktop-settings-shortcut.on{background:var(--theme-soft);border-color:var(--theme-border-strong);color:var(--acc)}
+  #app main{width:100%;max-width:none;padding:24px clamp(24px,3vw,52px) 88px;color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+  .desktop-workspace{display:grid;grid-template-columns:minmax(430px,.95fr) minmax(520px,1.15fr);align-items:stretch;gap:22px;width:100%;height:calc(100vh - 184px);min-height:min(430px,calc(100vh - 184px));max-width:1680px;margin:0 auto;overflow:hidden}
+  .desktop-stock-panel{position:relative;top:auto;display:flex;flex-direction:column;align-self:stretch;min-width:0;height:100%;max-height:none;padding:14px;border:1px solid var(--line);border-radius:20px;background:var(--card-bg);box-shadow:0 4px 18px var(--theme-shadow);overflow:hidden}
+  .desktop-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 12px;padding:0 2px}
+  .desktop-panel-heading h2{font-size:18px;line-height:1.25;color:var(--ink)}
+  .desktop-panel-heading small{display:block;margin-top:3px;color:var(--mute);font-size:11px}
+  .desktop-count-chip{flex:none;padding:6px 10px;border:1px solid var(--theme-border-strong);border-radius:999px;background:var(--theme-soft);color:var(--ink);font-size:11px;font-weight:700}
+  .desktop-stock-panel>.stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}
+  .desktop-stock-panel>.stats .st{min-height:55px;padding:7px 9px;border-radius:13px}
+  .desktop-stock-panel>.stats .st b{font-size:20px;margin:1px 0}
+  .desktop-stock-panel>.tools{grid-template-columns:minmax(82px,.78fr) minmax(150px,1.45fr) auto;align-items:center;gap:6px;margin-bottom:7px}
+  .desktop-stock-panel>.tools>.srch{grid-column:1;grid-row:1;min-width:0}
+  .desktop-stock-panel>.tools>.srch .in{padding-left:32px;font-size:12px}
+  .desktop-stock-panel>.tools>.srch svg{left:10px;width:15px;height:15px}
+  .desktop-stock-panel>.tools>.flt{grid-column:2;grid-row:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;min-width:0;overflow:visible;padding:0}
+  .desktop-stock-panel>.tools>.flt select{min-width:0;width:100%;padding:0 25px 0 8px;background-position:right 7px center;font-size:11px}
+  .desktop-stock-panel>.tools>.stock-actions{grid-column:3;grid-row:1;justify-self:end;margin:0}
+  .desktop-stock-panel>.tools>.stock-actions .btn.fab{position:static!important;inset:auto!important;z-index:auto;width:auto;min-width:0;min-height:38px;padding:8px 10px;border-radius:12px;box-shadow:0 3px 10px var(--acc-glow)}
+  .desktop-stock-panel>.tools>.stock-actions .btn{min-height:38px;padding:7px 9px;font-size:11px;white-space:nowrap}
+  .desktop-stock-panel>.tools>.stock-actions .fab-label{display:inline}
+  .desktop-stock-panel .head{grid-template-columns:32px minmax(0,1.3fr) minmax(112px,.78fr);gap:9px;padding:0 10px}
+  .desktop-stock-panel .head span:first-child{grid-column:2}
+  .desktop-stock-panel .head span:nth-child(2){grid-column:3}
+  .desktop-stock-panel .head span:nth-child(3){display:none}
+  .desktop-stock-panel .list{flex:1;min-height:0;max-height:none;overflow:auto;overscroll-behavior:contain;padding:2px 3px 4px 1px;scrollbar-gutter:stable}
+  .desktop-stock-panel .row{grid-template-columns:32px minmax(0,1.3fr) minmax(112px,.78fr);grid-template-rows:auto auto;align-items:center;column-gap:9px;row-gap:4px;min-height:60px;padding:8px 10px 8px 7px;border-radius:13px}
+  .desktop-stock-panel .row .drag-handle{grid-column:1;grid-row:1/3;width:30px;height:38px;margin:0}
+  .desktop-stock-panel .row .c-name{grid-column:2;grid-row:1;min-width:0;text-align:left;padding-left:1px}
+  .desktop-stock-panel .row .c-name b{font-size:14px;line-height:1.3;overflow-wrap:anywhere;text-align:left}
+  .desktop-stock-panel .row .c-name small{font-size:11px;line-height:1.2;text-align:left}
+  .desktop-stock-panel .row .c-qty{grid-column:3;grid-row:1/3;min-width:0;width:100%;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;align-content:center;justify-content:start;align-self:center;column-gap:6px;row-gap:3px;text-align:left;padding-left:3px}
+  .desktop-stock-panel .row .c-qty>b{grid-column:1;grid-row:1;justify-self:end;font-size:17px;line-height:1.15}
+  .desktop-stock-panel .row .c-qty>small{grid-column:2;grid-row:1;font-size:11px}
+  .desktop-stock-panel .row .c-qty .stock-dots{grid-column:1;grid-row:2;justify-self:end;margin:3px 0 0;gap:3px}
+  .desktop-stock-panel .row .c-qty>.pill{grid-column:2;grid-row:2;justify-self:start;font-size:10px;padding:2px 6px}
+  .desktop-stock-panel .row .c-loc{grid-column:2;grid-row:2;min-width:0;padding:0;font-size:11px;text-align:left;line-height:1.25;overflow-wrap:anywhere}
+  .desktop-stock-panel .row .c-loc .supplier-label{font-size:10px}
+  .desktop-stock-panel .row .stock-dots{gap:3px}
+  .desktop-dashboard-panel{min-width:0;height:100%;overflow-y:auto;overscroll-behavior:contain;padding:0 8px 24px 0;scrollbar-gutter:stable}
+  .desktop-dashboard-panel>.sect{margin:3px 0 14px;align-items:baseline;gap:18px}
+  .desktop-dashboard-panel>.sect h2{font-size:21px;font-weight:750;letter-spacing:-.2px;color:var(--ink)}
+  .desktop-dashboard-panel>.sect small{font-size:12px;color:var(--mute);text-align:right}
+  .desktop-dashboard-panel>.stats{display:none!important}
+  .desktop-dashboard-panel .dash-charts{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .desktop-dashboard-panel .dash-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .desktop-dashboard-panel .dash-grid>.dash-card:last-child{grid-column:1/-1}
+  .desktop-dashboard-panel .dash-activity-stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+  .desktop-dashboard-panel .dash-activity-stats>div{padding:10px;border-radius:13px}
+  .desktop-dashboard-panel .dash-activity-stats b{font-size:18px}
+  .desktop-dashboard-panel .dash-activity-stats span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+  .desktop-dashboard-panel .desktop-recent-history{grid-column:1/-1;min-width:0;padding:14px 16px}
+  .desktop-dashboard-panel .desktop-recent-history{display:none!important}
+  .desktop-history-heading{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .desktop-dashboard-panel .desktop-history-heading h3{font-size:15px;margin:0}
+  .desktop-history-clear{flex:none;padding:5px 10px;border:1px solid var(--theme-border-strong);border-radius:9px;background:var(--theme-soft);color:var(--ink);font:inherit;font-size:11px;font-weight:650;cursor:pointer}
+  .desktop-dashboard-panel .desktop-recent-history .recent-movements{display:grid;gap:5px}
+  .desktop-dashboard-panel .desktop-history-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(140px,auto) minmax(82px,auto);align-items:center;gap:14px;min-height:54px;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash)}
+  .desktop-dashboard-panel .desktop-history-row .recent-movement-name{min-width:0;display:grid;gap:3px}
+  .desktop-dashboard-panel .desktop-history-row .recent-movement-name>b{overflow:hidden;color:var(--ink);font-size:13px;font-weight:700;text-overflow:ellipsis;white-space:nowrap}
+  .desktop-history-meta{display:flex;align-items:center;gap:9px;min-width:0;color:var(--mute);font-size:10.5px;line-height:1.35}
+  .desktop-history-meta>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .desktop-history-meta .desktop-history-type{flex:none;padding:2px 7px;border:1px solid var(--theme-border-strong);border-radius:99px;background:var(--theme-soft);color:var(--ink);font-weight:650}
+  .desktop-dashboard-panel .desktop-history-time{color:var(--mute);font-size:10.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .desktop-dashboard-panel .desktop-history-row .amt{color:var(--ink);font-size:14px;font-variant-numeric:tabular-nums;text-align:right}
+  .desktop-dashboard-panel .desktop-history-row .amt.in{color:var(--ok)}
+  .desktop-dashboard-panel .desktop-history-row .amt.out{color:var(--bad)}
+  .desktop-dashboard-panel .desktop-history-row .amt small{font-size:10px;font-weight:550}
+  .desktop-settings-shortcut{width:36px;height:36px;min-width:36px;padding:8px;border-radius:11px}
+  .desktop-settings-shortcut svg{width:19px;height:19px}
+  #app .me{gap:8px}
+  #app .me-info{max-width:170px;line-height:1.28}
+  #app .me-info b{font-size:13px;font-weight:750;color:var(--ink)}
+  #app .me-info>span{font-size:11px;color:var(--mute)}
+  #app .top{padding-left:clamp(24px,3vw,52px);padding-right:clamp(24px,3vw,52px)}
+  #app main:has(.settings-grid){padding-top:18px;padding-bottom:88px}
+  #app main:has(.settings-grid)>.sect{display:flex;align-items:baseline;justify-content:space-between;gap:18px;max-width:1440px;margin:0 auto 12px;padding:0 2px}
+  #app main:has(.settings-grid)>.sect h2{margin:0;font-size:21px;line-height:1.25}
+  #app main:has(.settings-grid)>.sect small{max-width:40ch;margin-left:auto;text-align:right;line-height:1.35}
+  .settings-grid{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;align-items:stretch;gap:12px;max-width:1440px;margin:0 auto}
+  .settings-grid>.dash-card{padding:13px 14px;border-radius:18px;box-shadow:0 5px 18px color-mix(in srgb,var(--theme-shadow) 75%,transparent)}
+  .settings-grid>.branch-admin-card{grid-column:1;grid-row:1}
+  .settings-grid>.theme-picker-card{grid-column:2/4;grid-row:1}
+  .settings-grid>.storage-card{grid-column:1;grid-row:2}
+  .settings-grid>.text-scale-card{grid-column:2;grid-row:2}
+  .settings-grid>.backup-card{grid-column:3;grid-row:2}
+  .settings-grid>.settings-bottom-row{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(440px,auto);align-items:stretch;gap:12px;min-width:0}
+  .settings-bottom-row>.reset-card{grid-column:1;grid-row:1}
+  .settings-bottom-row>.permissions-card{grid-column:2;grid-row:1;min-width:0}
+  .settings-bottom-row>.disclosure-card{display:flex;flex-direction:column;align-self:stretch;height:auto;min-width:0;padding:0!important;overflow:hidden}
+  .settings-bottom-row>.disclosure-card>.disclosure-summary{flex:none}
+  .settings-bottom-row>.disclosure-card>.disclosure-panel{display:flex;flex:1;min-height:0;grid-template-rows:1fr}
+  .settings-bottom-row>.disclosure-card>.disclosure-panel>.disclosure-inner{display:flex;flex:1;flex-direction:column;min-height:0}
+  .settings-bottom-row>.disclosure-card>.disclosure-panel>.disclosure-inner>.settings-hint{flex:none}
+  .settings-bottom-row>.reset-card .reset-audit{margin-top:auto!important}
+  .settings-bottom-row>.permissions-card .permission-list{display:grid;flex:0 1 auto;grid-template-columns:minmax(0,1fr);grid-auto-rows:max-content;align-content:start;gap:9px;height:min(340px,42vh);min-height:220px;max-height:340px;overflow-x:hidden;overflow-y:scroll!important;overscroll-behavior:contain;scrollbar-width:auto;scrollbar-color:var(--acc) var(--theme-soft);scrollbar-gutter:stable;padding:2px 8px 2px 1px}
+  .settings-bottom-row>.permissions-card .permission-list::-webkit-scrollbar{width:12px}
+  .settings-bottom-row>.permissions-card .permission-list::-webkit-scrollbar-track{border-radius:99px;background:var(--theme-soft)}
+  .settings-bottom-row>.permissions-card .permission-list::-webkit-scrollbar-thumb{min-height:40px;border:2px solid var(--theme-soft);border-radius:99px;background:var(--acc)}
+  .settings-grid:not(:has(>.branch-admin-card))>.theme-picker-card{grid-column:1/-1;grid-row:1}
+  .settings-grid:not(:has(>.storage-card))>.text-scale-card{grid-column:1;grid-row:2}
+  .settings-grid:not(:has(>.storage-card))>.backup-card{grid-column:2;grid-row:2}
+  .settings-grid .branch-admin-card .card-mascot{display:none!important}
+  .settings-grid>.disclosure-card>.disclosure-summary{min-height:48px;padding:11px 13px;font-size:13px}
+  .settings-grid .disclosure-inner{padding-left:12px;padding-right:12px}
+  .settings-grid .text-scale-card{min-height:0;display:flex;flex-direction:column;justify-content:flex-start}
+  .settings-grid .text-scale-card h3,.settings-grid .theme-picker-card h3{font-size:16px;margin-bottom:7px}
+  .settings-grid .text-scale-card .settings-hint{max-width:44ch;margin:0 0 8px;line-height:1.45}
+  .settings-grid .text-scale-presets{gap:10px;margin-top:10px}
+  .settings-grid .text-scale-option{min-height:44px;border-radius:12px;font-size:13px}
+  .settings-grid .theme-picker-card{min-height:0}
+  .settings-grid .theme-picker-card>p{font-size:11.5px!important;line-height:1.4;margin:0!important}
+  #themePicker.theme-picker{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-auto-rows:54px;align-content:start;gap:6px!important;max-height:310px;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scroll-snap-type:y proximity;scrollbar-width:auto;scrollbar-color:var(--acc) var(--theme-soft);padding:5px 7px 5px 2px;margin-top:7px!important}
+  #themePicker.theme-picker::-webkit-scrollbar{width:9px}
+  #themePicker.theme-picker::-webkit-scrollbar-track{border-radius:99px;background:var(--theme-soft)}
+  #themePicker.theme-picker::-webkit-scrollbar-thumb{border:2px solid var(--theme-soft);border-radius:99px;background:var(--acc)}
+  .theme-page{display:contents}
+  .theme-page .theme-opt{width:100%!important;min-width:0;height:52px;min-height:52px!important;padding:3px!important;border-radius:11px!important;gap:1px}
+  .theme-page .theme-opt .theme-emoji{font-size:17px}
+  .theme-page .theme-opt .theme-label{font-size:10px;white-space:normal;line-height:1.1;text-align:center}
+  .theme-carousel-footer{display:none!important}
+  .settings-grid>.disclosure-card,.settings-bottom-row>.disclosure-card{overflow:hidden;align-self:stretch}
+  .settings-grid>.disclosure-card>.disclosure-summary{min-height:48px;padding:12px 14px;font-size:14px}
+  .settings-grid .disclosure-card .disclosure-inner{padding:8px 12px 10px!important}
+  .settings-grid .disclosure-card .disclosure-inner>p:first-child{margin:0 0 8px!important}
+  .settings-grid .disclosure-card .disclosure-inner>p.settings-hint{margin-bottom:8px}
+  .settings-grid .permissions-card .permission-user{height:auto;min-width:0;padding:12px;border-radius:15px;background:var(--card-bg);box-shadow:0 3px 12px var(--theme-shadow)}
+  .settings-grid .permissions-card .permission-heading{min-height:32px;padding-right:26px;font-size:13px}
+  .settings-grid .permissions-card .permission-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .settings-grid .permissions-card .permission-option{min-width:0;align-items:flex-start;padding:7px;font-size:11px;line-height:1.3}
+  .settings-grid .permissions-card .permission-option span{min-width:0;overflow-wrap:anywhere}
+  .settings-grid .disclosure-card>.disclosure-summary{pointer-events:none;cursor:default;border-bottom:1px solid var(--line);border-radius:0;background:transparent}
+  .settings-grid .disclosure-card>.disclosure-summary:disabled{opacity:1;color:var(--ink)}
+  .settings-grid .disclosure-card>.disclosure-summary .disclosure-chevron{display:none}
+  .settings-grid .disclosure-card>.disclosure-panel{display:flex;grid-template-rows:1fr;transition:none}
+  .settings-grid .disclosure-card>.disclosure-panel>.disclosure-inner,.settings-grid .disclosure-card>.disclosure-panel.open>.disclosure-inner{overflow:visible;padding:10px 12px 14px;opacity:1;transform:none;transition:none}
+  .desktop-history-panel{margin-top:14px;padding:12px 14px 14px;border:1px solid var(--line);border-radius:18px;background:var(--card-bg);box-shadow:0 4px 18px var(--theme-shadow)}
+  .desktop-history-panel>.sect{margin:12px 0 10px;align-items:baseline;gap:14px}
+  .desktop-history-panel>.sect h2{font-size:18px;font-weight:750;color:var(--ink)}
+  .desktop-history-panel>.sect small{font-size:11px;color:var(--mute);text-align:right}
+  .desktop-history-panel>.history-filter{margin-bottom:10px}
+  .desktop-history-panel>.history-list{gap:5px;max-height:min(48vh,520px);overflow-y:auto;overscroll-behavior:contain;padding:2px 5px 5px 1px;scrollbar-gutter:stable}
+  .desktop-history-panel .history-item{grid-template-columns:32px minmax(0,1fr) auto;gap:8px;min-height:48px;padding:6px 9px;border-radius:11px;box-shadow:none}
+  .desktop-history-panel .history-icon{width:30px;height:30px;border-radius:10px;font-size:15px}
+  .desktop-history-panel .history-icon svg{width:17px;height:17px}
+  .desktop-history-panel .history-main{gap:1px}
+  .desktop-history-panel .history-title{gap:5px;margin:0}
+  .desktop-history-panel .history-title b{font-size:12.5px;line-height:1.2}
+  .desktop-history-panel .history-badge{padding:2px 6px;font-size:9px}
+  .desktop-history-panel .history-main>small{font-size:10px;line-height:1.2}
+  .desktop-history-panel .history-note{margin-top:2px;padding:3px 6px;font-size:10px!important}
+  .desktop-history-panel .history-result{min-width:62px;gap:0}
+  .desktop-history-panel .history-result strong{font-size:14px}
+  .desktop-history-panel .history-result span{font-size:10px}
+  .desktop-history-panel .history-result small{font-size:9px}
+  main:has(.user-activity-card)>.sect,main:has(.user-activity-card)>.stats,main:has(.user-activity-card)>.list{max-width:1440px;margin-left:auto;margin-right:auto}
+  main:has(.user-activity-card)>.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  main:has(.user-activity-card)>.list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:12px}
+  main:has(.user-activity-card) .user-activity-card{display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;min-width:0;min-height:196px;padding:15px;border-radius:17px}
+  main:has(.user-activity-card) .user-activity-card>.t{flex:1;width:100%;min-width:0}
+  main:has(.user-activity-card) .user-name-line{align-items:center;gap:8px}
+  main:has(.user-activity-card) .user-name-line>b{font-size:16px}
+  main:has(.user-activity-card) .user-activity-meta{font-size:11.5px;line-height:1.45;overflow-wrap:anywhere}
+  main:has(.user-activity-card) .user-card-actions{flex:0 0 auto;flex-direction:row;width:100%;margin-top:12px;gap:7px}
+  main:has(.user-activity-card) .user-card-actions .btn{flex:1;min-width:0;min-height:36px;padding:6px 8px;font-size:11px}
+  .desktop-history-panel>.empty{min-height:110px}
+  #nav.nav{width:min(430px,calc(100vw - 72px));min-height:60px;bottom:14px;padding:6px 8px;border-radius:18px}
+  #nav.nav button{min-height:46px;padding:6px 10px;border-radius:12px;font-size:12px}
+  #nav.nav button>svg{width:18px;height:18px}
+  #nav.nav button>span{font-size:11.5px}
+  #nav.nav{display:flex!important;position:fixed;left:50%;right:auto;bottom:14px;z-index:40;width:min(430px,calc(100vw - 72px));max-width:none;margin:0;min-height:60px;padding:6px 8px;gap:4px;border:1px solid var(--theme-border-strong);border-radius:18px;background:var(--theme-nav-bg);box-shadow:0 8px 24px var(--theme-shadow);backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateX(-50%)}
+  #nav.nav button{min-width:0;min-height:46px;flex-direction:row;justify-content:center;gap:8px;padding:6px 10px;border-radius:12px;font-size:12px}
+  #nav.nav button>svg{width:19px;height:19px;flex:none}
+  #nav.nav button>span{white-space:nowrap;font-size:12px}
+  #nav.nav button[data-t="dashboard"],#nav.nav button[data-t="log"]{display:none!important}
+  #nav .nav-pill{border-radius:15px;background:var(--theme-soft);border:1px solid var(--theme-border-strong);box-shadow:none}
+  #nav.nav.has-pill button.on{color:var(--ink)}
+  #nav.nav button:not(.on):hover{background:var(--theme-wash)}
+  #nav.nav .nav-pill.ready{transition:transform .36s cubic-bezier(.22,.78,.25,1),width .36s cubic-bezier(.22,.78,.25,1),height .36s cubic-bezier(.22,.78,.25,1)}
+  #main:has(.user-activity-card) .list{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+  #main:has(.user-activity-card) .user-activity-card{height:100%;min-height:170px;align-items:stretch}
+  #main:has(.user-activity-card) .user-activity-card .t{width:100%;padding-right:34px}
+  #main:has(.user-activity-card) .user-name-line b{font-size:16px;line-height:1.35;font-weight:750;color:var(--ink)}
+  #main:has(.user-activity-card) .user-activity-card .t>small{font-size:12px;line-height:1.5}
+  #main:has(.user-activity-card) .user-activity-card .user-activity-meta{font-size:12px;line-height:1.5}
+  #main:has(.user-activity-card) .user-activity-card .pill{font-size:11px}
+}
+@media(max-width:1099px){.desktop-settings-shortcut{display:none!important}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1186,6 +1384,7 @@ html.dark-theme .bm-badge{color:#8fd1a8}
         <div class="me-name-row"><b id="meName">---</b><button class="username-edit hide" id="btnEditName" type="button" title="แก้ไขชื่อผู้ใช้" aria-label="แก้ไขชื่อผู้ใช้">✎</button></div>
         <span id="meRole">---</span>
       </div>
+      <button class="me-btn desktop-settings-shortcut" type="button" data-t="settings" title="ตั้งค่า" aria-label="เปิดหน้าตั้งค่า"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8.6a3.4 3.4 0 1 0 0 6.8 3.4 3.4 0 0 0 0-6.8Z"/><path d="m19.4 13.5 1.1.8-1.1 1.9-1.3-.5a7.8 7.8 0 0 1-1.5.9l-.2 1.4h-2.2l-.3-1.4a7.8 7.8 0 0 1-1.7 0l-.8 1.2-2-1.1.5-1.4a7.8 7.8 0 0 1-.9-1.5l-1.4-.2v-2.2l1.4-.3a7.8 7.8 0 0 1 0-1.7l-1.2-.8 1.1-2 .4.2 1 .4a7.8 7.8 0 0 1 1.5-.9l.2-1.4h2.2l.3 1.4a7.8 7.8 0 0 1 1.7 0l.8-1.2 2 1.1-.5 1.4a7.8 7.8 0 0 1 .9 1.5l1.4.2v2.2l-1.4.3a7.8 7.8 0 0 1 0 1.7Z" transform="translate(-1 -1) scale(.92)"/></svg></button>
       <button class="me-btn" id="btnPin" title="จัดการบัญชี"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></button>
       <button class="me-btn" id="btnOut" title="ออกจากระบบ"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
     </div>
@@ -1691,13 +1890,14 @@ const can = {
 
 /* ---------- Shell & Tabs Configuration ---------- */
 function tabs() {
-  return [
-    ['stock', 'สต็อก', 'box'],
+  const items = [
+    ['stock', isWideDesktop() ? 'หน้าหลัก' : 'สต็อก', 'box'],
     ['dashboard', 'แดชบอร์ด', 'dashboard'],
     ['log', 'ประวัติ', 'log'],
     ...(can.users() ? [['users', 'ผู้ใช้', 'users']] : []),
     ['settings', 'ตั้งค่า', 'settings']
   ];
+  return isWideDesktop() ? items.filter(([key]) => !['dashboard', 'log'].includes(key)) : items;
 }
 
 function build() {
@@ -1741,6 +1941,20 @@ function syncNav() {
   });
   placeNavPill(false);
 }
+let lastWideDesktop = window.matchMedia('(min-width: 1100px)').matches;
+let desktopResizeFrame = 0;
+window.addEventListener('resize', () => {
+  if (desktopResizeFrame) return;
+  desktopResizeFrame = requestAnimationFrame(() => {
+    desktopResizeFrame = 0;
+    const wideDesktop = window.matchMedia('(min-width: 1100px)').matches;
+    if (wideDesktop !== lastWideDesktop) {
+      lastWideDesktop = wideDesktop;
+      if (wideDesktop && ['dashboard', 'log'].includes(tab)) tab = 'stock';
+      if (me) build();
+    } else placeNavPill(true);
+  });
+}, { passive: true });
 let navPending = false, exitAnim = null;
 function runPageExit() {
   const main = $('#main');
@@ -1830,6 +2044,20 @@ function updateStockRowMascots() {
 }
 
 let pageAnimation = null;
+const isWideDesktop = () => window.matchMedia('(min-width: 1100px)').matches;
+const isDashboardWorkspace = () => tab === 'dashboard' || (tab === 'stock' && isWideDesktop());
+function desktopStockDashboardView() {
+  return `<div class="desktop-workspace">
+    <section class="desktop-stock-panel" aria-label="สต็อกวัตถุดิบ">
+      <div class="desktop-panel-heading"><div><h2>สต็อกวัตถุดิบ</h2><small>รายการในคลังของสาขานี้</small></div><span class="desktop-count-chip">${P.length} รายการ</span></div>
+      ${stockView()}
+    </section>
+    <section class="desktop-dashboard-panel" aria-label="แดชบอร์ด">
+      ${dashboardView()}
+      <div class="desktop-history-panel">${logView()}</div>
+    </section>
+  </div>`;
+}
 let deferredRender = null;
 function flushDeferredRender() {
   if (deferredRender === null) return;
@@ -1844,13 +2072,15 @@ function render(animatePage = false) {
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
+  const desktopPanelScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? null : null;
+  const desktopHistoryScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? null : null;
   if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; main.style.willChange = ''; }
   // The page redraw replaces many nodes at once; pause the observer so it doesn't
   // trigger a second full typography pass while the transition is beginning.
   if (textScaleObserver) textScaleObserver.disconnect();
   syncNav();
   const paintPage = () => {
-    if (tab === 'stock') main.innerHTML = stockView();
+    if (tab === 'stock') main.innerHTML = isWideDesktop() ? desktopStockDashboardView() : stockView();
     else if (tab === 'dashboard') main.innerHTML = dashboardView();
     else if (tab === 'log') main.innerHTML = logView();
     else if (tab === 'users') main.innerHTML = usersView();
@@ -1867,6 +2097,8 @@ function render(animatePage = false) {
   };
   if (animatePage) window.scrollTo(0, 0);
   paintPage();
+  if (desktopPanelScroll !== null) main.querySelector('.desktop-dashboard-panel').scrollTop = desktopPanelScroll;
+  if (desktopHistoryScroll !== null) main.querySelector('.desktop-history-panel>.history-list').scrollTop = desktopHistoryScroll;
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
@@ -2342,7 +2574,7 @@ function dashboardView() {
         <div class="dc-donut-center"><b>${totalItems ? healthPct : 0}<em>%</em></b><small>พร้อมใช้</small></div>
       </div>
       <div class="dc-rows">
-        ${statusSegs.map(g=>`<div class="dc-row" data-dashboard-stock-filter="${g.filter}" role="button" tabindex="0" aria-label="ดูวัตถุดิบสถานะ${g.label}" style="--c:${g.color}">
+        ${statusSegs.map(g=>`<div class="dc-row" ${isWideDesktop()?'':`data-dashboard-stock-filter="${g.filter}" role="button" tabindex="0" aria-label="ดูวัตถุดิบสถานะ${g.label}"`} style="--c:${g.color}">
           <i class="dc-dot"></i>
           <span class="dc-row-main"><b>${g.label}</b><small>${g.sub}</small></span>
           <span class="dc-row-val"><strong>${g.n}</strong><small>${pct(g.n)}%</small></span>
@@ -2385,11 +2617,21 @@ function dashboardView() {
   </section>`;
 
   const movementRows = (rows,empty) => rows.length ? rows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`).join('') : `<small class="dash-empty-note">${empty}</small>`;
+  const inlineHistoryType = isWideDesktop() ? new URLSearchParams(location.search).get('inlineHistoryType') || '' : '';
+  const inlineHistoryLabels = { in:'รับเข้า', out:'เบิกจ่าย', adjust:'ปรับยอด' };
+  const inlineHistorySource = inlineHistoryType ? L.filter(row => row.type === inlineHistoryType) : L;
+  const latestHistoryRows = isWideDesktop()
+    ? [...inlineHistorySource].sort((a,b) => Number(b.ts || 0) - Number(a.ts || 0)).slice(0,10).map(x => {
+        const labels = { in:'รับเข้า', out:'เบิกจ่าย', adjust:'ปรับยอด', create:'เพิ่มวัตถุดิบ', edit:'แก้ไขข้อมูล', delete:'ลบวัตถุดิบ', import:'นำเข้าวัตถุดิบ', note:'เพิ่มหมายเหตุ' };
+        const amount = Number(x.amt || 0), sign = x.type === 'in' || (x.type !== 'out' && x.type !== 'delete' && amount > 0) ? '+' : x.type === 'out' || x.type === 'delete' || amount < 0 ? '−' : '';
+        return `<div class="recent-movement desktop-history-row"><div class="recent-movement-name"><b>${esc(x.pname || 'วัตถุดิบ')}</b><div class="desktop-history-meta"><span class="desktop-history-type">${labels[x.type] || 'ทำรายการ'}</span><span>โดย ${esc(x.user || 'ไม่ทราบ')}</span>${x.note ? `<span class="desktop-history-note">${esc(x.note)}</span>` : ''}</div></div><time class="desktop-history-time">${new Date(x.ts).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'})}</time><div class="amt ${x.type==='in'?'in':x.type==='out'?'out':''}">${amount ? `${sign}${num(Math.abs(amount))} <small>${esc(x.unit || '')}</small>` : '—'}</div></div>`;
+      }).join('')
+    : inRange.slice(0,6).map(x=>`<div class="recent-movement"><div class="recent-movement-name"><b>${esc(x.pname||'วัตถุดิบ')}</b> <small>(${x.type==='in'?'รับเข้า':x.type==='out'?'เบิกจ่าย':x.type==='adjust'?'ปรับยอด':x.type==='delete'?'ลบรายการ':x.type==='create'?'เพิ่มวัตถุดิบ':'แก้ไขข้อมูล'}) · ${new Date(x.ts).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small></div><div class="amt ${x.type==='in'?'in':'out'}">${x.type==='in'?'+':x.type==='out'?'−':''}${num(Math.abs(x.amt||0))}</div></div>`).join('');
   const rankFilter = (type, range) => {
     const title = type === 'out' ? 'เบิกจ่าย' : 'รับเข้า', prefix = type === 'out' ? 'Out' : 'In';
     return `<div class="dash-rank-filter" aria-label="กรองรายการ${title}ตามช่วงวันที่"><label class="dash-rank-date"><span>ตั้งแต่</span><input id="dashboard${prefix}From" type="date" value="${range.from || ''}" aria-label="วันที่เริ่มต้นรายการ${title}"></label><label class="dash-rank-date"><span>ถึง</span><input id="dashboard${prefix}To" type="date" value="${range.to || ''}" aria-label="วันที่สิ้นสุดรายการ${title}"></label><button type="button" data-clear-dashboard-rank="${type}">ล้างตัวกรอง</button></div>`;
   };
-  return `<div class="sect"><h2>แดชบอร์ดสรุปภาพรวม</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
+  return `<div class="sect"><h2>${isWideDesktop()?'ภาพรวมสาขา':'แดชบอร์ดสรุปภาพรวม'}</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
   <div class="history-filter range-filter dashboard-range"><label>📅 ช่วงข้อมูล</label><label class="range-field"><span>ตั้งแต่</span><input id="dashboardFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นแดชบอร์ด"></label><label class="range-field"><span>ถึง</span><input id="dashboardTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดแดชบอร์ด"></label><button type="button" id="dashboardSevenDays">7 วันล่าสุด</button><small>${inRange.length} รายการเคลื่อนไหว · ${activityDays} วันที่มีรายการ</small></div>
   <div class="stats">
     <div class="st" data-dashboard-stock-filter="all" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${totalItems}</b><small>รายการ</small></div>
@@ -2412,7 +2654,7 @@ function dashboardView() {
     <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
     <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
     <div class="dash-card"><h3>🍱 ภาพรวมหมวดหมู่</h3><div class="dash-rank-list">${categoryRows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${row.count} รายการ</span></div>`).join('')||'<small class="dash-empty-note">ยังไม่มีหมวดหมู่</small>'}</div></div>
-    <div class="dash-card"><h3>🍣 รายการเคลื่อนไหวล่าสุดในช่วงนี้</h3><div class="recent-movements">${inRange.slice(0,6).map(x=>`<div class="recent-movement"><div class="recent-movement-name"><b>${esc(x.pname||'วัตถุดิบ')}</b> <small>(${x.type==='in'?'รับเข้า':x.type==='out'?'เบิกจ่าย':x.type==='adjust'?'ปรับยอด':x.type==='delete'?'ลบรายการ':x.type==='create'?'เพิ่มวัตถุดิบ':'แก้ไขข้อมูล'}) · ${new Date(x.ts).toLocaleDateString('th-TH',{day:'numeric',month:'short'})}</small></div><div class="amt ${x.type==='in'?'in':'out'}">${x.type==='in'?'+':x.type==='out'?'−':''}${num(Math.abs(x.amt||0))}</div></div>`).join('')||'<small class="dash-empty-note">ไม่มีรายการในช่วงวันที่เลือก</small>'}</div></div>
+    <div class="dash-card desktop-recent-history">${isWideDesktop()?`<div class="desktop-history-heading"><h3>🕘 ประวัติล่าสุด${inlineHistoryType && inlineHistoryLabels[inlineHistoryType] ? ` · ${inlineHistoryLabels[inlineHistoryType]}` : ''}</h3>${inlineHistoryType ? '<button type="button" class="desktop-history-clear" data-clear-inline-history>ล้าง</button>' : ''}</div>`:'<h3>🍣 รายการเคลื่อนไหวล่าสุดในช่วงนี้</h3>'}<div class="recent-movements">${latestHistoryRows || (isWideDesktop() ? '<small class="dash-empty-note">ยังไม่มีประวัติการทำรายการ</small>' : '<small class="dash-empty-note">ไม่มีรายการในช่วงวันที่เลือก</small>')}</div></div>
   </div>`;
 }
 
@@ -2431,11 +2673,11 @@ function settingsView() {
     <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
     <div class="dash-card theme-picker-card">
       <h3>🎨 เลือกธีม</h3>
-      <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม</p>
+      <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ${isWideDesktop()?'เลื่อนแถบด้านล่างเพื่อดูธีมเพิ่มเติม':'ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม'}</p>
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
     </div>
-    <div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
+    <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
         <button class="btn sm sec" id="backupBtn">${ic('dl')} สำรองข้อมูล</button>
@@ -2452,7 +2694,8 @@ function settingsView() {
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div></div></div>
-    ${can.reset() ? `<div class="dash-card disclosure-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
+    ${can.reset() || can.permissions() ? '<div class="settings-bottom-row">' : ''}
+    ${can.reset() ? `<div class="dash-card disclosure-card reset-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
       <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="permissionDisclosurePanel"><span>🔐 สิทธิ์ผู้ใช้งาน</span><span class="disclosure-count">${U.filter(user => !fullAccessUser(user)).length} บัญชี</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="permissionDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">กำหนดสิทธิ์แยกตามบัญชี เจ้าของร้านจะคงสิทธิ์ผู้ดูแลหลักไว้เสมอ</p>
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
@@ -2462,11 +2705,22 @@ function settingsView() {
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div></div></div>
     </div>` : ''}
+    ${can.reset() || can.permissions() ? '</div>' : ''}
   </div>`;
 }
 
 function bindSettings() {
   clearInterval(storageUsageTimer); storageUsageTimer = null;
+  if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
+    const panel = document.getElementById(button.getAttribute('aria-controls'));
+    if (!panel) return;
+    button.disabled = true;
+    button.setAttribute('aria-expanded', 'true');
+    panel.setAttribute('aria-hidden', 'false');
+    panel.inert = false;
+    panel.classList.add('open');
+  });
+  if (isWideDesktop()) requestAnimationFrame(updatePageMascots);
   if (me?.owner || me?.role === 'admin') {
     refreshStorageUsage();
     storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
@@ -2560,7 +2814,8 @@ function bindSettings() {
   const themePicker = $('#themePicker'), themePageDots = $('#themePageDots');
   const syncThemePageIndicator = () => {
     if (!themePicker || !themePageDots) return;
-    const pageIndex = Math.max(0, Math.min(themePageDots.children.length - 1, Math.round(themePicker.scrollLeft / Math.max(1, themePicker.clientWidth))));
+    const pages = [...themePicker.querySelectorAll('.theme-page')], pickerLeft = themePicker.getBoundingClientRect().left + 2;
+    const pageIndex = pages.length ? pages.reduce((best, page, index) => Math.abs(page.getBoundingClientRect().left - pickerLeft) < Math.abs(pages[best].getBoundingClientRect().left - pickerLeft) ? index : best, 0) : 0;
     [...themePageDots.children].forEach((dot, index) => {
       const active = index === pageIndex;
       dot.classList.toggle('active', active);
@@ -2569,14 +2824,19 @@ function bindSettings() {
     const number = $('#themePageNumber'); if (number) number.textContent = String(pageIndex + 1);
   };
   if (themePicker) {
+    const selectedThemeOption = themePicker.querySelector('.theme-opt.active');
     const selectedTheme = themePicker.querySelector('.theme-opt.active')?.closest('.theme-page');
-    if (selectedTheme) themePicker.scrollLeft = selectedTheme.offsetLeft;
+    if (isWideDesktop() && selectedThemeOption) {
+      const offset = selectedThemeOption.getBoundingClientRect().top - themePicker.getBoundingClientRect().top + themePicker.scrollTop;
+      themePicker.scrollTop = Math.max(0, offset - (themePicker.clientHeight - selectedThemeOption.offsetHeight) / 2);
+    } else if (selectedTheme) themePicker.scrollLeft = Math.max(0, selectedTheme.getBoundingClientRect().left - themePicker.getBoundingClientRect().left + themePicker.scrollLeft);
     themePicker.addEventListener('scroll', () => requestAnimationFrame(syncThemePageIndicator), { passive: true });
   }
   if (themePageDots) themePageDots.onclick = e => {
     const dot = e.target.closest('[data-theme-page-target]'); if (!dot || !themePicker) return;
     const page = themePicker.querySelector(`[data-theme-page="${dot.dataset.themePageTarget}"]`); if (!page) return;
-    themePicker.scrollTo({ left: page.offsetLeft, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    const left = Math.max(0, page.getBoundingClientRect().left - themePicker.getBoundingClientRect().left + themePicker.scrollLeft);
+    themePicker.scrollTo({ left, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   };
   syncThemePageIndicator();
 
@@ -3057,21 +3317,34 @@ document.addEventListener('change', e => {
   }
 });
 document.addEventListener('click', e => {
+  if (e.target.closest('[data-clear-inline-history]') && tab === 'stock' && isWideDesktop()) {
+    const url = new URL(location.href); url.searchParams.delete('inlineHistoryType'); history.pushState({}, '', url); render(); return;
+  }
   const clearRank = e.target.closest('[data-clear-dashboard-rank]');
-  if (clearRank && tab === 'dashboard') {
+  if (clearRank && isDashboardWorkspace()) {
     const key = clearRank.dataset.clearDashboardRank === 'out' ? 'dashOut' : 'dashIn';
     const url = new URL(location.href);
     url.searchParams.delete(`${key}From`); url.searchParams.delete(`${key}To`);
     history.pushState({}, '', url); render(); return;
   }
   const dashboardStockCard = e.target.closest('[data-dashboard-stock-filter]');
-  if (dashboardStockCard && tab === 'dashboard') {
+  if (dashboardStockCard && isDashboardWorkspace()) {
     F.q = ''; F.cat = '';
     F.sort = dashboardStockCard.dataset.dashboardStockFilter === 'all' ? 'name' : dashboardStockCard.dataset.dashboardStockFilter;
+    if (tab === 'stock' && isWideDesktop()) { render(); return; }
     pageDirection = 'prev'; tab = 'stock'; render(true); return;
   }
   const dashboardMovementCard = e.target.closest('[data-dashboard-movement-filter]');
-  if (dashboardMovementCard && tab === 'dashboard') {
+  if (dashboardMovementCard && isDashboardWorkspace()) {
+    if (tab === 'stock' && isWideDesktop()) {
+      const url = new URL(location.href), from = $('#dashboardFrom')?.value || '', to = $('#dashboardTo')?.value || '';
+      url.searchParams.delete('inlineHistoryType');
+      url.searchParams.delete('historyDate'); url.searchParams.delete('historyUser');
+      url.searchParams.set('historyType', dashboardMovementCard.dataset.dashboardMovementFilter);
+      if (from) url.searchParams.set('historyFrom', from); else url.searchParams.delete('historyFrom');
+      if (to) url.searchParams.set('historyTo', to); else url.searchParams.delete('historyTo');
+      history.pushState({}, '', url); render(); document.querySelector('.desktop-history-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return;
+    }
     const from = $('#dashboardFrom')?.value || '', to = $('#dashboardTo')?.value || '';
     const url = new URL(location.href);
     url.searchParams.delete('historyDate'); url.searchParams.delete('historyUser');
@@ -3081,9 +3354,9 @@ document.addEventListener('click', e => {
     history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
   }
   if (e.target.closest('#clearHistoryRange')) {
-    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.delete('historyUser'); history.pushState({}, '', url); render();
+    const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.delete('historyUser'); url.searchParams.delete('inlineHistoryType'); history.pushState({}, '', url); render();
   }
-  if (e.target.closest('#dashboardSevenDays')) {
+  if (e.target.closest('#dashboardSevenDays') && isDashboardWorkspace()) {
     const now = new Date(); now.setHours(0,0,0,0); const from = new Date(now); from.setDate(from.getDate()-6);
     const key = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const url = new URL(location.href); url.searchParams.set('dashFrom',key(from)); url.searchParams.set('dashTo',key(now)); history.pushState({},'',url); render();
@@ -3114,12 +3387,16 @@ document.addEventListener('click', e => {
   const activityCard = e.target.closest('[data-history-user]');
   if (activityCard && !e.target.closest('button')) {
     const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.set('historyUser', activityCard.dataset.historyUser);
-    history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
+    history.pushState({}, '', url);
+    if (isWideDesktop()) { tab = 'stock'; render(); document.querySelector('.desktop-history-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    pageDirection = 'next'; tab = 'log'; render(true); return;
   }
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.viewUserHistory) {
     const url = new URL(location.href); url.searchParams.delete('historyDate'); url.searchParams.delete('historyFrom'); url.searchParams.delete('historyTo'); url.searchParams.delete('historyType'); url.searchParams.set('historyUser', b.dataset.viewUserHistory);
-    history.pushState({}, '', url); pageDirection = 'next'; tab = 'log'; render(true); return;
+    history.pushState({}, '', url);
+    if (isWideDesktop()) { tab = 'stock'; render(); document.querySelector('.desktop-history-panel')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    pageDirection = 'next'; tab = 'log'; render(true); return;
   }
   if (b.id === 'nu') userModal(); if (b.dataset.ue) userModal(b.dataset.ue); if (b.dataset.ud) delUser(b.dataset.ud);
 });
