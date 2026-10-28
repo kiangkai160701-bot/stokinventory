@@ -1365,6 +1365,19 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   .nav-loading-spin{width:15px;height:15px;flex:none;border-radius:50%;border:2px solid var(--line);border-top-color:var(--acc);animation:navSpin .7s linear infinite}
 }
 @media(prefers-reduced-motion:reduce){html.nav-switching #main{transition:none}.nav-loading{animation:none;opacity:1}.nav-loading-spin{animation:none}}
+
+/* ===== Desktop sharp text: no GPU-layer promotion / sub-pixel centring on text (>=1100px only) ===== */
+@media(min-width:1100px){
+  #nav.nav{left:0;right:0;margin:0 auto;transform:none;backface-visibility:visible}
+  #nav .nav-pill{will-change:auto;backface-visibility:visible}
+  #main{backface-visibility:visible}
+}
+/* ===== Mobile: bright pastel stock-level dots (colour only, size/position unchanged) ===== */
+@media(max-width:1099px){
+  .row .stock-dots.ok .stock-dot.on{background:#86d9ac;box-shadow:0 1px 5px rgba(134,217,172,.55)}
+  .row .stock-dots.low .stock-dot.on{background:#ffd978;box-shadow:0 1px 5px rgba(255,217,120,.6)}
+  .row .stock-dots.out .stock-dot.on{background:#ff9fb2;box-shadow:0 1px 5px rgba(255,159,178,.6)}
+}
 </style>
 </head>
 <body data-theme="teal">
