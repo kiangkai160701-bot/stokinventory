@@ -468,6 +468,11 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 @media(max-width:380px){.dash-chart{padding:9px}.chart-pie-wrap{gap:6px}.chart-pie{width:70px;height:70px}.chart-pie::before{inset:11px}.chart-legend{font-size:9px}.history-filter small{width:100%;margin-left:0}}
 /* Mobile spacing refinements for stock, themes, and history filters */
 @media(max-width:680px){
+  #main.mobile-paged{position:relative;box-sizing:border-box;flex:none;overflow:hidden;padding:0;min-height:0;max-width:100%;contain:layout style}
+  #main.mobile-paged>.mobile-page-track{position:relative;width:100%;height:100%;will-change:transform;backface-visibility:hidden;transform:translateZ(0);transition:transform 360ms cubic-bezier(.22,.78,.22,1)}
+  #main.mobile-paged>.mobile-page-track>.mobile-page{position:absolute;top:0;box-sizing:border-box;width:100%;min-width:0;margin:0;padding:16px 14px calc(100px + env(safe-area-inset-bottom,0px));backface-visibility:hidden;contain:layout style}
+  #main.mobile-paged>.mobile-page-track>.mobile-page[aria-hidden="true"]{pointer-events:none}
+  @media(prefers-reduced-motion:reduce){#main.mobile-paged>.mobile-page-track{transition-duration:0ms!important}}
   .row .drag-handle{left:6px;width:27px}
   .row .c-name{padding-left:0}
   .tools>div:last-child{display:flex!important;justify-content:flex-end;align-items:center;gap:8px;position:static}
@@ -973,21 +978,15 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   .chart-series-legend{font-size:11px;margin-top:5px}
   .dash-rank-card{padding:12px!important}
   .dash-rank-heading h3{font-size:13px}
-  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:6px;padding:7px 8px;margin:8px 0}
-  .dash-rank-date{gap:2px}
-  .dash-rank-date input{height:34px;min-height:34px;font-size:12px;padding:4px 5px}
-  .dash-rank-date input::-webkit-date-and-time-value{text-align:left;min-height:1em}
-  .dash-rank-filter>button{grid-column:auto;justify-self:end;height:34px;min-height:34px;padding:4px 8px;font-size:10px;white-space:nowrap}
+  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:8px;margin:8px 0}
+  .dash-rank-date input{height:38px;min-height:38px;font-size:13px;padding:6px 8px}
+  .dash-rank-filter>button{grid-column:1/-1;justify-self:stretch;height:34px;min-height:34px;padding:6px 10px;font-size:11px}
 }
 @media(max-width:420px){
-  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:5px;padding:6px 7px;margin:7px 0}
-  .dash-rank-date{gap:2px}
-  .dash-rank-date input{height:34px;min-height:34px;font-size:11.5px;padding:4px 4px}
-  .dash-rank-filter>button{grid-column:auto;justify-self:end;width:auto;height:34px;min-height:34px;padding:4px 7px;font-size:10px}
-}
-@media(max-width:350px){
-  .dash-rank-date input{font-size:10.5px;padding:4px 2px}
-  .dash-rank-filter>button{padding:4px 5px;font-size:9px}
+  .dash-rank-filter{grid-template-columns:1fr;gap:5px;padding:7px;margin:7px 0}
+  .dash-rank-date{gap:3px}
+  .dash-rank-date input{height:36px;min-height:36px;font-size:12px;padding:5px 7px}
+  .dash-rank-filter>button{grid-column:1;justify-self:start;width:auto;height:32px;min-height:32px;padding:4px 8px;font-size:10px}
 }
 /* Dashboard mobile polish: clear chart labels and reserved mascot space */
 .chart-pie{box-shadow:0 5px 14px var(--theme-shadow),inset 0 0 0 1px rgba(255,255,255,.5)}
@@ -1344,14 +1343,6 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   #main:has(.user-activity-card) .user-activity-card .pill{font-size:11px}
 }
 @media(max-width:1099px){.desktop-settings-shortcut{display:none!important}}
-
-/* Mobile touch smoothness: faster nav response, pause decorative animations while switching pages */
-@media(hover:none) and (pointer:coarse) and (max-width:1099px){
-  #nav.nav{contain:layout style}
-  #nav.nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s ease!important}
-  #nav .nav-pill.ready{transition:transform .36s cubic-bezier(.32,.72,0,1)}
-  html.nav-busy .card-mascot,html.nav-busy #app::before,html.nav-busy #app::after{animation-play-state:paused!important}
-}
 </style>
 </head>
 <body data-theme="teal">
@@ -1419,24 +1410,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 // คีย์แบบ Publishable เปิดเผยได้ในหน้าเว็บ ส่วนข้อมูลจริงถูกป้องกันด้วยฟังก์ชันฐานข้อมูลและเซสชัน
 const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
 const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
-// ตรวจว่าเป็นบราวเซอร์มือถือหรือไม่ (ส่วนจำล็อกอินเพิ่มเติมทำงานเฉพาะมือถือ)
-const IS_MOBILE_BROWSER = (() => { try { const ua = navigator.userAgent || ''; return /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1); } catch { return false; } })();
-// สำรองเซสชันไว้ที่คุกกี้ด้วย เพราะบราวเซอร์มือถือบางครั้งล้าง localStorage เองเมื่อปิดแอป/หน่วยความจำเต็ม
-const mobileSessionBackup = {
-  key: 'inv_cloud_session_bk',
-  read() { if (!IS_MOBILE_BROWSER) return null; try { const m = document.cookie.match(new RegExp('(?:^|; )' + this.key + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : null; } catch { return null; } },
-  write(raw, maxAgeSec) { if (!IS_MOBILE_BROWSER) return; try { document.cookie = `${this.key}=${encodeURIComponent(raw)}; path=/; max-age=${Math.max(60, Math.floor(maxAgeSec))}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`; } catch {} },
-  clear() { if (!IS_MOBILE_BROWSER) return; try { document.cookie = `${this.key}=; path=/; max-age=0; SameSite=Lax`; } catch {} }
-};
-if (IS_MOBILE_BROWSER) { try { navigator.storage?.persist?.().catch(() => {}); } catch {} }
 const cloudTokenStore = {
   key: 'inv_cloud_session',
-  memory: null,
-  persist(session) {
-    try { localStorage.setItem(this.key, JSON.stringify(session)); } catch {}
-    if (IS_MOBILE_BROWSER) { this.memory = session; mobileSessionBackup.write(JSON.stringify(session), (session.logoutAt - Date.now()) / 1000); }
-  },
-  clear() { try { localStorage.removeItem(this.key); } catch {} mobileSessionBackup.clear(); this.memory = null; },
   nextSaturdayMidnight(from = new Date()) {
     const date = new Date(from);
     const daysUntilSaturday = (6 - date.getDay() + 7) % 7 || 7;
@@ -1446,47 +1421,38 @@ const cloudTokenStore = {
   },
   getSession() {
     try {
-      let raw = null;
-      try { raw = localStorage.getItem(this.key); } catch {}
+      let raw = localStorage.getItem(this.key);
       if (!raw) {
         // รักษาเซสชันจากหน้าเว็บรุ่นก่อนที่เก็บไว้ชั่วคราวใน sessionStorage
-        try {
-          const legacyToken = sessionStorage.getItem(this.key);
-          if (legacyToken) {
-            const now = Date.now();
-            const migrated = { token: legacyToken, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
-            this.persist(migrated);
-            sessionStorage.removeItem(this.key);
-            raw = JSON.stringify(migrated);
-          }
-        } catch {}
-      }
-      if (!raw && IS_MOBILE_BROWSER) {
-        // มือถือ: ถ้า localStorage ถูกล้าง ให้กู้เซสชันจากคุกกี้สำรองหรือหน่วยความจำ
-        raw = mobileSessionBackup.read() || (this.memory ? JSON.stringify(this.memory) : null);
-        if (raw) { try { localStorage.setItem(this.key, raw); } catch {} }
+        const legacyToken = sessionStorage.getItem(this.key);
+        if (legacyToken) {
+          const now = Date.now();
+          const migrated = { token: legacyToken, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
+          localStorage.setItem(this.key, JSON.stringify(migrated));
+          sessionStorage.removeItem(this.key);
+          raw = JSON.stringify(migrated);
+        }
       }
       if (!raw) return null;
       let session;
       try { session = JSON.parse(raw); } catch { session = { token: raw }; }
-      if (!session || typeof session.token !== 'string' || !session.token) { this.clear(); return null; }
+      if (!session || typeof session.token !== 'string' || !session.token) { localStorage.removeItem(this.key); return null; }
       // อัปเกรด token เดิมให้จำกัดอายุและกำหนดออกจากระบบคืนวันเสาร์ตามเวลาของเครื่อง
       if (!Number.isFinite(session.expiresAt) || !Number.isFinite(session.logoutAt)) {
         const now = Date.now();
         session = { token: session.token, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
-        this.persist(session);
+        localStorage.setItem(this.key, JSON.stringify(session));
       }
-      if (Date.now() >= session.expiresAt || Date.now() >= session.logoutAt) { this.clear(); return null; }
-      if (IS_MOBILE_BROWSER) this.memory = session;
+      if (Date.now() >= session.expiresAt || Date.now() >= session.logoutAt) { localStorage.removeItem(this.key); return null; }
       return session;
     } catch { return null; }
   },
   get() { return this.getSession()?.token || null; },
   set(v, branchId = null) {
     try {
-      if (!v) { this.clear(); return; }
+      if (!v) { localStorage.removeItem(this.key); return; }
       const now = Date.now();
-      this.persist({ token: v, branchId, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) });
+      localStorage.setItem(this.key, JSON.stringify({ token: v, branchId, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) }));
     } catch {}
   }
 };
@@ -1571,6 +1537,7 @@ const textScaleBaseInline = new WeakMap();
 const textScaleTracked = new Set();
 function applyTextScale(root = document.querySelector('#app')) {
   if (!root) return;
+  if (root.id === 'app' && !isWideDesktop()) root = root.querySelector('#main.mobile-paged .mobile-page.is-active') || root;
   root.classList.add('font-scale-instant');
   if (uiTextScale === 100) {
     for (const element of textScaleTracked) {
@@ -1830,10 +1797,6 @@ async function tryLogin() {
     store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
   }
   lock = { n: 0, until: 0 }; store.set('inv_lock', lock); setCurrentBranch(result.branch); sess.set(result.token, result.branch?.id);
-  if (IS_MOBILE_BROWSER) {
-    try { localStorage.setItem('inv_last_username', name); } catch {}
-    try { if (window.PasswordCredential && navigator.credentials?.store) navigator.credentials.store(new PasswordCredential({ id: name, password: pinVal, name })).catch(() => {}); } catch {}
-  }
   applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
   if (migrateLegacyBrowserData(result)) save();
   enter(result.me, result.branch);
@@ -1850,7 +1813,7 @@ function enter(u, branch = currentBranch) {
 function logout() {
   stopPresence();
   const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
-  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
+  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
 function updateOnlineUsers(users = [], lastOnline = {}) {
@@ -1895,7 +1858,6 @@ $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('
 
 async function refreshCloudState() {
   if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
-  if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
   try {
     const result = await cloudRpc('api_get_state', { p_token: cloudToken });
     if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
@@ -1949,7 +1911,7 @@ function build() {
   const nav = $('#nav');
   nav.innerHTML = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
   $('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
-  render();
+  render(false, true);
   placeNavPill(true);
   if (!navPillObserver && 'ResizeObserver' in window) {
     navPillObserver = new ResizeObserver(() => placeNavPill(true));
@@ -1986,26 +1948,23 @@ function syncNav() {
   placeNavPill(false);
 }
 let lastWideDesktop = window.matchMedia('(min-width: 1100px)').matches;
+let lastPhoneLayout = window.matchMedia('(max-width: 680px)').matches;
 let desktopResizeFrame = 0;
 window.addEventListener('resize', () => {
   if (desktopResizeFrame) return;
   desktopResizeFrame = requestAnimationFrame(() => {
     desktopResizeFrame = 0;
     const wideDesktop = window.matchMedia('(min-width: 1100px)').matches;
-    if (wideDesktop !== lastWideDesktop) {
+    const phoneLayout = window.matchMedia('(max-width: 680px)').matches;
+    if (wideDesktop !== lastWideDesktop || phoneLayout !== lastPhoneLayout) {
       lastWideDesktop = wideDesktop;
+      lastPhoneLayout = phoneLayout;
       if (wideDesktop && ['dashboard', 'log'].includes(tab)) tab = 'stock';
       if (me) build();
     } else placeNavPill(true);
   });
 }, { passive: true });
-let navPending = false, exitAnim = null, navBusyTimer = null;
-function navBusyStart() {
-  if (!IS_MOBILE_BROWSER) return;
-  document.documentElement.classList.add('nav-busy');
-  clearTimeout(navBusyTimer);
-  navBusyTimer = setTimeout(() => document.documentElement.classList.remove('nav-busy'), 650);
-}
+let navPending = false, exitAnim = null;
 function runPageExit() {
   const main = $('#main');
   let called = false;
@@ -2020,8 +1979,6 @@ function runPageExit() {
     requestAnimationFrame(go);
     return;
   }
-  // มือถือ: ไม่รอแอนิเมชันออก ปล่อยให้แถบสีเริ่มเลื่อนก่อน 2 เฟรมแล้วค่อยวาดหน้าใหม่
-  if (IS_MOBILE_BROWSER) { requestAnimationFrame(() => requestAnimationFrame(go)); return; }
   const dx = pageDirection === 'prev' ? 10 : -10;
   exitAnim = main.animate(
     [{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: `translate3d(${dx}px,0,0)` }],
@@ -2036,22 +1993,22 @@ document.addEventListener('click', e => {
   const availableTabs = tabs().map(item => item[0]);
   pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
   tab = button.dataset.t;
-  navBusyStart();
   syncNav();
+  if (window.matchMedia('(max-width: 680px)').matches && mobilePanelsReady) { activateMobilePanel(tab, true); return; }
   if (navPending) return;
   navPending = true;
   runPageExit();
 });
 
 function updatePageMascots() {
-  const main = $('#main'), friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
-  main.querySelectorAll('.page-mascots').forEach(row => row.remove());
-  main.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
-  main.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
+  const main = $('#main'), scope = main.querySelector('.mobile-page.is-active') || main, friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
+  scope.querySelectorAll('.page-mascots').forEach(row => row.remove());
+  scope.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
+  scope.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
   if (THEMES[currentTheme]?.formal) return;
   const cards = [];
   const add = (selector, placement = 'mascot-top-right', every = 1) => {
-    [...main.querySelectorAll(selector)].forEach((card, index) => { if (index % every === 0) cards.push({ card, placement }); });
+    [...scope.querySelectorAll(selector)].forEach((card, index) => { if (index % every === 0) cards.push({ card, placement }); });
   };
   if (tab === 'stock') {
     add('.stats .st', 'mascot-bottom-right');
@@ -2112,19 +2069,112 @@ function desktopStockDashboardView() {
   </div>`;
 }
 let deferredRender = null;
+// Mobile keeps one rendered panel per tab in memory. Only the active panel keeps
+// its IDs, so existing selectors and forms continue to resolve to the visible page.
+let mobilePanelsReady = false, mobileTrack = null, mobileResizeObserver = null;
+const mobilePageScrolls = new Map();
+const mobilePages = ['stock','dashboard','log','users','settings'];
+const mobilePageMarkup = key => key === 'stock' ? stockView() : key === 'dashboard' ? dashboardView() : key === 'log' ? logView() : key === 'users' ? usersView() : settingsView();
+function suspendPanelIds(panel) {
+  panel.querySelectorAll('[id]').forEach(node => { node.dataset.suspendedId = node.id; node.removeAttribute('id'); });
+}
+function restorePanelIds(panel) {
+  panel.querySelectorAll('[data-suspended-id]').forEach(node => { node.id = node.dataset.suspendedId; delete node.dataset.suspendedId; });
+}
+function setMobileMainHeight(panel) {
+  const main = $('#main');
+  if (!panel || !main) return;
+  main.style.height = `${Math.max(panel.scrollHeight, panel.offsetHeight)}px`;
+}
+function activateMobilePanel(key, animate = true) {
+  const main = $('#main'), next = main.querySelector(`.mobile-page[data-page="${key}"]`);
+  if (!next || !mobileTrack) return false;
+  const old = main.querySelector('.mobile-page.is-active');
+  if (old === next) return false;
+  if (old) {
+    mobilePageScrolls.set(old.dataset.page, window.scrollY);
+    suspendPanelIds(old);
+    old.classList.remove('is-active'); old.setAttribute('aria-hidden','true'); old.inert = true;
+  }
+  restorePanelIds(next);
+  next.classList.add('is-active'); next.setAttribute('aria-hidden','false'); next.inert = false;
+  if (mobileResizeObserver) { mobileResizeObserver.disconnect(); mobileResizeObserver.observe(next); }
+  const pageIndex = [...mobileTrack.children].indexOf(next);
+  mobileTrack.style.transitionDuration = animate && !matchMedia('(prefers-reduced-motion: reduce)').matches ? '360ms' : '0ms';
+  mobileTrack.style.transform = `translate3d(${-pageIndex * 100}%,0,0)`;
+  setMobileMainHeight(next);
+  finishActivePage();
+  requestAnimationFrame(() => window.scrollTo(0, mobilePageScrolls.get(key) || 0));
+  return true;
+}
+function createMobilePanels() {
+  const main = $('#main'), allowed = tabs().map(([key]) => key);
+  if (!allowed.includes(tab)) tab = allowed[0] || 'stock';
+  if (mobileResizeObserver) { mobileResizeObserver.disconnect(); mobileResizeObserver = null; }
+  const track = document.createElement('div'); track.className = 'mobile-page-track';
+  allowed.forEach((key, index) => {
+    const panel = document.createElement('section');
+    panel.className = 'mobile-page'; panel.dataset.page = key; panel.setAttribute('aria-hidden','true'); panel.inert = true;
+    panel.style.left = `${index * 100}%`;
+    panel.innerHTML = mobilePageMarkup(key);
+    track.append(panel);
+  });
+  const active = track.querySelector(`.mobile-page[data-page="${tab}"]`) || track.firstElementChild;
+  if (active) { restorePanelIds(active); active.classList.add('is-active'); active.setAttribute('aria-hidden','false'); active.inert = false; }
+  [...track.children].forEach(panel => { if (panel !== active) suspendPanelIds(panel); });
+  main.replaceChildren(track); main.classList.add('mobile-paged'); mobileTrack = track; mobilePanelsReady = true;
+  const index = [...track.children].indexOf(active);
+  track.style.transitionDuration = '0ms'; track.style.transform = `translate3d(${-index * 100}%,0,0)`;
+  setMobileMainHeight(active);
+  if ('ResizeObserver' in window) {
+    mobileResizeObserver = new ResizeObserver(() => { const visible = main.querySelector('.mobile-page.is-active'); if (visible) setMobileMainHeight(visible); });
+    mobileResizeObserver.observe(active);
+  }
+  finishActivePage();
+  const saved = mobilePageScrolls.get(tab);
+  if (saved) requestAnimationFrame(() => window.scrollTo(0, saved));
+}
+function finishActivePage() {
+  if (tab === 'stock') bindStock();
+  if (tab === 'settings') bindSettings();
+  else if (storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
+  if (tab === 'users') refreshPresence();
+  updatePageMascots(); watchTextScale(); applyTextScale(); resumeTextScaleWatch();
+}
 function flushDeferredRender() {
   if (deferredRender === null) return;
   const animate = deferredRender;
   deferredRender = null;
   render(animate);
 }
-function render(animatePage = false) {
+function render(animatePage = false, forceRebuild = false) {
   // While a sheet is sliding down, hold the heavy redraw until it has finished
   // so the closing animation never competes with layout work.
   if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
   if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
   if (tab === 'users' && !can.users()) tab = 'settings';
   const main = $('#main');
+  if (window.matchMedia('(max-width: 680px)').matches && me) {
+    if (mobilePanelsReady && main.classList.contains('mobile-paged') && !forceRebuild) {
+      const active = main.querySelector('.mobile-page.is-active');
+      if (active?.dataset.page !== tab) {
+        const target = main.querySelector(`.mobile-page[data-page="${tab}"]`);
+        if (target) { target.replaceChildren(); target.innerHTML = mobilePageMarkup(tab); suspendPanelIds(target); }
+        activateMobilePanel(tab, animatePage); return;
+      }
+    }
+    const oldScroll = mobilePanelsReady ? window.scrollY : 0;
+    if (oldScroll) mobilePageScrolls.set(tab, oldScroll);
+    mobilePanelsReady = false; mobileTrack = null; main.classList.remove('mobile-paged'); main.style.height = '';
+    createMobilePanels();
+    if (animatePage && !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      main.animate([{opacity:.82},{opacity:1}],{duration:150,easing:'ease-out'});
+    }
+    return;
+  } else if (mobilePanelsReady) {
+    mobilePanelsReady = false; mobileTrack = null; if (mobileResizeObserver) mobileResizeObserver.disconnect(); mobileResizeObserver = null;
+    main.classList.remove('mobile-paged'); main.style.height = '';
+  }
   const desktopPanelScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? null : null;
   const desktopHistoryScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? null : null;
   if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; main.style.willChange = ''; }
@@ -2155,11 +2205,11 @@ function render(animatePage = false) {
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
-    const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 22);
+    const offset = pageDirection === 'prev' ? -22 : 22;
     main.style.willChange = 'transform, opacity';
     pageAnimation = main.animate(
       [{ opacity: 0, transform: `translate3d(${offset}px,0,0)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
-      { duration: IS_MOBILE_BROWSER ? 240 : 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
+      { duration: 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
     );
     const activeAnimation = pageAnimation;
     activeAnimation.onfinish = () => {
@@ -2171,14 +2221,8 @@ function render(animatePage = false) {
   }
 }
 
-let lastClockMinute = -1;
 setInterval(() => {
-  // มือถือ: อัปเดตนาฬิกาเฉพาะตอนนาทีเปลี่ยน (ข้อความแสดงถึงแค่นาที) ลดงานที่ทำทุกวินาที
-  const minute = Math.floor(Date.now() / 60000);
-  if (!IS_MOBILE_BROWSER || minute !== lastClockMinute) {
-    lastClockMinute = minute;
-    $('#clock').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
-  }
+  $('#clock').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
   checkSaturdayAutoLogout();
 }, 1000);
 
@@ -2607,7 +2651,18 @@ function dashboardView() {
       buckets.push({start,end,label:start.toLocaleDateString('th-TH',{month:'short',year:'2-digit'})});
     }
   }
-  buckets.forEach(bucket => { const rows=inRange.filter(x=>{const ts=new Date(x.ts);return ts>=bucket.start&&ts<bucket.end;});bucket.in=rows.filter(x=>x.type==='in').length;bucket.out=rows.filter(x=>x.type==='out').length; });
+  buckets.forEach(bucket => { bucket.in=0; bucket.out=0; });
+  for (const row of inRange) {
+    const ts=Number(row.ts)||0;
+    let low=0, high=buckets.length-1, found=-1;
+    while (low<=high) {
+      const mid=(low+high)>>1, bucket=buckets[mid];
+      if (ts<bucket.start.getTime()) high=mid-1;
+      else if (ts>=bucket.end.getTime()) low=mid+1;
+      else { found=mid; break; }
+    }
+    if (found>=0) { if (row.type==='in') buckets[found].in++; else if (row.type==='out') buckets[found].out++; }
+  }
   const chartDays = buckets.slice(-12), maxMoves = Math.max(1, ...chartDays.flatMap(d => [d.in,d.out]));
   const pieTotal = Math.max(1, totalItems);
   const inPct = readyCount / pieTotal * 100, lowPct = lowCount / pieTotal * 100;
@@ -3432,12 +3487,22 @@ document.addEventListener('keydown', e => {
 
 function usersView() {
   const users = [globalAdminDirectoryUser, ...U.filter(user => String(user.name || '').toLowerCase() !== 'kiangkai')];
-  const activity = user => { const logs=L.filter(x=>String(x.user||'').toLowerCase()===String(user.name).toLowerCase()); const last=logs.reduce((best,x)=>Math.max(best,Number(x.ts)||0),0); const day=86400000, now=Date.now(); return {count:logs.length, recent:logs.filter(x=>now-(Number(x.ts)||0)<=30*day).length, last:last?new Date(last).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'ยังไม่มีประวัติ',ins:logs.filter(x=>x.type==='in').length,outs:logs.filter(x=>x.type==='out').length}; };
-  const summary=users.map(activity), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=users.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
+  const dateFormatter = new Intl.DateTimeFormat('th-TH',{dateStyle:'medium',timeStyle:'short'}), now=Date.now(), cutoff=now-30*86400000;
+  const activityByUser = new Map();
+  for (const entry of L) {
+    const key=String(entry.user||'').trim().toLowerCase(); if (!key) continue;
+    let summary=activityByUser.get(key);
+    if (!summary) { summary={count:0,recent:0,lastTs:0,ins:0,outs:0}; activityByUser.set(key,summary); }
+    const ts=Number(entry.ts)||0; summary.count++; if (ts>=cutoff) summary.recent++;
+    if (ts>summary.lastTs) summary.lastTs=ts;
+    if (entry.type==='in') summary.ins++; else if (entry.type==='out') summary.outs++;
+  }
+  const activity = user => { const key=String(user.name||'').trim().toLowerCase(), row=activityByUser.get(key); return row ? {...row,last:row.lastTs?dateFormatter.format(row.lastTs):'ยังไม่มีประวัติ'} : {count:0,recent:0,lastTs:0,last:'ยังไม่มีประวัติ',ins:0,outs:0}; };
+  const summary=users.map(activity), activityByName=new Map(users.map((user,index)=>[String(user.name||'').toLowerCase(),summary[index]])), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=users.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
   return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
   <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
-  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
+  <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activityByName.get(u.name.toLowerCase())?.count||0} · รับเข้า ${activityByName.get(u.name.toLowerCase())?.ins||0} · เบิกจ่าย ${activityByName.get(u.name.toLowerCase())?.outs||0}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activityByName.get(u.name.toLowerCase())?.last||'ยังไม่มีประวัติ'}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? dateFormatter.format(lastOnlineByUser.get(u.name.toLowerCase())) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
   <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 
@@ -3591,12 +3656,8 @@ function pinModal(force) {
   };
 }
 
-function prefillLastUsername() {
-  if (!IS_MOBILE_BROWSER) return;
-  try { const last = localStorage.getItem('inv_last_username'); if (last && !$('#lgUser').value) $('#lgUser').value = last; } catch {}
-}
 function revealLogin(message = '') {
-  $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); prefillLastUsername();
+  $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide');
   if (message) $('#lgMsg').textContent = message;
 }
 
