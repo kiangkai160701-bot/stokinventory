@@ -1422,6 +1422,33 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 .ih-empty{padding:26px 12px;border:1px dashed var(--line);border-radius:14px;text-align:center;font-size:13px;color:var(--mute)}
 .ih-more{height:44px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);color:var(--ink);font:inherit;font-size:13px;font-weight:600}
 @media(max-width:380px){.ov-item .sheet{padding-left:14px;padding-right:14px}}
+
+/* ===== Desktop (>=1100px): item manage card + item history card side by side ===== */
+#modal .ov.ov-itemwide .sheet{width:min(1060px,calc(100vw - 48px));max-width:none;max-height:none;overflow:visible;padding:0;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0;display:flex;align-items:stretch;justify-content:center;gap:18px}
+.iw-card{background:var(--card-bg);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow-md,0 10px 24px rgba(150,102,124,.11));height:min(700px,calc(100vh - 56px));min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.iw-manage{flex:0 0 440px;width:440px;padding:22px 22px 18px;overflow-y:auto;overscroll-behavior:contain}
+.iw-manage h3{font-size:18px;margin-bottom:14px}
+.iw-manage .acts{display:flex;gap:10px;margin-top:14px}
+.iw-manage .acts .btn{flex:1}
+.iw-history{flex:1 1 0;min-width:0;padding:22px 20px 16px}
+.iw-history .ih{display:flex;flex-direction:column;min-height:0;flex:1;padding-top:0}
+.iw-history .ih-head{flex:none}
+.iw-history .ih-head h4{font-size:17px}
+.iw-history .ih-filter{flex:none;grid-template-columns:1.3fr 1fr 1fr auto;align-items:end;gap:8px}
+.iw-history .ih-filter .ih-wide{grid-column:auto}
+.iw-history .ih-filter select,.iw-history .ih-filter input{height:38px;font-size:13px}
+.iw-history .ih-clear{grid-column:auto;height:38px;padding:0 12px;white-space:nowrap}
+.iw-history .ih-sum{flex:none}
+.iw-history .ih-list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start;padding-right:6px;scrollbar-width:thin;scrollbar-color:var(--acc) transparent}
+.iw-history .ih-list::-webkit-scrollbar{width:8px}
+.iw-history .ih-list::-webkit-scrollbar-track{background:transparent}
+.iw-history .ih-list::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--acc) 55%,transparent);border-radius:99px}
+.iw-history .ih-list::-webkit-scrollbar-thumb:hover{background:var(--acc)}
+.iw-history .ih-item{content-visibility:visible}
+.iw-manage::-webkit-scrollbar{width:8px}.iw-manage::-webkit-scrollbar-thumb{background:color-mix(in srgb,var(--acc) 45%,transparent);border-radius:99px}
+.iw-close{position:absolute;top:-14px;right:-14px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card-bg);color:var(--ink);font-size:16px;cursor:pointer;box-shadow:var(--shadow-sm)}
+.iw-close:hover{background:var(--theme-soft)}
+
 </style>
 </head>
 <body data-theme="teal">
@@ -3306,10 +3333,10 @@ const IH_DATE = new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short
 const IH_TIME = new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit' });
 const IH_KINDS = { in: ['↓', 'รับเข้า', 'in'], out: ['↑', 'เบิกจ่าย', 'out'], adjust: ['⇄', 'ปรับยอด', 'adj'] };
 function itemHistoryBase(p) { return L.filter(x => x.pid === p.id && IH_KINDS[x.type]); }
-function itemHistorySection(p) {
+function itemHistorySection(p, wide = false) {
   const users = [...new Set(itemHistoryBase(p).map(x => x.user).filter(Boolean))];
   return `<section class="ih" id="ih" aria-label="ประวัติของรายการนี้">
-    <div class="ih-head"><h4>🧾 ประวัติ ${esc(p.name)}</h4><button type="button" class="ih-back" id="ihBack">↓ ทำรายการ</button></div>
+    <div class="ih-head"><h4>🧾 ประวัติ ${esc(p.name)}</h4>${wide ? '' : '<button type="button" class="ih-back" id="ihBack">↓ ทำรายการ</button>'}</div>
     <div class="ih-filter">
       <label class="ih-wide"><span>พนักงาน</span><select id="ihUser"><option value="">พนักงานทั้งหมด</option>${users.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('')}</select></label>
       <label><span>ตั้งแต่วันที่</span><input type="date" id="ihFrom" aria-label="วันที่เริ่มต้น"></label>
@@ -3333,7 +3360,9 @@ function setupItemSheet(p) {
   if ('ResizeObserver' in window) new ResizeObserver(measure).observe(stage);
   $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
-
+  setupItemHistory(p);
+}
+function setupItemHistory(p) {
   const base = itemHistoryBase(p).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
   const st = { user: '', from: '', to: '', limit: 30 };
   const fmt = n => num(Number(n) || 0);
@@ -3371,7 +3400,8 @@ function itemDetailModal(id) {
   const p = P.find(x => x.id === id);
   if (!p) return;
   const canMove = can.edit();
-  const mobileSheet = !isWideDesktop();
+  const wideDesktop = isWideDesktop();
+  const mobileSheet = !wideDesktop;
   const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
   <div style="background:var(--theme-soft);padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);color:var(--ink);">
     <div>หมวดหมู่: <b>${esc(p.cat)}</b></div>
@@ -3390,6 +3420,10 @@ function itemDetailModal(id) {
   if (mobileSheet) {
     openModal(`<div class="item-stage1" id="itemStage1"><div class="item-grab" aria-hidden="true"></div>${inner}<button type="button" class="ih-hint" id="ihHint">▲ ปัดขึ้นเพื่อดูประวัติการเบิกจ่าย</button></div>${itemHistorySection(p)}`, 'item');
     setupItemSheet(p);
+  } else if (wideDesktop) {
+    openModal(`<button type="button" class="iw-close" id="iwClose" aria-label="ปิด">✕</button><div class="iw-card iw-manage">${inner}</div><div class="iw-card iw-history">${itemHistorySection(p, true)}</div>`, 'itemwide');
+    $('#iwClose').onclick = () => closeModal();
+    setupItemHistory(p);
   } else openModal(inner);
   if (can.del()) $('#deleteProduct').onclick = () => {
     openModal(`<h3>ลบวัตถุดิบนี้หรือไม่</h3><p style="margin-bottom:12px;color:var(--mute)">ยืนยันลบ “${esc(p.name)}” ออกจากรายการสต็อกหรือไม่</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn bad" id="confirmDeleteProduct">ยืนยันลบ</button></div>`);
