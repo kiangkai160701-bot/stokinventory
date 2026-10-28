@@ -1472,6 +1472,30 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 .item-grab::after{content:"";position:absolute;left:-70px;right:-70px;top:-12px;bottom:-16px}
 .item-grab.dragging{width:52px;background:var(--acc,var(--theme-border-strong,var(--line)))}
 #itemStage1>h3{touch-action:none;-webkit-user-select:none;user-select:none}
+/* ===== Smooth drag-to-close for the item sheet (mobile sheet only) ===== */
+.item-stage1{position:relative}
+#itemStage1>h3{padding-right:42px}
+.item-close{position:absolute;top:-2px;right:-4px;z-index:2;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--line);border-radius:50%;background:var(--theme-wash,#fff0f4);color:var(--mute);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .2s ease,color .2s ease,transform .2s ease}
+.item-close svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.item-close:active{background:var(--theme-soft,#fde6ec);color:var(--ink);transform:scale(.92)}
+.ov-item.sheet-dragging{overflow:hidden!important;scroll-snap-type:none!important}
+.item-grab,#itemStage1>h3{-webkit-touch-callout:none}
+/* ===== Mobile-only pastel tones for branch management + database bar (desktop >=1100px untouched) ===== */
+@media(max-width:1099px){
+  .bm-card .bm-enter{background:linear-gradient(135deg,#eaf6ef,#dcefe4)!important;border:1px solid #bfdccd!important;color:#4a8468!important;box-shadow:0 2px 7px rgba(120,169,147,.14)!important}
+  .bm-card .bm-enter:active{background:#d3e9dd!important}
+  .bm-card .bm-close{background:#fff0f3!important;border:1px solid #f2d4dc!important;color:#bd647a!important;box-shadow:none!important}
+  .bm-card .bm-close:active{background:#fbe3e9!important}
+  .bm-row.is-current{border-color:#cfe6d8;background:linear-gradient(135deg,#eef8f2,var(--theme-wash))}
+  .bm-badge{border:1px solid #c6e0d2;background:#e8f5ed;color:#4f8a6d}
+  .storage-progress span{background:linear-gradient(90deg,#c3e3d1,#8fc2a6)}
+  .storage-progress span.warn{background:linear-gradient(90deg,#f8e8bf,#e8c58a)}
+  .storage-progress span.danger{background:linear-gradient(90deg,#f8cfd8,#e69aab)}
+  html.dark-theme .bm-card .bm-enter{background:color-mix(in srgb,#78a993 22%,transparent)!important;border-color:color-mix(in srgb,#78a993 42%,transparent)!important;color:#a6d4bc!important;box-shadow:none!important}
+  html.dark-theme .bm-card .bm-close{background:color-mix(in srgb,#c96f83 18%,transparent)!important;border-color:color-mix(in srgb,#c96f83 40%,transparent)!important;color:#f0a3b3!important}
+  html.dark-theme .bm-row.is-current{border-color:color-mix(in srgb,#78a993 45%,transparent);background:linear-gradient(135deg,color-mix(in srgb,#78a993 14%,transparent),var(--theme-wash))}
+  html.dark-theme .bm-badge{background:color-mix(in srgb,#78a993 20%,transparent);border-color:color-mix(in srgb,#78a993 40%,transparent);color:#a6d4bc}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -3320,8 +3344,10 @@ function openModal(html, kind = '') {
   overlay._anims = [sheetAnim, backdropAnim];
   sheetAnim.onfinish = () => { sheet.style.willChange = ''; overlay._anims = null; };
 }
-function closeModal() {
+function closeModal(ms) {
   const overlay = $('#ov');
+  const closeMs = typeof ms === 'number' && ms > 0 ? ms : SHEET_CLOSE_MS;
+  const closeEase = closeMs > SHEET_CLOSE_MS ? 'cubic-bezier(.33,.0,.2,1)' : SHEET_EASE_CLOSE;
   if (!overlay || overlay.dataset.closing) return;
   overlay.dataset.closing = 'true';
   overlay.style.pointerEvents = 'none';
@@ -3347,11 +3373,11 @@ function closeModal() {
   sheet.style.willChange = 'transform';
   const sheetAnim = sheet.animate(
     [{ transform: `translate3d(0,${startY}px,0)` }, { transform: 'translate3d(0,100%,0)' }],
-    { duration: SHEET_CLOSE_MS, easing: SHEET_EASE_CLOSE, fill: 'forwards' }
+    { duration: closeMs, easing: closeEase, fill: 'forwards' }
   );
-  if (backdrop) backdrop.animate([{ opacity: startOpacity }, { opacity: 0 }], { duration: SHEET_CLOSE_MS, easing: 'ease-in', fill: 'forwards' });
+  if (backdrop) backdrop.animate([{ opacity: startOpacity }, { opacity: 0 }], { duration: closeMs, easing: closeMs > SHEET_CLOSE_MS ? 'ease-in-out' : 'ease-in', fill: 'forwards' });
   sheetAnim.onfinish = finish;
-  setTimeout(finish, SHEET_CLOSE_MS + 300);
+  setTimeout(finish, closeMs + 300);
 }
 
 function toast(t, err) {
@@ -3398,50 +3424,86 @@ function setupItemSheet(p) {
   const measure = () => { ov.style.setProperty('--stage1', Math.ceil(stage.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top) + 'px'); };
   measure();
   if ('ResizeObserver' in window) new ResizeObserver(measure).observe(stage);
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button'; closeBtn.className = 'item-close'; closeBtn.setAttribute('aria-label', 'ปิด');
+  closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  closeBtn.onclick = () => closeModal(760);   // slow, soft slide down
+  stage.appendChild(closeBtn);
   $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
   setupItemHistory(p);
 
   // Drag the grab bar / title down to close the sheet (touch-friendly, no need to tap the empty area)
+  // Smoothness: layers are promoted on pointerdown (before the first move), scroll-snap is paused while
+  // dragging, and all writes are batched into one requestAnimationFrame per frame.
   const backdropEl = ov.querySelector('.ov-backdrop'), grab = ov.querySelector('.item-grab'), title = stage.querySelector('h3');
-  let dg = null;
+  let dg = null, raf = 0;
+  const paint = () => {
+    raf = 0;
+    if (!dg || !dg.moved) return;
+    sheet.style.transform = `translate3d(0,${dg.dy}px,0)`;
+    if (backdropEl) backdropEl.style.opacity = String(Math.max(0.15, 1 - Math.max(0, dg.dy) / 420));
+  };
+  const dragCleanup = () => {
+    sheet.style.willChange = ''; if (backdropEl) backdropEl.style.willChange = '';
+    ov.classList.remove('sheet-dragging');
+  };
   const dragStart = e => {
-    if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0) || ov.dataset.closing) return;
-    dg = { id: e.pointerId, el: e.currentTarget, y0: e.clientY, dy: 0, t0: performance.now(), moved: false };
+    if (dg || !e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0) || ov.dataset.closing) return;
+    dg = { id: e.pointerId, el: e.currentTarget, y0: e.clientY, base: 0, dy: 0, moved: false, samples: [{ t: performance.now(), y: e.clientY }] };
     try { dg.el.setPointerCapture(e.pointerId); } catch (_) {}
+    sheet.style.willChange = 'transform'; if (backdropEl) backdropEl.style.willChange = 'opacity';
+    ov.classList.add('sheet-dragging');
   };
   const dragMove = e => {
     if (!dg || e.pointerId !== dg.id) return;
-    const raw = e.clientY - dg.y0;
-    if (!dg.moved && Math.abs(raw) < 4) return;
-    if (!dg.moved) { dg.moved = true; grab && grab.classList.add('dragging'); if (ov._anims) { ov._anims.forEach(a => { try { a.cancel(); } catch (_) {} }); ov._anims = null; } sheet.style.willChange = 'transform'; }
+    const y = e.clientY;
+    if (!dg.moved) {
+      if (Math.abs(y - dg.y0) < 4) return;
+      dg.moved = true; dg.y0 = y;   // restart from here so the sheet does not jump by the 4px threshold
+      grab && grab.classList.add('dragging');
+      if (ov._anims) {
+        try { dg.base = new DOMMatrixReadOnly(getComputedStyle(sheet).transform).m42 || 0; } catch (_) {}
+        ov._anims.forEach(a => { try { a.cancel(); } catch (_) {} }); ov._anims = null;
+      }
+    }
+    const raw = dg.base + (y - dg.y0);
     dg.dy = raw > 0 ? raw : raw / 5;   // resist when pulling up
-    sheet.style.transform = `translate3d(0,${dg.dy}px,0)`;
-    if (backdropEl) backdropEl.style.opacity = String(Math.max(0.15, 1 - Math.max(0, dg.dy) / 420));
-    e.preventDefault();
+    const now = performance.now();
+    dg.samples.push({ t: now, y });
+    while (dg.samples.length > 2 && now - dg.samples[0].t > 100) dg.samples.shift();
+    if (!raf) raf = requestAnimationFrame(paint);
+    if (e.cancelable) e.preventDefault();
   };
-  const dragEnd = e => {
+  const dragEnd = (e, cancelled) => {
     if (!dg || e.pointerId !== dg.id) return;
     const d = dg; dg = null;
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
     try { d.el.releasePointerCapture(d.id); } catch (_) {}
     grab && grab.classList.remove('dragging');
-    if (!d.moved) return;
-    const speed = d.dy / Math.max(1, performance.now() - d.t0);
-    if (d.dy > 90 || (d.dy > 24 && speed > 0.5)) {
+    if (!d.moved) { dragCleanup(); return; }
+    const first = d.samples[0], last = d.samples[d.samples.length - 1];
+    const idle = performance.now() - last.t > 80;   // finger held still before release = no fling
+    const speed = idle ? 0 : (last.y - first.y) / Math.max(1, last.t - first.t);
+    sheet.style.transform = `translate3d(0,${d.dy}px,0)`;
+    if (backdropEl) backdropEl.style.opacity = String(Math.max(0.15, 1 - Math.max(0, d.dy) / 420));
+    if (!cancelled && (d.dy > 90 || (d.dy > 24 && speed > 0.5))) {
       ov._anims = [];            // makes closeModal continue from the current finger position
       closeModal();
     } else {
+      const op = backdropEl ? Number.parseFloat(backdropEl.style.opacity) || 1 : 1;
       const back = sheet.animate([{ transform: `translate3d(0,${d.dy}px,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      if (backdropEl) backdropEl.animate([{ opacity: op }, { opacity: 1 }], { duration: 260, easing: 'ease-out' });
       sheet.style.transform = ''; if (backdropEl) backdropEl.style.opacity = '';
-      back.onfinish = () => { sheet.style.willChange = ''; };
+      back.onfinish = back.oncancel = dragCleanup;
     }
   };
   [grab, title].forEach(el => {
     if (!el) return;
     el.addEventListener('pointerdown', dragStart);
     el.addEventListener('pointermove', dragMove);
-    el.addEventListener('pointerup', dragEnd);
-    el.addEventListener('pointercancel', dragEnd);
+    el.addEventListener('pointerup', e => dragEnd(e, false));
+    el.addEventListener('pointercancel', e => dragEnd(e, true));
   });
 }
 function setupItemHistory(p) {
