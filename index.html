@@ -1352,6 +1352,19 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   #nav .nav-pill.ready{transition:transform .36s cubic-bezier(.32,.72,0,1)}
   html.nav-busy .card-mascot,html.nav-busy #app::before,html.nav-busy #app::after{animation-play-state:paused!important}
 }
+
+/* ===== Mobile-only nav polish (desktop >=1100px untouched) ===== */
+.nav-loading{display:none}
+@keyframes navLoadingIn{to{opacity:1}}
+@keyframes navSpin{to{transform:rotate(360deg)}}
+@media(max-width:1099px){
+  #nav .nav-pill.ready{transition:transform .42s cubic-bezier(.3,.8,.25,1)}
+  html.nav-switching #main{opacity:.45;transition:opacity .14s ease}
+  html.nav-switching .nav-loading{display:flex}
+  .nav-loading{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:45;align-items:center;gap:8px;padding:9px 16px;border-radius:99px;background:var(--card-bg);border:1px solid var(--theme-border-strong);box-shadow:0 8px 22px var(--theme-shadow);color:var(--ink);font-size:13px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;animation:navLoadingIn .2s ease .16s forwards}
+  .nav-loading-spin{width:15px;height:15px;flex:none;border-radius:50%;border:2px solid var(--line);border-top-color:var(--acc);animation:navSpin .7s linear infinite}
+}
+@media(prefers-reduced-motion:reduce){html.nav-switching #main{transition:none}.nav-loading{animation:none;opacity:1}.nav-loading-spin{animation:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -2006,6 +2019,29 @@ function navBusyStart() {
   clearTimeout(navBusyTimer);
   navBusyTimer = setTimeout(() => document.documentElement.classList.remove('nav-busy'), 650);
 }
+let navLoadingEl = null, navSwitchTimer = null, navSwitchFallback = null;
+// Mobile layout only: the colour pill glides first, the old page dims, then the new page is drawn.
+// If drawing is slow, a small "รอสักครู่…" chip fades in (compositor-driven) instead of a silent freeze.
+function stagedPageSwitch(go) {
+  const root = document.documentElement;
+  if (!navLoadingEl) {
+    navLoadingEl = document.createElement('div');
+    navLoadingEl.className = 'nav-loading';
+    navLoadingEl.setAttribute('role', 'status');
+    navLoadingEl.setAttribute('aria-live', 'polite');
+    navLoadingEl.innerHTML = '<span class="nav-loading-spin" aria-hidden="true"></span><span>รอสักครู่…</span>';
+    document.body.appendChild(navLoadingEl);
+  }
+  clearTimeout(navSwitchTimer); clearTimeout(navSwitchFallback);
+  root.classList.add('nav-switching');
+  const finish = () => {
+    clearTimeout(navSwitchTimer); clearTimeout(navSwitchFallback);
+    root.classList.remove('nav-switching');
+    go();
+  };
+  requestAnimationFrame(() => requestAnimationFrame(() => { navSwitchTimer = setTimeout(finish, 110); }));
+  navSwitchFallback = setTimeout(finish, 700);
+}
 function runPageExit() {
   const main = $('#main');
   let called = false;
@@ -2020,6 +2056,7 @@ function runPageExit() {
     requestAnimationFrame(go);
     return;
   }
+  if (!isWideDesktop()) { stagedPageSwitch(go); return; }
   // มือถือ: ไม่รอแอนิเมชันออก ปล่อยให้แถบสีเริ่มเลื่อนก่อน 2 เฟรมแล้วค่อยวาดหน้าใหม่
   if (IS_MOBILE_BROWSER) { requestAnimationFrame(() => requestAnimationFrame(go)); return; }
   const dx = pageDirection === 'prev' ? 10 : -10;
