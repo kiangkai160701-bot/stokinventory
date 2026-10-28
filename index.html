@@ -1540,6 +1540,37 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 html.dark-theme .ih{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 14%,var(--card-bg)) 0,var(--card-bg) 190px)}
 html.dark-theme :is(.ih-back,.item-close,.ih-more,.ih-hint){color:var(--ink)!important}
 @media(prefers-reduced-motion:reduce){.ih-back,.item-close{transition:none}}
+
+/* ===== Item sheet v3: richer themed panel + cartoon stickers ===== */
+.ih{margin:26px -6px 0;padding:14px 8px 24px;border:1px solid var(--theme-border-strong,var(--line));background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 30%,var(--theme-soft,var(--card-bg))) 0,color-mix(in srgb,var(--acc) 17%,var(--theme-soft,var(--card-bg))) 55%,color-mix(in srgb,var(--acc) 24%,var(--theme-soft,var(--card-bg))) 100%);box-shadow:0 8px 22px color-mix(in srgb,var(--acc) 20%,transparent),inset 0 1px 0 rgba(255,255,255,.5)}
+.ih-head h4{color:var(--ink)}
+.ih-filter{background:color-mix(in srgb,var(--card-bg) 74%,var(--acc) 12%)}
+.ih-sum>div{background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 12%,var(--card-bg)),var(--card-bg))}
+.ih-sum .in{background:linear-gradient(160deg,color-mix(in srgb,var(--ok) 18%,var(--card-bg)),var(--card-bg))}
+.ih-sum .out{background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 16%,var(--card-bg)),var(--card-bg))}
+.ih-item{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 7%,var(--card-bg)),var(--card-bg) 75%)}
+.ih-empty{background:color-mix(in srgb,var(--card-bg) 70%,var(--acc) 12%);position:relative}
+.iw-history .ih{margin:0;padding:0;border:0;box-shadow:none;background:none}
+.iw-history{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 24%,var(--theme-soft,var(--card-bg))),color-mix(in srgb,var(--acc) 12%,var(--theme-soft,var(--card-bg))))!important}
+html.dark-theme .ih{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 26%,var(--card-bg)),color-mix(in srgb,var(--acc) 12%,var(--card-bg)))}
+html.dark-theme .iw-history{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 22%,var(--card-bg)),var(--card-bg))!important}
+.stk-host{position:relative}
+.ih-stk{position:absolute;z-index:2;display:grid;place-items:center;width:28px;height:28px;border:1px solid color-mix(in srgb,var(--theme-border-strong,var(--line)) 70%,white);border-radius:11px;background:radial-gradient(circle at 32% 22%,rgba(255,255,255,.98),var(--theme-soft,#fff0f4) 68%);font-size:18px;line-height:1;pointer-events:none;filter:drop-shadow(0 3px 4px var(--theme-shadow,rgba(0,0,0,.12)));animation:mascotStickerBob 4.2s ease-in-out infinite}
+.stk-host>.stk-corner{top:9px;right:10px}
+div.stk-host:has(>.stk-corner){padding-right:50px!important}
+.operator-note.stk-host{padding-right:46px}
+.stk-mid{top:50%;right:10px;margin-top:-14px;width:24px;height:24px;margin-top:-12px;font-size:16px;border-radius:9px}
+.ih-hint .stk-mid,.ih-clear .stk-mid{animation:none}
+.ih-hint,.ih-clear{position:relative}
+.stk-edge{top:-22px;transform-origin:50% 100%}
+.stk-edge-b{bottom:-15px}
+.ih-stk.stk-item{right:10px;bottom:9px;width:24px;height:24px;border:0;border-radius:0;background:none;font-size:18px;opacity:.9;animation:none}
+.ih-stk.stk-empty{position:relative;display:inline-grid;margin:0 auto 6px;animation:mascotStickerBob 4.2s ease-in-out infinite}
+.ih-empty{display:grid;justify-items:center}
+@media(max-width:340px){.stk-edge[style*="74px"]{display:none}}
+@media(prefers-reduced-motion:reduce){.ih-stk{animation:none!important}}
+html.formal-theme .ih-stk{display:none!important}
+html.nav-busy .ih-stk{animation-play-state:paused}
 </style>
 </head>
 <body data-theme="teal">
@@ -3466,6 +3497,43 @@ function itemHistorySection(p, wide = false) {
     <div class="ih-list" id="ihList"></div>
   </section>`;
 }
+const IH_STK_FALLBACK = ['🍣', '🍙', '🍤'];
+function itemSheetFriends() {
+  if (THEMES[currentTheme]?.formal) return [];
+  const f = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || IH_STK_FALLBACK;
+  return f && f.length ? f : IH_STK_FALLBACK;
+}
+function ihSticker(i, cls = '') {
+  const f = itemSheetFriends();
+  return f.length ? `<span class="ih-stk ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : '';
+}
+// Cute theme stickers perched on empty corners / edges only (space is reserved so text is never covered)
+function decorateItemSheet(ov, sheet, stage) {
+  if (!itemSheetFriends().length) return;
+  const put = (host, i, cls, style) => {
+    if (!host) return;
+    const t = document.createElement('div'); t.innerHTML = ihSticker(i, cls);
+    const el = t.firstChild; if (!el) return;
+    if (style) el.style.cssText += style;
+    host.appendChild(el);
+  };
+  const info = stage.querySelector('h3 + div');
+  if (info) { info.classList.add('stk-host'); put(info, 0, 'stk-corner'); }
+  const note = stage.querySelector('.operator-note');
+  if (note) { note.classList.add('stk-host'); put(note, 1, 'stk-mid'); }
+  const hint = stage.querySelector('.ih-hint');
+  if (hint) put(hint, 2, 'stk-mid');
+  put(sheet, 2, 'stk-edge', 'left:26px');
+  put(sheet, 1, 'stk-edge', 'left:calc(50% + 74px)');
+  const ih = sheet.querySelector('.ih');
+  if (ih) {
+    put(ih, 0, 'stk-edge', 'left:30px');
+    put(ih, 2, 'stk-edge', 'right:128px');
+    put(ih, 1, 'stk-edge-b', 'right:30px');
+    put(ih, 0, 'stk-edge-b', 'left:34px');
+    put(ih.querySelector('.ih-clear'), 1, 'stk-mid');
+  }
+}
 function setupItemSheet(p) {
   const ov = $('#ov'); if (!ov) return;
   const sheet = ov.querySelector('.sheet'), stage = $('#itemStage1');
@@ -3485,6 +3553,7 @@ function setupItemSheet(p) {
   $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
   setupItemHistory(p);
+  decorateItemSheet(ov, sheet, stage);
 
   // Drag the grab bar / title down to close the sheet (touch-friendly, no need to tap the empty area)
   // Smoothness: layers are promoted on pointerdown (before the first move), scroll-snap is paused while
@@ -3570,12 +3639,12 @@ function setupItemHistory(p) {
     const sum = type => rows.filter(x => x.type === type).reduce((n, x) => n + Math.abs(Number(x.amt) || 0), 0);
     const unit = esc(p.unit || '');
     $('#ihSum').innerHTML = `<div class="in"><small>รับเข้า</small><b>${fmt(sum('in'))}</b><em>${unit}</em></div><div class="out"><small>เบิกจ่าย</small><b>${fmt(sum('out'))}</b><em>${unit}</em></div><div><small>ทั้งหมด</small><b>${rows.length}</b><em>ครั้ง</em></div>`;
-    if (!rows.length) { $('#ihList').innerHTML = `<div class="ih-empty">${base.length ? 'ไม่พบรายการตามตัวกรองที่เลือก' : 'ยังไม่มีประวัติของรายการนี้'}</div>`; return; }
+    if (!rows.length) { $('#ihList').innerHTML = `<div class="ih-empty">${ihSticker(0, 'stk-empty')}${base.length ? 'ไม่พบรายการตามตัวกรองที่เลือก' : 'ยังไม่มีประวัติของรายการนี้'}</div>`; return; }
     const shown = rows.slice(0, st.limit);
-    $('#ihList').innerHTML = shown.map(x => {
+    $('#ihList').innerHTML = shown.map((x, idx) => {
       const [ico, label, cls] = IH_KINDS[x.type], amt = Number(x.amt) || 0, d = new Date(Number(x.ts) || 0);
       const sign = x.type === 'in' ? '+' : x.type === 'out' ? '−' : amt > 0 ? '+' : amt < 0 ? '−' : '±';
-      return `<div class="ih-item ${cls}"><span class="ih-ico" aria-hidden="true">${ico}</span><div class="ih-main"><div class="ih-line"><b>${label}</b><strong>${sign}${fmt(Math.abs(amt))} <small>${esc(x.unit || p.unit || '')}</small></strong></div><div class="ih-sub"><span>👤 ${esc(x.user || '-')}</span><span>${IH_DATE.format(d)} · ${IH_TIME.format(d)}</span></div><div class="ih-bal">คงเหลือ ${fmt(x.before)} → ${fmt(x.after)}</div>${x.note ? `<div class="ih-note">“${esc(x.note)}”</div>` : ''}</div></div>`;
+      return `<div class="ih-item ${cls}"><span class="ih-ico" aria-hidden="true">${ico}</span><div class="ih-main"><div class="ih-line"><b>${label}</b><strong>${sign}${fmt(Math.abs(amt))} <small>${esc(x.unit || p.unit || '')}</small></strong></div><div class="ih-sub"><span>👤 ${esc(x.user || '-')}</span><span>${IH_DATE.format(d)} · ${IH_TIME.format(d)}</span></div><div class="ih-bal">คงเหลือ ${fmt(x.before)} → ${fmt(x.after)}</div>${x.note ? `<div class="ih-note">“${esc(x.note)}”</div>` : ''}</div>${!x.note && idx % 3 === 1 ? ihSticker(idx, 'stk-item') : ''}</div>`;
     }).join('') + (rows.length > shown.length ? `<button type="button" class="ih-more" id="ihMore">แสดงเพิ่มอีก ${Math.min(30, rows.length - shown.length)} รายการ</button>` : '');
   };
   $('#ihUser').onchange = e => { st.user = e.target.value; st.limit = 30; draw(); };
