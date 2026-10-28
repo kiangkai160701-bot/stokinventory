@@ -973,15 +973,21 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
   .chart-series-legend{font-size:11px;margin-top:5px}
   .dash-rank-card{padding:12px!important}
   .dash-rank-heading h3{font-size:13px}
-  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px;padding:8px;margin:8px 0}
-  .dash-rank-date input{height:38px;min-height:38px;font-size:13px;padding:6px 8px}
-  .dash-rank-filter>button{grid-column:1/-1;justify-self:stretch;height:34px;min-height:34px;padding:6px 10px;font-size:11px}
+  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;align-items:end;gap:6px;padding:7px 8px;margin:8px 0}
+  .dash-rank-date{gap:2px}
+  .dash-rank-date input{height:34px;min-height:34px;font-size:12px;padding:4px 5px}
+  .dash-rank-date input::-webkit-date-and-time-value{text-align:left;min-height:1em}
+  .dash-rank-filter>button{grid-column:auto;justify-self:end;height:34px;min-height:34px;padding:4px 8px;font-size:10px;white-space:nowrap}
 }
 @media(max-width:420px){
-  .dash-rank-filter{grid-template-columns:1fr;gap:5px;padding:7px;margin:7px 0}
-  .dash-rank-date{gap:3px}
-  .dash-rank-date input{height:36px;min-height:36px;font-size:12px;padding:5px 7px}
-  .dash-rank-filter>button{grid-column:1;justify-self:start;width:auto;height:32px;min-height:32px;padding:4px 8px;font-size:10px}
+  .dash-rank-filter{grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:5px;padding:6px 7px;margin:7px 0}
+  .dash-rank-date{gap:2px}
+  .dash-rank-date input{height:34px;min-height:34px;font-size:11.5px;padding:4px 4px}
+  .dash-rank-filter>button{grid-column:auto;justify-self:end;width:auto;height:34px;min-height:34px;padding:4px 7px;font-size:10px}
+}
+@media(max-width:350px){
+  .dash-rank-date input{font-size:10.5px;padding:4px 2px}
+  .dash-rank-filter>button{padding:4px 5px;font-size:9px}
 }
 /* Dashboard mobile polish: clear chart labels and reserved mascot space */
 .chart-pie{box-shadow:0 5px 14px var(--theme-shadow),inset 0 0 0 1px rgba(255,255,255,.5)}
@@ -1338,6 +1344,14 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   #main:has(.user-activity-card) .user-activity-card .pill{font-size:11px}
 }
 @media(max-width:1099px){.desktop-settings-shortcut{display:none!important}}
+
+/* Mobile touch smoothness: faster nav response, pause decorative animations while switching pages */
+@media(hover:none) and (pointer:coarse) and (max-width:1099px){
+  #nav.nav{contain:layout style}
+  #nav.nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s ease!important}
+  #nav .nav-pill.ready{transition:transform .36s cubic-bezier(.32,.72,0,1)}
+  html.nav-busy .card-mascot,html.nav-busy #app::before,html.nav-busy #app::after{animation-play-state:paused!important}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -1405,8 +1419,24 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>'
 // คีย์แบบ Publishable เปิดเผยได้ในหน้าเว็บ ส่วนข้อมูลจริงถูกป้องกันด้วยฟังก์ชันฐานข้อมูลและเซสชัน
 const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
 const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
+// ตรวจว่าเป็นบราวเซอร์มือถือหรือไม่ (ส่วนจำล็อกอินเพิ่มเติมทำงานเฉพาะมือถือ)
+const IS_MOBILE_BROWSER = (() => { try { const ua = navigator.userAgent || ''; return /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1); } catch { return false; } })();
+// สำรองเซสชันไว้ที่คุกกี้ด้วย เพราะบราวเซอร์มือถือบางครั้งล้าง localStorage เองเมื่อปิดแอป/หน่วยความจำเต็ม
+const mobileSessionBackup = {
+  key: 'inv_cloud_session_bk',
+  read() { if (!IS_MOBILE_BROWSER) return null; try { const m = document.cookie.match(new RegExp('(?:^|; )' + this.key + '=([^;]*)')); return m ? decodeURIComponent(m[1]) : null; } catch { return null; } },
+  write(raw, maxAgeSec) { if (!IS_MOBILE_BROWSER) return; try { document.cookie = `${this.key}=${encodeURIComponent(raw)}; path=/; max-age=${Math.max(60, Math.floor(maxAgeSec))}; SameSite=Lax${location.protocol === 'https:' ? '; Secure' : ''}`; } catch {} },
+  clear() { if (!IS_MOBILE_BROWSER) return; try { document.cookie = `${this.key}=; path=/; max-age=0; SameSite=Lax`; } catch {} }
+};
+if (IS_MOBILE_BROWSER) { try { navigator.storage?.persist?.().catch(() => {}); } catch {} }
 const cloudTokenStore = {
   key: 'inv_cloud_session',
+  memory: null,
+  persist(session) {
+    try { localStorage.setItem(this.key, JSON.stringify(session)); } catch {}
+    if (IS_MOBILE_BROWSER) { this.memory = session; mobileSessionBackup.write(JSON.stringify(session), (session.logoutAt - Date.now()) / 1000); }
+  },
+  clear() { try { localStorage.removeItem(this.key); } catch {} mobileSessionBackup.clear(); this.memory = null; },
   nextSaturdayMidnight(from = new Date()) {
     const date = new Date(from);
     const daysUntilSaturday = (6 - date.getDay() + 7) % 7 || 7;
@@ -1416,38 +1446,47 @@ const cloudTokenStore = {
   },
   getSession() {
     try {
-      let raw = localStorage.getItem(this.key);
+      let raw = null;
+      try { raw = localStorage.getItem(this.key); } catch {}
       if (!raw) {
         // รักษาเซสชันจากหน้าเว็บรุ่นก่อนที่เก็บไว้ชั่วคราวใน sessionStorage
-        const legacyToken = sessionStorage.getItem(this.key);
-        if (legacyToken) {
-          const now = Date.now();
-          const migrated = { token: legacyToken, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
-          localStorage.setItem(this.key, JSON.stringify(migrated));
-          sessionStorage.removeItem(this.key);
-          raw = JSON.stringify(migrated);
-        }
+        try {
+          const legacyToken = sessionStorage.getItem(this.key);
+          if (legacyToken) {
+            const now = Date.now();
+            const migrated = { token: legacyToken, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
+            this.persist(migrated);
+            sessionStorage.removeItem(this.key);
+            raw = JSON.stringify(migrated);
+          }
+        } catch {}
+      }
+      if (!raw && IS_MOBILE_BROWSER) {
+        // มือถือ: ถ้า localStorage ถูกล้าง ให้กู้เซสชันจากคุกกี้สำรองหรือหน่วยความจำ
+        raw = mobileSessionBackup.read() || (this.memory ? JSON.stringify(this.memory) : null);
+        if (raw) { try { localStorage.setItem(this.key, raw); } catch {} }
       }
       if (!raw) return null;
       let session;
       try { session = JSON.parse(raw); } catch { session = { token: raw }; }
-      if (!session || typeof session.token !== 'string' || !session.token) { localStorage.removeItem(this.key); return null; }
+      if (!session || typeof session.token !== 'string' || !session.token) { this.clear(); return null; }
       // อัปเกรด token เดิมให้จำกัดอายุและกำหนดออกจากระบบคืนวันเสาร์ตามเวลาของเครื่อง
       if (!Number.isFinite(session.expiresAt) || !Number.isFinite(session.logoutAt)) {
         const now = Date.now();
         session = { token: session.token, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) };
-        localStorage.setItem(this.key, JSON.stringify(session));
+        this.persist(session);
       }
-      if (Date.now() >= session.expiresAt || Date.now() >= session.logoutAt) { localStorage.removeItem(this.key); return null; }
+      if (Date.now() >= session.expiresAt || Date.now() >= session.logoutAt) { this.clear(); return null; }
+      if (IS_MOBILE_BROWSER) this.memory = session;
       return session;
     } catch { return null; }
   },
   get() { return this.getSession()?.token || null; },
   set(v, branchId = null) {
     try {
-      if (!v) { localStorage.removeItem(this.key); return; }
+      if (!v) { this.clear(); return; }
       const now = Date.now();
-      localStorage.setItem(this.key, JSON.stringify({ token: v, branchId, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) }));
+      this.persist({ token: v, branchId, expiresAt: now + 7 * 24 * 60 * 60 * 1000, logoutAt: this.nextSaturdayMidnight(new Date(now)) });
     } catch {}
   }
 };
@@ -1791,6 +1830,10 @@ async function tryLogin() {
     store.set('inv_lock', lock); return fail(result.error || `รหัสไม่ถูกต้อง (เหลือ ${5 - lock.n} ครั้ง)`);
   }
   lock = { n: 0, until: 0 }; store.set('inv_lock', lock); setCurrentBranch(result.branch); sess.set(result.token, result.branch?.id);
+  if (IS_MOBILE_BROWSER) {
+    try { localStorage.setItem('inv_last_username', name); } catch {}
+    try { if (window.PasswordCredential && navigator.credentials?.store) navigator.credentials.store(new PasswordCredential({ id: name, password: pinVal, name })).catch(() => {}); } catch {}
+  }
   applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
   if (migrateLegacyBrowserData(result)) save();
   enter(result.me, result.branch);
@@ -1807,7 +1850,7 @@ function enter(u, branch = currentBranch) {
 function logout() {
   stopPresence();
   const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
-  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint();
+  sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
 function updateOnlineUsers(users = [], lastOnline = {}) {
@@ -1852,6 +1895,7 @@ $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('
 
 async function refreshCloudState() {
   if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
+  if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
   try {
     const result = await cloudRpc('api_get_state', { p_token: cloudToken });
     if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
@@ -1955,7 +1999,13 @@ window.addEventListener('resize', () => {
     } else placeNavPill(true);
   });
 }, { passive: true });
-let navPending = false, exitAnim = null;
+let navPending = false, exitAnim = null, navBusyTimer = null;
+function navBusyStart() {
+  if (!IS_MOBILE_BROWSER) return;
+  document.documentElement.classList.add('nav-busy');
+  clearTimeout(navBusyTimer);
+  navBusyTimer = setTimeout(() => document.documentElement.classList.remove('nav-busy'), 650);
+}
 function runPageExit() {
   const main = $('#main');
   let called = false;
@@ -1970,6 +2020,8 @@ function runPageExit() {
     requestAnimationFrame(go);
     return;
   }
+  // มือถือ: ไม่รอแอนิเมชันออก ปล่อยให้แถบสีเริ่มเลื่อนก่อน 2 เฟรมแล้วค่อยวาดหน้าใหม่
+  if (IS_MOBILE_BROWSER) { requestAnimationFrame(() => requestAnimationFrame(go)); return; }
   const dx = pageDirection === 'prev' ? 10 : -10;
   exitAnim = main.animate(
     [{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: `translate3d(${dx}px,0,0)` }],
@@ -1984,6 +2036,7 @@ document.addEventListener('click', e => {
   const availableTabs = tabs().map(item => item[0]);
   pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
   tab = button.dataset.t;
+  navBusyStart();
   syncNav();
   if (navPending) return;
   navPending = true;
@@ -2102,11 +2155,11 @@ function render(animatePage = false) {
   finishRender();
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
-    const offset = pageDirection === 'prev' ? -22 : 22;
+    const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 22);
     main.style.willChange = 'transform, opacity';
     pageAnimation = main.animate(
       [{ opacity: 0, transform: `translate3d(${offset}px,0,0)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
-      { duration: 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
+      { duration: IS_MOBILE_BROWSER ? 240 : 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
     );
     const activeAnimation = pageAnimation;
     activeAnimation.onfinish = () => {
@@ -2118,8 +2171,14 @@ function render(animatePage = false) {
   }
 }
 
+let lastClockMinute = -1;
 setInterval(() => {
-  $('#clock').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+  // มือถือ: อัปเดตนาฬิกาเฉพาะตอนนาทีเปลี่ยน (ข้อความแสดงถึงแค่นาที) ลดงานที่ทำทุกวินาที
+  const minute = Math.floor(Date.now() / 60000);
+  if (!IS_MOBILE_BROWSER || minute !== lastClockMinute) {
+    lastClockMinute = minute;
+    $('#clock').textContent = new Date().toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+  }
   checkSaturdayAutoLogout();
 }, 1000);
 
@@ -3532,8 +3591,12 @@ function pinModal(force) {
   };
 }
 
+function prefillLastUsername() {
+  if (!IS_MOBILE_BROWSER) return;
+  try { const last = localStorage.getItem('inv_last_username'); if (last && !$('#lgUser').value) $('#lgUser').value = last; } catch {}
+}
 function revealLogin(message = '') {
-  $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide');
+  $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); prefillLastUsername();
   if (message) $('#lgMsg').textContent = message;
 }
 
