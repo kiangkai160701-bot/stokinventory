@@ -1458,6 +1458,20 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 .iw-close{position:absolute;top:-14px;right:-14px;z-index:3;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:var(--card-bg);color:var(--ink);font-size:16px;cursor:pointer;box-shadow:var(--shadow-sm)}
 .iw-close:hover{background:var(--theme-soft)}
 
+
+/* ===== Mobile-only: scrollable ranking lists (6 rows) + drag-to-close item sheet ===== */
+@media(min-width:1100px){.dash-rank-row.rank-extra{display:none!important}}
+@media(max-width:1099px){
+  .dash-rank-scroll{max-height:calc(6*35px + 5*6px + 2px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:5px;margin-right:-5px;scrollbar-width:thin;scrollbar-color:var(--theme-border-strong,var(--line)) transparent;scroll-snap-type:y proximity}
+  .dash-rank-scroll .dash-rank-row{flex:none;scroll-snap-align:start}
+  .dash-rank-scroll::-webkit-scrollbar{width:4px}
+  .dash-rank-scroll::-webkit-scrollbar-track{background:transparent}
+  .dash-rank-scroll::-webkit-scrollbar-thumb{background:var(--theme-border-strong,var(--line));border-radius:99px}
+}
+.item-grab{position:relative;touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent;transition:background-color .18s ease,width .18s ease}
+.item-grab::after{content:"";position:absolute;left:-70px;right:-70px;top:-12px;bottom:-16px}
+.item-grab.dragging{width:52px;background:var(--acc,var(--theme-border-strong,var(--line)))}
+#itemStage1>h3{touch-action:none;-webkit-user-select:none;user-select:none}
 </style>
 </head>
 <body data-theme="teal">
@@ -2731,7 +2745,7 @@ function dashboardView() {
       const key = `${x.pid || x.pname}|${x.unit || ''}`, current = grouped.get(key) || {name:x.pname || 'วัตถุดิบ',unit:x.unit || '',qty:0,count:0};
       current.qty += Math.abs(Number(x.amt)||0); current.count++; grouped.set(key,current);
     }
-    return [...grouped.values()].sort((a,b)=>b.qty-a.qty).slice(0,4);
+    return [...grouped.values()].sort((a,b)=>b.qty-a.qty);
   };
   const topOut = rankItems('out', outRankRange.logs), topIn = rankItems('in', inRankRange.logs);
   const needsAttention = P.filter(p => status(p) !== 'ok').sort((a,b) => (status(a)==='out'?-1:0)-(status(b)==='out'?-1:0) || a.qty-b.qty).slice(0,5);
@@ -2819,7 +2833,7 @@ function dashboardView() {
     <div class="dc-legend"><span><i style="--c:var(--dc-ok)"></i>รับเข้า</span><span><i style="--c:var(--dc-bad)"></i>เบิกจ่าย</span><small>แตะ/วางเมาส์บนแท่งเพื่อดูรายละเอียด</small></div>
   </section>`;
 
-  const movementRows = (rows,empty) => rows.length ? rows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`).join('') : `<small class="dash-empty-note">${empty}</small>`;
+  const movementRows = (rows,empty) => rows.length ? rows.map((row,i)=>`<div class="dash-rank-row${i>=4?' rank-extra':''}"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`).join('') : `<small class="dash-empty-note">${empty}</small>`;
   const inlineHistoryType = isWideDesktop() ? new URLSearchParams(location.search).get('inlineHistoryType') || '' : '';
   const inlineHistoryLabels = { in:'รับเข้า', out:'เบิกจ่าย', adjust:'ปรับยอด' };
   const inlineHistorySource = inlineHistoryType ? L.filter(row => row.type === inlineHistoryType) : L;
@@ -2854,8 +2868,8 @@ function dashboardView() {
   </div>
   <div class="dash-grid">
     <div class="dash-card"><h3>⚠️ วัตถุดิบที่ควรจัดการ</h3><div class="dash-rank-list">${needsAttention.map(p=>`<div class="dash-rank-row"><b>${esc(p.name)}</b><span class="dash-status ${status(p)}">${num(p.qty)} ${esc(p.unit)} · ${STX[status(p)]}</span></div>`).join('')||'<small class="dash-empty-note">วัตถุดิบทุกชนิดอยู่ในระดับปกติ</small>'}</div></div>
-    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
-    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
     <div class="dash-card"><h3>🍱 ภาพรวมหมวดหมู่</h3><div class="dash-rank-list">${categoryRows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${row.count} รายการ</span></div>`).join('')||'<small class="dash-empty-note">ยังไม่มีหมวดหมู่</small>'}</div></div>
     <div class="dash-card desktop-recent-history">${isWideDesktop()?`<div class="desktop-history-heading"><h3>🕘 ประวัติล่าสุด${inlineHistoryType && inlineHistoryLabels[inlineHistoryType] ? ` · ${inlineHistoryLabels[inlineHistoryType]}` : ''}</h3>${inlineHistoryType ? '<button type="button" class="desktop-history-clear" data-clear-inline-history>ล้าง</button>' : ''}</div>`:'<h3>🍣 รายการเคลื่อนไหวล่าสุดในช่วงนี้</h3>'}<div class="recent-movements">${latestHistoryRows || (isWideDesktop() ? '<small class="dash-empty-note">ยังไม่มีประวัติการทำรายการ</small>' : '<small class="dash-empty-note">ไม่มีรายการในช่วงวันที่เลือก</small>')}</div></div>
   </div>`;
@@ -3387,6 +3401,48 @@ function setupItemSheet(p) {
   $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
   setupItemHistory(p);
+
+  // Drag the grab bar / title down to close the sheet (touch-friendly, no need to tap the empty area)
+  const backdropEl = ov.querySelector('.ov-backdrop'), grab = ov.querySelector('.item-grab'), title = stage.querySelector('h3');
+  let dg = null;
+  const dragStart = e => {
+    if (!e.isPrimary || (e.pointerType === 'mouse' && e.button !== 0) || ov.dataset.closing) return;
+    dg = { id: e.pointerId, el: e.currentTarget, y0: e.clientY, dy: 0, t0: performance.now(), moved: false };
+    try { dg.el.setPointerCapture(e.pointerId); } catch (_) {}
+  };
+  const dragMove = e => {
+    if (!dg || e.pointerId !== dg.id) return;
+    const raw = e.clientY - dg.y0;
+    if (!dg.moved && Math.abs(raw) < 4) return;
+    if (!dg.moved) { dg.moved = true; grab && grab.classList.add('dragging'); if (ov._anims) { ov._anims.forEach(a => { try { a.cancel(); } catch (_) {} }); ov._anims = null; } sheet.style.willChange = 'transform'; }
+    dg.dy = raw > 0 ? raw : raw / 5;   // resist when pulling up
+    sheet.style.transform = `translate3d(0,${dg.dy}px,0)`;
+    if (backdropEl) backdropEl.style.opacity = String(Math.max(0.15, 1 - Math.max(0, dg.dy) / 420));
+    e.preventDefault();
+  };
+  const dragEnd = e => {
+    if (!dg || e.pointerId !== dg.id) return;
+    const d = dg; dg = null;
+    try { d.el.releasePointerCapture(d.id); } catch (_) {}
+    grab && grab.classList.remove('dragging');
+    if (!d.moved) return;
+    const speed = d.dy / Math.max(1, performance.now() - d.t0);
+    if (d.dy > 90 || (d.dy > 24 && speed > 0.5)) {
+      ov._anims = [];            // makes closeModal continue from the current finger position
+      closeModal();
+    } else {
+      const back = sheet.animate([{ transform: `translate3d(0,${d.dy}px,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: 260, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      sheet.style.transform = ''; if (backdropEl) backdropEl.style.opacity = '';
+      back.onfinish = () => { sheet.style.willChange = ''; };
+    }
+  };
+  [grab, title].forEach(el => {
+    if (!el) return;
+    el.addEventListener('pointerdown', dragStart);
+    el.addEventListener('pointermove', dragMove);
+    el.addEventListener('pointerup', dragEnd);
+    el.addEventListener('pointercancel', dragEnd);
+  });
 }
 function setupItemHistory(p) {
   const base = itemHistoryBase(p).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
