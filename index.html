@@ -3341,7 +3341,7 @@ function addLog(type, p, amt, before, after, note = '') {
   L = pruneActivityLog(L);
 }
 function addImportLog(count, before, after, note = '') {
-  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt, before, after, ...(note ? { note } : {}) });
+  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt: count, before, after, ...(note ? { note } : {}) });
   L = pruneActivityLog(L);
 }
 
