@@ -1496,6 +1496,50 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   html.dark-theme .bm-row.is-current{border-color:color-mix(in srgb,#78a993 45%,transparent);background:linear-gradient(135deg,color-mix(in srgb,#78a993 14%,transparent),var(--theme-wash))}
   html.dark-theme .bm-badge{background:color-mix(in srgb,#78a993 20%,transparent);border-color:color-mix(in srgb,#78a993 40%,transparent);color:#a6d4bc}
 }
+
+/* ===== Item sheet v2: pill close button + themed history ===== */
+.ov-item.is-closing .ih{display:none}
+#itemStage1>h3{padding-right:104px}
+.ih-back,.item-close{display:inline-flex;align-items:center;justify-content:center;gap:5px;flex:none;height:34px;padding:0 14px;border:1px solid var(--theme-border-strong,var(--line));border-radius:99px;background:linear-gradient(135deg,var(--acc-light,var(--theme-soft)),var(--theme-wash));color:var(--acc-hover,var(--ink));font:inherit;font-size:12px;font-weight:700;letter-spacing:.1px;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px color-mix(in srgb,var(--acc) 16%,transparent);-webkit-tap-highlight-color:transparent;transition:transform .2s ease,box-shadow .2s ease,background-color .2s ease}
+.item-close{position:absolute;top:-3px;right:-4px;width:auto;z-index:2}
+.ih-back:active,.item-close:active{transform:scale(.95);box-shadow:none;background:var(--theme-soft);color:var(--ink)}
+.ih{position:relative;margin:0 -6px;padding:12px 8px 6px;border-radius:20px;background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 9%,var(--card-bg)) 0,var(--card-bg) 190px)}
+.ih-head{padding:2px 2px 0;margin-bottom:14px}
+.ih-head h4{font-size:16.5px;font-weight:800;letter-spacing:.1px}
+.ih-filter{border-color:var(--theme-border-strong,var(--line));background:color-mix(in srgb,var(--acc) 6%,var(--card-bg));box-shadow:0 2px 10px color-mix(in srgb,var(--acc) 8%,transparent)}
+.ih-filter label{font-weight:600;color:var(--mute)}
+.ih-filter select,.ih-filter input{border-color:var(--theme-border-strong,var(--line));background:var(--card-bg)}
+.ih-clear{border-color:var(--theme-border-strong,var(--line));background:var(--card-bg);color:var(--acc-hover,var(--mute))}
+.ih-sum{gap:9px}
+.ih-sum>div{position:relative;overflow:hidden;padding:11px 6px 10px;border-radius:15px;border:1px solid var(--theme-border-strong,var(--line));background:linear-gradient(160deg,color-mix(in srgb,var(--acc) 13%,var(--card-bg)),var(--card-bg));box-shadow:0 3px 10px color-mix(in srgb,var(--acc) 10%,transparent)}
+.ih-sum>div::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--acc);opacity:.75}
+.ih-sum .in{background:linear-gradient(160deg,color-mix(in srgb,var(--ok) 17%,var(--card-bg)),var(--card-bg));border-color:color-mix(in srgb,var(--ok) 28%,var(--line))}
+.ih-sum .in::before{background:var(--ok)}
+.ih-sum .out{background:linear-gradient(160deg,color-mix(in srgb,var(--bad) 15%,var(--card-bg)),var(--card-bg));border-color:color-mix(in srgb,var(--bad) 26%,var(--line))}
+.ih-sum .out::before{background:var(--bad)}
+.ih-sum small{font-weight:600}
+.ih-sum b{font-size:20px}
+.ih-list{gap:10px}
+.ih-item{position:relative;overflow:hidden;gap:12px;padding:12px 13px 12px 15px;border-radius:16px;border:1px solid var(--theme-border-strong,var(--line));background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 6%,var(--card-bg)),var(--card-bg) 70%);box-shadow:0 3px 12px color-mix(in srgb,var(--acc) 9%,transparent)}
+.ih-item::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--acc)}
+.ih-item.in::before{background:var(--ok)}.ih-item.out::before{background:var(--bad)}.ih-item.adj::before{background:var(--warn)}
+.ih-item.in{background:linear-gradient(135deg,color-mix(in srgb,var(--ok) 8%,var(--card-bg)),var(--card-bg) 70%)}
+.ih-item.out{background:linear-gradient(135deg,color-mix(in srgb,var(--bad) 7%,var(--card-bg)),var(--card-bg) 70%)}
+.ih-item.adj{background:linear-gradient(135deg,color-mix(in srgb,var(--warn) 8%,var(--card-bg)),var(--card-bg) 70%)}
+.ih-ico{width:38px;height:38px;border-radius:13px;font-size:18px;border:1px solid color-mix(in srgb,currentColor 24%,transparent);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),0 2px 6px color-mix(in srgb,currentColor 14%,transparent)}
+.ih-line b{font-size:14.5px;font-weight:800}
+.ih-line strong{font-size:16px;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,currentColor 11%,transparent)}
+.ih-sub{font-size:11.5px;color:var(--mute)}
+.ih-sub span:first-child{color:var(--ink);opacity:.8;font-weight:600}
+.ih-bal{display:inline-flex;align-items:center;justify-self:start;margin-top:1px;padding:2px 9px;border-radius:99px;background:var(--theme-soft);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--mute)}
+.ih-note{margin-top:4px;padding:7px 10px;border-radius:10px;border-left:3px solid var(--theme-border-strong,var(--acc));background:color-mix(in srgb,var(--acc) 8%,var(--card-bg));font-size:12px;font-style:italic}
+.ih-empty{padding:30px 14px;border:1.5px dashed var(--theme-border-strong,var(--line));border-radius:16px;background:color-mix(in srgb,var(--acc) 5%,var(--card-bg));font-weight:600}
+.ih-more{height:46px;border:1px solid var(--theme-border-strong,var(--line));border-radius:14px;background:linear-gradient(135deg,var(--acc-light,var(--theme-soft)),var(--theme-wash));color:var(--acc-hover,var(--ink));font-weight:700;box-shadow:0 2px 8px color-mix(in srgb,var(--acc) 12%,transparent)}
+.ih-hint{border-style:solid;border-color:var(--theme-border-strong,var(--line));background:linear-gradient(135deg,var(--acc-light,var(--theme-soft)),var(--theme-wash));color:var(--acc-hover,var(--ink));font-weight:700;box-shadow:0 2px 8px color-mix(in srgb,var(--acc) 10%,transparent)}
+.iw-history .ih{margin:0;padding:0;background:none}
+html.dark-theme .ih{background:linear-gradient(180deg,color-mix(in srgb,var(--acc) 14%,var(--card-bg)) 0,var(--card-bg) 190px)}
+html.dark-theme :is(.ih-back,.item-close,.ih-more,.ih-hint){color:var(--ink)!important}
+@media(prefers-reduced-motion:reduce){.ih-back,.item-close{transition:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -3361,6 +3405,7 @@ function closeModal(ms) {
   };
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || !sheet || typeof sheet.animate !== 'function') { finish(); return; }
   let startY = 0, startOpacity = 1;
+  const sheetTop0 = sheet ? sheet.getBoundingClientRect().top : 0;
   if (overlay._anims) {
     try {
       startY = new DOMMatrixReadOnly(getComputedStyle(sheet).transform).m42 || 0;
@@ -3370,9 +3415,17 @@ function closeModal(ms) {
     overlay._anims.forEach(anim => anim.cancel());
     overlay._anims = null;
   }
+  // Item sheet is very tall (form + history). Slide only the distance needed to leave the screen
+  // and drop the heavy history list from rendering while it moves, so the motion stays fluid.
+  let endY = '100%';
+  if (overlay.classList.contains('ov-item')) {
+    const top = sheetTop0;
+    endY = (startY + Math.max(window.innerHeight - top, 0) + 16) + 'px';
+    if (overlay.scrollTop < 4) overlay.classList.add('is-closing');
+  }
   sheet.style.willChange = 'transform';
   const sheetAnim = sheet.animate(
-    [{ transform: `translate3d(0,${startY}px,0)` }, { transform: 'translate3d(0,100%,0)' }],
+    [{ transform: `translate3d(0,${startY}px,0)` }, { transform: `translate3d(0,${endY},0)` }],
     { duration: closeMs, easing: closeEase, fill: 'forwards' }
   );
   if (backdrop) backdrop.animate([{ opacity: startOpacity }, { opacity: 0 }], { duration: closeMs, easing: closeMs > SHEET_CLOSE_MS ? 'ease-in-out' : 'ease-in', fill: 'forwards' });
@@ -3425,9 +3478,9 @@ function setupItemSheet(p) {
   measure();
   if ('ResizeObserver' in window) new ResizeObserver(measure).observe(stage);
   const closeBtn = document.createElement('button');
-  closeBtn.type = 'button'; closeBtn.className = 'item-close'; closeBtn.setAttribute('aria-label', 'ปิด');
-  closeBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
-  closeBtn.onclick = () => closeModal(760);   // slow, soft slide down
+  closeBtn.type = 'button'; closeBtn.className = 'item-close ih-back'; closeBtn.setAttribute('aria-label', 'ปิดแท็บ');
+  closeBtn.textContent = '↓ ปิดแท็บ';
+  closeBtn.onclick = () => closeModal(680);   // smooth slide down (same feel as the ทำรายการ button)
   stage.appendChild(closeBtn);
   $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
   $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
