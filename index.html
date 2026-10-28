@@ -1378,6 +1378,50 @@ html.dark-theme .bm-badge{color:#8fd1a8}
   .row .stock-dots.low .stock-dot.on{background:#ffd978;box-shadow:0 1px 5px rgba(255,217,120,.6)}
   .row .stock-dots.out .stock-dot.on{background:#ff9fb2;box-shadow:0 1px 5px rgba(255,159,178,.6)}
 }
+
+/* ===== Mobile item sheet: two-stage (form -> history) ===== */
+.ov.ov-item{display:block;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:y mandatory}
+#modal .ov.ov-item .ov-backdrop{position:fixed}
+.ov-item .item-spacer{height:max(6%,calc(100% - var(--stage1,440px)));scroll-snap-align:start}
+.ov-item .sheet{width:min(100%,560px);max-width:none;margin:0 auto;max-height:none;overflow:visible;min-height:calc(100% - 12px - env(safe-area-inset-top,0px));scroll-snap-align:start;scroll-margin-top:calc(12px + env(safe-area-inset-top,0px));border-radius:22px 22px 0 0;padding:10px 18px calc(24px + env(safe-area-inset-bottom,0px))}
+.item-stage1{padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+.item-grab{width:40px;height:5px;margin:0 auto 12px;border-radius:99px;background:var(--theme-border-strong,var(--line))}
+.ih-hint{display:block;width:100%;height:38px;margin-top:10px;border:1px dashed var(--theme-border-strong,var(--line));border-radius:12px;background:transparent;color:var(--mute);font:inherit;font-size:12.5px;font-weight:600;-webkit-tap-highlight-color:transparent}
+.ih-hint:active{background:var(--theme-wash)}
+.ih{padding-top:6px}
+.ih-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.ih-head h4{min-width:0;margin:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:16px;font-weight:700;color:var(--ink)}
+.ih-back{flex:none;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--theme-wash);color:var(--ink);font:inherit;font-size:12px;font-weight:600}
+.ih-filter{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px;padding:10px;border:1px solid var(--line);border-radius:14px;background:var(--theme-wash)}
+.ih-filter label{display:grid;gap:4px;min-width:0;font-size:11px;color:var(--mute)}
+.ih-filter .ih-wide{grid-column:1/-1}
+.ih-filter select,.ih-filter input{width:100%;min-width:0;box-sizing:border-box;height:42px;padding:6px 10px;border:1px solid var(--line);border-radius:11px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:16px}
+.ih-clear{grid-column:1/-1;height:38px;border:1px solid var(--line);border-radius:11px;background:var(--card-bg);color:var(--mute);font:inherit;font-size:13px;font-weight:600}
+.ih-clear:active{background:var(--theme-soft)}
+.ih-sum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.ih-sum>div{display:grid;justify-items:center;gap:1px;padding:9px 6px;border:1px solid var(--line);border-radius:13px;background:var(--card-bg);line-height:1.2}
+.ih-sum small{font-size:11px;color:var(--mute)}
+.ih-sum b{font-size:18px;font-weight:800;color:var(--ink);font-variant-numeric:tabular-nums}
+.ih-sum em{font-style:normal;font-size:10px;color:var(--mute)}
+.ih-sum .in b{color:var(--ok)}.ih-sum .out b{color:var(--bad)}
+.ih-list{display:grid;gap:8px}
+.ih-item{display:flex;gap:11px;align-items:flex-start;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);content-visibility:auto;contain-intrinsic-size:auto 86px}
+.ih-ico{flex:none;width:34px;height:34px;display:grid;place-items:center;border-radius:11px;font-size:17px;font-weight:800;color:var(--ink);background:var(--theme-soft)}
+.ih-item.in .ih-ico{background:color-mix(in srgb,var(--ok) 18%,var(--card-bg));color:var(--ok)}
+.ih-item.out .ih-ico{background:color-mix(in srgb,var(--bad) 16%,var(--card-bg));color:var(--bad)}
+.ih-item.adj .ih-ico{background:color-mix(in srgb,var(--warn) 20%,var(--card-bg));color:var(--warn)}
+.ih-main{flex:1;min-width:0;display:grid;gap:3px}
+.ih-line{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ih-line b{font-size:14px;font-weight:700;color:var(--ink)}
+.ih-line strong{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ih-line strong small{font-size:11px;font-weight:500;color:var(--mute)}
+.ih-item.in .ih-line strong{color:var(--ok)}.ih-item.out .ih-line strong{color:var(--bad)}.ih-item.adj .ih-line strong{color:var(--warn)}
+.ih-sub{display:flex;flex-wrap:wrap;justify-content:space-between;gap:2px 10px;font-size:11.5px;color:var(--mute)}
+.ih-bal{font-size:11.5px;color:var(--mute);font-variant-numeric:tabular-nums}
+.ih-note{margin-top:2px;padding:6px 9px;border-radius:9px;background:var(--theme-wash);font-size:12px;color:var(--ink);overflow-wrap:anywhere}
+.ih-empty{padding:26px 12px;border:1px dashed var(--line);border-radius:14px;text-align:center;font-size:13px;color:var(--mute)}
+.ih-more{height:44px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);color:var(--ink);font:inherit;font-size:13px;font-weight:600}
+@media(max-width:380px){.ov-item .sheet{padding-left:14px;padding-right:14px}}
 </style>
 </head>
 <body data-theme="teal">
@@ -2188,7 +2232,7 @@ function render(animatePage = false) {
     else if (tab === 'log') main.innerHTML = logView();
     else if (tab === 'users') main.innerHTML = usersView();
     else if (tab === 'settings') main.innerHTML = settingsView();
-    updatePageMascots();
+    if (isWideDesktop()) updatePageMascots(); else requestAnimationFrame(updatePageMascots);
   };
   const finishRender = () => {
     if (tab === 'stock') bindStock();
@@ -3257,12 +3301,78 @@ function addImportLog(count, before, after, note = '') {
   L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt: count, before, after, ...(note ? { note } : {}) });
 }
 
+/* ---------- Mobile item sheet: stage 1 = withdraw form, stage 2 (swipe up) = this item's history ---------- */
+const IH_DATE = new Intl.DateTimeFormat('th-TH', { day: 'numeric', month: 'short' });
+const IH_TIME = new Intl.DateTimeFormat('th-TH', { hour: '2-digit', minute: '2-digit' });
+const IH_KINDS = { in: ['↓', 'รับเข้า', 'in'], out: ['↑', 'เบิกจ่าย', 'out'], adjust: ['⇄', 'ปรับยอด', 'adj'] };
+function itemHistoryBase(p) { return L.filter(x => x.pid === p.id && IH_KINDS[x.type]); }
+function itemHistorySection(p) {
+  const users = [...new Set(itemHistoryBase(p).map(x => x.user).filter(Boolean))];
+  return `<section class="ih" id="ih" aria-label="ประวัติของรายการนี้">
+    <div class="ih-head"><h4>🧾 ประวัติ ${esc(p.name)}</h4><button type="button" class="ih-back" id="ihBack">↓ ทำรายการ</button></div>
+    <div class="ih-filter">
+      <label class="ih-wide"><span>พนักงาน</span><select id="ihUser"><option value="">พนักงานทั้งหมด</option>${users.map(u => `<option value="${esc(u)}">${esc(u)}</option>`).join('')}</select></label>
+      <label><span>ตั้งแต่วันที่</span><input type="date" id="ihFrom" aria-label="วันที่เริ่มต้น"></label>
+      <label><span>ถึงวันที่</span><input type="date" id="ihTo" aria-label="วันที่สิ้นสุด"></label>
+      <button type="button" class="ih-clear" id="ihClear">✕ ล้างตัวกรอง</button>
+    </div>
+    <div class="ih-sum" id="ihSum"></div>
+    <div class="ih-list" id="ihList"></div>
+  </section>`;
+}
+function setupItemSheet(p) {
+  const ov = $('#ov'); if (!ov) return;
+  const sheet = ov.querySelector('.sheet'), stage = $('#itemStage1');
+  // Transparent spacer above the sheet: leaves the first stage exactly the size it used to be.
+  const spacer = document.createElement('div');
+  spacer.className = 'item-spacer'; spacer.setAttribute('aria-hidden', 'true');
+  spacer.onclick = () => closeModal();
+  ov.insertBefore(spacer, sheet);
+  const measure = () => { ov.style.setProperty('--stage1', Math.ceil(stage.getBoundingClientRect().bottom - sheet.getBoundingClientRect().top) + 'px'); };
+  measure();
+  if ('ResizeObserver' in window) new ResizeObserver(measure).observe(stage);
+  $('#ihHint').onclick = () => sheet.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  $('#ihBack').onclick = () => ov.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const base = itemHistoryBase(p).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
+  const st = { user: '', from: '', to: '', limit: 30 };
+  const fmt = n => num(Number(n) || 0);
+  const draw = () => {
+    const from = st.from ? new Date(`${st.from}T00:00:00`).getTime() : 0;
+    const to = st.to ? new Date(`${st.to}T00:00:00`).getTime() + 86400000 : Infinity;
+    const rows = base.filter(x => { const t = Number(x.ts) || 0; return (!st.user || x.user === st.user) && t >= from && t < to; });
+    const sum = type => rows.filter(x => x.type === type).reduce((n, x) => n + Math.abs(Number(x.amt) || 0), 0);
+    const unit = esc(p.unit || '');
+    $('#ihSum').innerHTML = `<div class="in"><small>รับเข้า</small><b>${fmt(sum('in'))}</b><em>${unit}</em></div><div class="out"><small>เบิกจ่าย</small><b>${fmt(sum('out'))}</b><em>${unit}</em></div><div><small>ทั้งหมด</small><b>${rows.length}</b><em>ครั้ง</em></div>`;
+    if (!rows.length) { $('#ihList').innerHTML = `<div class="ih-empty">${base.length ? 'ไม่พบรายการตามตัวกรองที่เลือก' : 'ยังไม่มีประวัติของรายการนี้'}</div>`; return; }
+    const shown = rows.slice(0, st.limit);
+    $('#ihList').innerHTML = shown.map(x => {
+      const [ico, label, cls] = IH_KINDS[x.type], amt = Number(x.amt) || 0, d = new Date(Number(x.ts) || 0);
+      const sign = x.type === 'in' ? '+' : x.type === 'out' ? '−' : amt > 0 ? '+' : amt < 0 ? '−' : '±';
+      return `<div class="ih-item ${cls}"><span class="ih-ico" aria-hidden="true">${ico}</span><div class="ih-main"><div class="ih-line"><b>${label}</b><strong>${sign}${fmt(Math.abs(amt))} <small>${esc(x.unit || p.unit || '')}</small></strong></div><div class="ih-sub"><span>👤 ${esc(x.user || '-')}</span><span>${IH_DATE.format(d)} · ${IH_TIME.format(d)}</span></div><div class="ih-bal">คงเหลือ ${fmt(x.before)} → ${fmt(x.after)}</div>${x.note ? `<div class="ih-note">“${esc(x.note)}”</div>` : ''}</div></div>`;
+    }).join('') + (rows.length > shown.length ? `<button type="button" class="ih-more" id="ihMore">แสดงเพิ่มอีก ${Math.min(30, rows.length - shown.length)} รายการ</button>` : '');
+  };
+  $('#ihUser').onchange = e => { st.user = e.target.value; st.limit = 30; draw(); };
+  $('#ihFrom').onchange = e => {
+    if (e.target.value && st.to && e.target.value > st.to) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = st.from; return; }
+    st.from = e.target.value; st.limit = 30; draw();
+  };
+  $('#ihTo').onchange = e => {
+    if (e.target.value && st.from && st.from > e.target.value) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = st.to; return; }
+    st.to = e.target.value; st.limit = 30; draw();
+  };
+  $('#ihClear').onclick = () => { st.user = st.from = st.to = ''; st.limit = 30; $('#ihUser').value = ''; $('#ihFrom').value = ''; $('#ihTo').value = ''; draw(); };
+  $('#ihList').onclick = e => { if (e.target.closest('#ihMore')) { st.limit += 30; draw(); } };
+  draw();
+}
+
 /* Modal จัดการสินค้าภายในเมื่อคลิกที่แถวสินค้า */
 function itemDetailModal(id) {
   const p = P.find(x => x.id === id);
   if (!p) return;
   const canMove = can.edit();
-  openModal(`<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
+  const mobileSheet = !isWideDesktop();
+  const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
   <div style="background:var(--theme-soft);padding:12px;border-radius:12px;margin-bottom:14px;font-size:13.5px;border:1px solid var(--line);color:var(--ink);">
     <div>หมวดหมู่: <b>${esc(p.cat)}</b></div>
     <div>คงเหลือ: <b style="font-size:16px;color:var(--acc);">${num(p.qty)}</b> ${esc(p.unit)} (ขั้นต่ำ: ${p.min})</div>
@@ -3276,7 +3386,11 @@ function itemDetailModal(id) {
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
   </form>` : ''}
   ${can.del() ? `<div class="acts"><button type="button" class="btn bad" id="deleteProduct">ลบวัตถุดิบ</button></div>` : ''}
-  ${!canMove && !can.del() ? `<div class="operator-note">บัญชีนี้สามารถดูข้อมูลได้อย่างเดียว</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ปิด</button></div>` : ''}`);
+  ${!canMove && !can.del() ? `<div class="operator-note">บัญชีนี้สามารถดูข้อมูลได้อย่างเดียว</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ปิด</button></div>` : ''}`;
+  if (mobileSheet) {
+    openModal(`<div class="item-stage1" id="itemStage1"><div class="item-grab" aria-hidden="true"></div>${inner}<button type="button" class="ih-hint" id="ihHint">▲ ปัดขึ้นเพื่อดูประวัติการเบิกจ่าย</button></div>${itemHistorySection(p)}`, 'item');
+    setupItemSheet(p);
+  } else openModal(inner);
   if (can.del()) $('#deleteProduct').onclick = () => {
     openModal(`<h3>ลบวัตถุดิบนี้หรือไม่</h3><p style="margin-bottom:12px;color:var(--mute)">ยืนยันลบ “${esc(p.name)}” ออกจากรายการสต็อกหรือไม่</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn bad" id="confirmDeleteProduct">ยืนยันลบ</button></div>`);
     $('#confirmDeleteProduct').onclick = () => { addLog('delete', p, p.qty, p.qty, 0); P = P.filter(product => product.id !== id); save(); closeModal(); render(); toast('ลบวัตถุดิบแล้ว'); };
