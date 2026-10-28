@@ -1632,10 +1632,22 @@ const RESET_HELP = {
   users: 'ลบบัญชีผู้ใช้ทั้งหมด ยกเว้นผู้ดูแลหลัก',
   all: 'ล้างวัตถุดิบและประวัติทั้งหมด'
 };
-const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS, lastReset });
+const LOG_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
+let logNeedsPrune = false;
+function pruneActivityLog(entries, now = Date.now()) {
+  const cutoff = now - LOG_RETENTION_MS;
+  return (Array.isArray(entries) ? entries : []).filter(entry => {
+    const ts = typeof entry?.ts === 'number' ? entry.ts : Date.parse(entry?.ts);
+    return Number.isFinite(ts) && ts >= cutoff;
+  });
+}
+const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset });
 function applyCloudState(state) {
   U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
-  P = state.products || []; L = state.log || [];
+  P = state.products || [];
+  const sourceLog = Array.isArray(state.log) ? state.log : [];
+  L = pruneActivityLog(sourceLog);
+  logNeedsPrune = logNeedsPrune || L.length !== sourceLog.length;
   ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) }; delete ROLE.viewer;
   CATS = state.categories || []; UNITS = state.units || [];
   lastReset = state.lastReset || null;
@@ -1651,7 +1663,7 @@ function migrateLegacyBrowserData(result) {
     U.push({ ...oldUser });
   }
   P = oldProducts.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
-  L = store.get('inv_log', []).slice(0, 500);
+  L = pruneActivityLog(store.get('inv_log', []));
   ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) }; delete ROLE.viewer;
   CATS = store.get('inv_categories', CATS); UNITS = store.get('inv_units', UNITS);
   return true;
@@ -1871,8 +1883,9 @@ async function hash(s) {
 const save = () => {
   syncQueue = syncQueue.then(async () => {
     if (!cloudToken || !syncSnapshot) return;
-    const next = { users: U, products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS }, base = syncSnapshot;
-    if (JSON.stringify(safeState()) === JSON.stringify(base)) return;
+    L = pruneActivityLog(L);
+    const next = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS }, base = syncSnapshot;
+    if (!logNeedsPrune && JSON.stringify(safeState()) === JSON.stringify(base)) return;
     cloudBusy = true;
     try {
       const result = await cloudRpc('api_sync', { p_token: cloudToken, p_base: base, p_data: next });
@@ -1880,7 +1893,7 @@ const save = () => {
         if (result.error?.includes('หมดเวลา')) { logout(); return toast(result.error, 1); }
         return toast(result.error || 'บันทึกข้อมูลส่วนกลางไม่สำเร็จ', 1);
       }
-      syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1;
+      syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1; logNeedsPrune = false;
       U.forEach(user => { delete user.pin; });
       const activeProfile = U.find(user => user.name === me?.name);
       if (activeProfile) { me = activeProfile; $('#meRole').textContent = ROLE[me.role] || me.role; }
@@ -1932,7 +1945,8 @@ async function tryLogin() {
     try { if (window.PasswordCredential && navigator.credentials?.store) navigator.credentials.store(new PasswordCredential({ id: name, password: pinVal, name })).catch(() => {}); } catch {}
   }
   applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version || 1;
-  if (migrateLegacyBrowserData(result)) save();
+  const migratedLegacyData = migrateLegacyBrowserData(result);
+  if (migratedLegacyData || logNeedsPrune) save();
   enter(result.me, result.branch);
 }
 
@@ -2000,7 +2014,7 @@ async function refreshCloudState() {
     if (result.version !== syncVersion) {
       applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
       me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-      build(); showSyncUpdateStatus();
+      build(); showSyncUpdateStatus(); if (logNeedsPrune) save();
     }
   } catch { /* ข้ามรอบนี้เมื่ออินเทอร์เน็ตขัดข้อง */ }
 }
@@ -2961,8 +2975,9 @@ function bindSettings() {
           const backup = { P: cloneData(P), L: cloneData(L) };
           P = P.map(product => ({ ...product, qty: 0 }));
           L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'adjust', pname: 'รีเซ็ตจำนวนคงเหลือทุกรายการ', unit: 'รายการ', amt: -affected, before: affected, after: 0, note: STOCK_RESET_NOTE });
+           L = pruneActivityLog(L);
           try {
-            const synced = await cloudRpc('api_sync', { p_token: cloudToken, p_base: syncSnapshot, p_data: { users: U, products: P, log: L.slice(0, 500), roles: ROLE, categories: CATS, units: UNITS } });
+            const synced = await cloudRpc('api_sync', { p_token: cloudToken, p_base: syncSnapshot, p_data: { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS } });
             if (!synced.ok) throw new Error(synced.error || 'รีเซ็ตไม่สำเร็จ');
             applyCloudState(synced.state); syncSnapshot = cloneData(synced.state); syncVersion = synced.version || syncVersion + 1;
             U.forEach(user => { delete user.pin; });
@@ -3067,7 +3082,7 @@ function bindSettings() {
         const previousProductCount = P.length;
         const restoredUsers = normalizeRemovedViewerAccounts(parsed.users.map(user => ({ ...user })));
         const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
-        U = restoredUsers; P = restoredProducts; L = Array.isArray(parsed.log) ? parsed.log : [];
+        U = restoredUsers; P = restoredProducts; L = pruneActivityLog(parsed.log);
         ROLE = { ...DEFAULT_ROLES, ...(parsed.roles || ROLE) }; delete ROLE.viewer; CATS = Array.isArray(parsed.categories) ? parsed.categories : CATS; UNITS = Array.isArray(parsed.units) ? parsed.units : UNITS;
         const owner = U.find(user => user.owner) || U.find(user => user.role === 'admin'); if (owner) owner.owner = true;
         U.forEach(user => { user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}) }; });
@@ -3323,9 +3338,11 @@ function toast(t, err) {
 const fv = (f, n) => f.elements[n].value.trim();
 function addLog(type, p, amt, before, after, note = '') {
   L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type, pid: p.id, pname: p.name, unit: p.unit || '', amt, before, after, ...(note ? { note } : {}) });
+  L = pruneActivityLog(L);
 }
 function addImportLog(count, before, after, note = '') {
-  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt: count, before, after, ...(note ? { note } : {}) });
+  L.unshift({ ts: Date.now(), user: me.name, role: ROLE[me.role] || me.role, type: 'import', pname: 'นำเข้าวัตถุดิบจากไฟล์', unit: 'รายการ', amt, before, after, ...(note ? { note } : {}) });
+  L = pruneActivityLog(L);
 }
 
 /* ---------- Mobile item sheet: stage 1 = withdraw form, stage 2 (swipe up) = this item's history ---------- */
@@ -3512,7 +3529,7 @@ function logView() {
   const legacyDate = params.get('historyDate') || '';
   if (!dateFrom && !dateTo && legacyDate) dateFrom = dateTo = legacyDate;
   const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
-  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || (typeFilter === 'note' ? !!String(x.note || '').trim() : x.type === typeFilter)) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); }).slice(0, 300);
+  const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || (typeFilter === 'note' ? !!String(x.note || '').trim() : x.type === typeFilter)) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); });
   const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}${selectedUser ? ` · ผู้ทำรายการ ${selectedUser}` : ''}`;
   const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'], import: ['นำเข้าวัตถุดิบ', 'import'] };
   const historyIcons = {
@@ -3525,7 +3542,7 @@ function logView() {
     import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9l5 5V20a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 20z"/><path d="M14 3.5v5h5M12 11v7m-3-3 3 3 3-3"/></svg>'
   };
   return `<div class="sect"><h2>ประวัติความเคลื่อนไหว</h2><small>${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button><small>แสดงย้อนหลังได้สูงสุด 300 รายการ</small></div>` +
+  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button><small>เก็บย้อนหลังไม่เกิน 14 วัน · ไม่จำกัดจำนวนรายการ</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
@@ -3819,7 +3836,7 @@ function revealLogin(message = '') {
       if (result.ok) {
         applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
         if (result.branch) { setCurrentBranch(result.branch); sess.set(token, result.branch.id); }
-        enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout();
+        enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout(); if (logNeedsPrune) save();
       } else { sess.set(null); showHint(false); revealLogin(result.error || 'กรุณาเข้าสู่ระบบใหม่'); }
     } catch (error) { showHint(false); revealLogin(error.message || 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
   } else revealLogin(startupMessage);
