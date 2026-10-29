@@ -266,7 +266,16 @@ begin
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
       into v_log from jsonb_array_elements(v_add) entry;
     select coalesce(jsonb_agg(item order by ord), '[]'::jsonb) into v_log
-      from (select item, ord from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord) order by ord limit 500) recent;
+      from (
+        select item, ord
+        from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord)
+        where case
+          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
+            then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
+          else false
+        end
+        order by ord
+      ) recent;
     v_next := jsonb_set(v_next, '{log}', v_log);
   end if;
 
@@ -901,7 +910,16 @@ begin
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
       into v_log from jsonb_array_elements(v_add) entry;
     select coalesce(jsonb_agg(item order by ord), '[]'::jsonb) into v_log
-      from (select item, ord from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord) order by ord limit 500) recent;
+      from (
+        select item, ord
+        from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord)
+        where case
+          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
+            then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
+          else false
+        end
+        order by ord
+      ) recent;
     v_next := jsonb_set(v_next, '{log}', v_log);
   end if;
 
@@ -1355,7 +1373,16 @@ begin
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
       into v_log from jsonb_array_elements(v_add) entry;
     select coalesce(jsonb_agg(item order by ord), '[]'::jsonb) into v_log
-      from (select item, ord from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord) order by ord limit 500) recent;
+      from (
+        select item, ord
+        from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord)
+        where case
+          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
+            then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
+          else false
+        end
+        order by ord
+      ) recent;
     v_next := jsonb_set(v_next, '{log}', v_log);
   end if;
 
@@ -1688,7 +1715,16 @@ begin
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
       into v_log from jsonb_array_elements(v_add) entry;
     select coalesce(jsonb_agg(item order by ord), '[]'::jsonb) into v_log
-      from (select item, ord from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord) order by ord limit 500) recent;
+      from (
+        select item, ord
+        from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord)
+        where case
+          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
+            then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
+          else false
+        end
+        order by ord
+      ) recent;
     v_next := jsonb_set(v_next, '{log}', v_log);
   end if;
 
@@ -1861,7 +1897,16 @@ begin
     select coalesce(jsonb_agg((entry - 'user' - 'role') || jsonb_build_object('user', v_name, 'role', coalesce(v_data->'roles'->>(v_user->>'role'), v_user->>'role', 'พนักงานคลัง')) order by (entry->>'ts')::numeric desc), '[]'::jsonb)
       into v_log from jsonb_array_elements(v_add) entry;
     select coalesce(jsonb_agg(item order by ord), '[]'::jsonb) into v_log
-      from (select item, ord from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord) order by ord limit 500) recent;
+      from (
+        select item, ord
+        from jsonb_array_elements(v_log || coalesce(v_data->'log','[]'::jsonb)) with ordinality as x(item,ord)
+        where case
+          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
+            then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
+          else false
+        end
+        order by ord
+      ) recent;
     v_next := jsonb_set(v_next, '{log}', v_log);
   end if;
 
