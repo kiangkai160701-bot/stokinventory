@@ -1632,6 +1632,40 @@ html.nav-busy .ih-stk{animation-play-state:paused}
 :not(.iw-history)>.ih .ih-bal{grid-column:2;grid-row:2;align-self:center;justify-self:end;margin:0;padding:0 2px;border:0;background:none;font-size:11px;line-height:1.35;white-space:nowrap}
 :not(.iw-history)>.ih .ih-note{grid-column:1/-1;margin-top:4px;padding:6px 10px;font-size:12px}
 :not(.iw-history)>.ih .ih-more{height:42px;font-size:13px}
+
+/* ===== Item history sheet (mobile): flat colour, no highlight/shadow; scrollable list; tidy filter ===== */
+:not(.iw-history)>.ih{background:var(--theme-soft)!important;border:1px solid var(--line)!important;box-shadow:none!important}
+:not(.iw-history)>.ih .ih-filter,:not(.iw-history)>.ih .ih-sum>div,:not(.iw-history)>.ih .ih-sum{box-shadow:none!important}
+:not(.iw-history)>.ih .ih-filter{background:var(--card-bg)!important}
+:not(.iw-history)>.ih .ih-item{background:var(--card-bg)!important;box-shadow:none!important}
+:not(.iw-history)>.ih .ih-ico{box-shadow:none!important}
+:not(.iw-history)>.ih .ih-bal,:not(.iw-history)>.ih .ih-note{box-shadow:none}
+:not(.iw-history)>.ih .ih-list{max-height:calc(6*58px + 5*8px);overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-right:5px;margin-right:-5px;scrollbar-width:thin;scrollbar-color:var(--theme-border-strong,var(--line)) transparent}
+:not(.iw-history)>.ih .ih-list::-webkit-scrollbar{width:4px}
+:not(.iw-history)>.ih .ih-list::-webkit-scrollbar-track{background:transparent}
+:not(.iw-history)>.ih .ih-list::-webkit-scrollbar-thumb{background:var(--theme-border-strong,var(--line));border-radius:99px}
+/* flat, theme-coloured buttons (no gradient / glow) */
+:not(.iw-history)>.ih .ih-back,.ov-item .item-close,:not(.iw-history)>.ih .ih-clear,:not(.iw-history)>.ih .ih-more,.ov-item .ih-hint{
+  display:inline-flex;align-items:center;justify-content:center;text-align:center;gap:5px;
+  background:color-mix(in srgb,var(--acc) 15%,var(--card-bg))!important;
+  border:1px solid color-mix(in srgb,var(--acc) 38%,var(--card-bg))!important;
+  color:var(--acc-hover,var(--ink))!important;box-shadow:none!important;font-weight:700;letter-spacing:0}
+:not(.iw-history)>.ih .ih-back:active,.ov-item .item-close:active,:not(.iw-history)>.ih .ih-clear:active,:not(.iw-history)>.ih .ih-more:active,.ov-item .ih-hint:active{
+  background:color-mix(in srgb,var(--acc) 26%,var(--card-bg))!important;transform:scale(.97);box-shadow:none!important}
+html.dark-theme :not(.iw-history)>.ih .ih-back,html.dark-theme .ov-item .item-close,html.dark-theme :not(.iw-history)>.ih .ih-clear,html.dark-theme :not(.iw-history)>.ih .ih-more,html.dark-theme .ov-item .ih-hint{color:var(--ink)!important}
+.ov-item .ih-hint{border-style:solid!important}
+:not(.iw-history)>.ih .ih-filter .ih-wide{grid-column:1/4}
+:not(.iw-history)>.ih .ih-clear{grid-column:4/7;grid-row:1;padding:0 6px;white-space:nowrap;font-size:13px}
+:not(.iw-history)>.ih .ih-filter select{-webkit-appearance:none;appearance:none;padding:0 38px 0 12px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23927d8c' stroke-width='2.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 14px center;background-size:14px}
+
+/* ===== Scroll-to-top button (history page, mobile only) ===== */
+#scrollTopBtn{position:fixed;right:max(14px,calc((100vw - 460px)/2 + 14px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:39;width:44px;height:44px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 60%,transparent);border-radius:13px;background:var(--acc);color:#fff;box-shadow:none;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .2s ease,transform .2s ease;-webkit-tap-highlight-color:transparent}
+#scrollTopBtn.show{opacity:1;transform:none;pointer-events:auto}
+#scrollTopBtn.show:active{transform:scale(.94)}
+#scrollTopBtn svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+@media(min-width:1100px){#scrollTopBtn{display:none!important}}
 </style>
 </head>
 <body data-theme="teal">
@@ -4156,6 +4190,32 @@ function revealLogin(message = '') {
       } else { sess.set(null); showHint(false); revealLogin(result.error || 'กรุณาเข้าสู่ระบบใหม่'); }
     } catch (error) { showHint(false); revealLogin(error.message || 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
   } else revealLogin(startupMessage);
+})();
+
+// Scroll-to-top button on the history page (mobile only)
+(function(){
+  const btn=document.createElement('button');
+  btn.id='scrollTopBtn';btn.type='button';btn.setAttribute('aria-label','เลื่อนขึ้นบนสุด');
+  btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 11l7-7 7 7"/><path d="M12 5v15"/></svg>';
+  document.body.appendChild(btn);
+  const app=document.querySelector('#app');
+  // The page may scroll on window, <html>, <body> or #app depending on the browser: read them all.
+  const pos=()=>Math.max(window.scrollY||0,document.documentElement.scrollTop||0,document.body.scrollTop||0,app?app.scrollTop:0);
+  let ticking=false;
+  const update=()=>{ticking=false;btn.classList.toggle('show',tab==='log'&&!isWideDesktop()&&pos()>300);};
+  const queue=()=>{if(!ticking){ticking=true;requestAnimationFrame(update);}};
+  document.addEventListener('scroll',queue,{passive:true,capture:true});
+  window.addEventListener('resize',queue);
+  const main=document.querySelector('#main');
+  if(main)new MutationObserver(queue).observe(main,{childList:true});
+  btn.addEventListener('click',()=>{
+    const behavior=matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+    [document.scrollingElement,document.documentElement,document.body,app].forEach(el=>{
+      if(el&&el.scrollTop>0&&el.scrollTo)el.scrollTo({top:0,behavior});
+    });
+    if(window.scrollY>0)window.scrollTo({top:0,behavior});
+  });
+  queue();
 })();
 </script>
 </body>
