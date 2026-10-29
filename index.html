@@ -4202,7 +4202,7 @@ function revealLogin(message = '') {
   // The page may scroll on window, <html>, <body> or #app depending on the browser: read them all.
   const pos=()=>Math.max(window.scrollY||0,document.documentElement.scrollTop||0,document.body.scrollTop||0,app?app.scrollTop:0);
   let ticking=false;
-  const update=()=>{ticking=false;btn.classList.toggle('show',tab==='log'&&!isWideDesktop()&&pos()>300);};
+  const update=()=>{ticking=false;btn.classList.toggle('show',(tab==='log'||tab==='dashboard'||tab==='stock')&&!isWideDesktop()&&pos()>300);};
   const queue=()=>{if(!ticking){ticking=true;requestAnimationFrame(update);}};
   document.addEventListener('scroll',queue,{passive:true,capture:true});
   window.addEventListener('resize',queue);
