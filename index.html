@@ -2382,9 +2382,17 @@ function runPageExit() {
   exitAnim.onfinish = go;
   setTimeout(go, 420);
 }
+// มือถือเท่านั้น: รีเซ็ตตำแหน่งเลื่อนของทุกตัวที่อาจเป็นตัวเลื่อนหน้า ให้กลับไปบนสุด
+function resetScrollTopMobile() {
+  if (isWideDesktop()) return;
+  const els = [document.scrollingElement, document.documentElement, document.body, document.querySelector('#app'), document.querySelector('#main')];
+  els.forEach(el => { if (el && el.scrollTop) el.scrollTop = 0; });
+  window.scrollTo(0, 0);
+}
 document.addEventListener('click', e => {
   const button = e.target.closest('[data-t]');
   if (!button || !me) return;
+  if (button.dataset.t !== tab) resetScrollTopMobile();
   const availableTabs = tabs().map(item => item[0]);
   pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
   tab = button.dataset.t;
@@ -2505,6 +2513,8 @@ function render(animatePage = false) {
   if (desktopPanelScroll !== null) main.querySelector('.desktop-dashboard-panel').scrollTop = desktopPanelScroll;
   if (desktopHistoryScroll !== null) main.querySelector('.desktop-history-panel>.history-list').scrollTop = desktopHistoryScroll;
   finishRender();
+  resetScrollTopMobile();
+  requestAnimationFrame(resetScrollTopMobile);
   if (!animatePage) window.scrollTo(0, 0);
   else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
     const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 22);
