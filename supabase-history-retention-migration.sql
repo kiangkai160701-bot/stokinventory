@@ -1,8 +1,9 @@
--- เก็บประวัติย้อนหลัง 14 วันโดยไม่จำกัดจำนวนรายการ
+-- เก็บประวัติย้อนหลัง 6 เดือนโดยไม่จำกัดจำนวนรายการ
 -- รันครั้งเดียวใน Supabase SQL Editor หลังสำรองข้อมูลที่ต้องการเก็บไว้
+-- รองรับทั้ง api_sync รุ่นเดิมที่จำกัด 500 รายการ และรุ่นที่กรอง 14 วันแล้ว
 begin;
 
--- ลบรายการที่เก่ากว่า 14 วันจากทุกสาขา
+-- ลบเฉพาะประวัติที่เก่ากว่า 6 เดือนจากทุกสาขา
 update private.inventory_state s
 set data = jsonb_set(
       s.data,
@@ -12,7 +13,7 @@ set data = jsonb_set(
         from jsonb_array_elements(coalesce(s.data->'log', '[]'::jsonb)) entry
         where case
           when coalesce((entry->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
-            then (entry->>'ts')::numeric >= extract(epoch from (now() - interval '14 days')) * 1000
+            then (entry->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
           else false
         end
       ), '[]'::jsonb),
@@ -26,13 +27,12 @@ where jsonb_typeof(s.data->'log') = 'array'
     from jsonb_array_elements(coalesce(s.data->'log', '[]'::jsonb)) entry
     where case
       when coalesce((entry->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
-        then (entry->>'ts')::numeric < extract(epoch from (now() - interval '14 days')) * 1000
+        then (entry->>'ts')::numeric < extract(epoch from (now() - interval '6 months')) * 1000
       else true
     end
   );
 
--- อัปเดต api_sync ที่มีอยู่โดยเอาขีดจำกัด 500 รายการออก
--- และกรองประวัติให้เหลือเฉพาะ 14 วันล่าสุด
+-- ปรับฟังก์ชันที่ติดตั้งอยู่ให้เก็บประวัติ 6 เดือน และนำเพดาน 500 รายการออก
 do $migration$
 declare
   v_definition text;
@@ -45,23 +45,34 @@ begin
     raise exception 'ไม่พบฟังก์ชัน public.api_sync(text,jsonb,jsonb)';
   end if;
 
-  v_updated_definition := regexp_replace(
+  -- ถ้าเคยติดตั้ง migration 14 วัน ให้ขยายระยะเวลาเป็น 6 เดือน
+  v_updated_definition := replace(
     v_definition,
+    'interval ''14 days''',
+    'interval ''6 months'''
+  );
+
+  -- ถ้ายังเป็นรุ่นตั้งต้น ให้เอา LIMIT 500 ออกและใส่เงื่อนไข 6 เดือน
+  v_updated_definition := regexp_replace(
+    v_updated_definition,
     'as x\(item,ord\) order by ord limit 500',
     $$as x(item,ord) where case
          when coalesce((item->>'ts') ~ '^[0-9]+([.][0-9]+)?$', false)
-           then (item->>'ts')::numeric >= extract(epoch from (now() - interval '14 days')) * 1000
+           then (item->>'ts')::numeric >= extract(epoch from (now() - interval '6 months')) * 1000
          else false
        end
        order by ord$$,
     'gi'
   );
 
-  if v_updated_definition = v_definition then
-    raise exception 'ไม่พบส่วนจำกัด 500 รายการใน api_sync; ไม่มีการเปลี่ยนแปลง';
+  if v_updated_definition = v_definition
+     and position('interval ''6 months''' in v_definition) = 0 then
+    raise exception 'ไม่พบรูปแบบ api_sync ที่รองรับ; ไม่มีการเปลี่ยนแปลง';
   end if;
 
-  execute v_updated_definition;
+  if v_updated_definition <> v_definition then
+    execute v_updated_definition;
+  end if;
 end;
 $migration$;
 
