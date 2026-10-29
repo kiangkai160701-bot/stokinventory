@@ -1849,10 +1849,18 @@ const RESET_HELP = {
   users: 'ลบบัญชีผู้ใช้ทั้งหมด ยกเว้นผู้ดูแลหลัก',
   all: 'ล้างวัตถุดิบและประวัติทั้งหมด'
 };
-const LOG_RETENTION_MS = 14 * 24 * 60 * 60 * 1000;
+const LOG_RETENTION_MONTHS = 6;
 let logNeedsPrune = false;
+function activityLogCutoff(now = Date.now()) {
+  const cutoff = new Date(now), day = cutoff.getDate();
+  cutoff.setDate(1);
+  cutoff.setMonth(cutoff.getMonth() - LOG_RETENTION_MONTHS);
+  const lastDay = new Date(cutoff.getFullYear(), cutoff.getMonth() + 1, 0).getDate();
+  cutoff.setDate(Math.min(day, lastDay));
+  return cutoff.getTime();
+}
 function pruneActivityLog(entries, now = Date.now()) {
-  const cutoff = now - LOG_RETENTION_MS;
+  const cutoff = activityLogCutoff(now);
   return (Array.isArray(entries) ? entries : []).filter(entry => {
     const ts = typeof entry?.ts === 'number' ? entry.ts : Date.parse(entry?.ts);
     return Number.isFinite(ts) && ts >= cutoff;
@@ -3892,8 +3900,8 @@ function logView() {
     delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>',
     import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9l5 5V20a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 20z"/><path d="M14 3.5v5h5M12 11v7m-3-3 3 3 3-3"/></svg>'
   };
-  return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 14 วัน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 14 วัน · ไม่จำกัดจำนวนรายการ</small></div>` +
+  return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
+  `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
   (l.length ? `<div class="history-list">${l.map(x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
