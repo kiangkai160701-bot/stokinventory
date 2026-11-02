@@ -1236,6 +1236,20 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 @media(hover:none){.dash-action-card:hover{transform:none!important;border-color:var(--line)!important;box-shadow:var(--shadow-sm)!important}}
 .dash-action-card{position:relative;z-index:2;-webkit-tap-highlight-color:transparent}
 .dash-action-card:active{transform:scale(.97)}
+
+/* ===== Quick-withdraw bar (mobile) ===== */
+.qb{margin:0 0 9px}
+.qb-title{font-size:11.5px;font-weight:800;color:var(--mute);margin:0 2px 5px;letter-spacing:.2px}
+.qb-row{display:flex;gap:7px;overflow-x:auto;margin:0 -12px;padding:1px 12px 3px;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+.qb-row::-webkit-scrollbar{display:none}
+.qb-chip{flex:none;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:88px;max-width:132px;padding:7px 11px 7px;border-radius:13px;border:1px solid color-mix(in srgb,var(--acc) 32%,var(--card-bg));background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--ink);font:inherit;text-align:left;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s ease,background-color .15s ease}
+.qb-chip:active{transform:scale(.96);background:color-mix(in srgb,var(--acc) 24%,var(--card-bg))}
+.qb-chip b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;line-height:1.25}
+.qb-chip small{font-size:10.5px;line-height:1.2;color:var(--mute);white-space:nowrap}
+.qb-chip.low{background:var(--warn-bg);border-color:color-mix(in srgb,var(--warn) 35%,var(--card-bg))}
+.qb-chip.low small{color:var(--warn);font-weight:700}
+.qb-chip.out{background:var(--line);border-color:var(--line);opacity:.6;cursor:not-allowed}
+@media(min-width:1100px){.qb{display:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -2138,8 +2152,26 @@ return `<div class="stats">
     ${can.edit() ? `<button class="btn fab" id="add" aria-label="เพิ่มวัตถุดิบ" title="เพิ่มวัตถุดิบ">${ic('plus')}<span class="fab-label"> เพิ่มวัตถุดิบ</span></button>` : ''}
    </div>
   </div>
+  ${quickBar()}
   <div class="head"><span>วัตถุดิบ</span><span>คงเหลือ</span><span>ซัพพลายเออร์</span></div>
   <div class="list" id="list">${rows()}</div>`;
+}
+// Quick-withdraw bar: top 6 most-withdrawn items (count of withdrawals), blending last month -> this month by day of month
+function quickBar() {
+  const now = new Date(), w = now.getDate() / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const cur = now.getFullYear() * 12 + now.getMonth(), score = {};
+  L.forEach(x => {
+    if (x.type !== 'out' || !x.pid) return;
+    const d = new Date(Number(x.ts)), m = d.getFullYear() * 12 + d.getMonth();
+    if (m === cur) score[x.pid] = (score[x.pid] || 0) + w;
+    else if (m === cur - 1) score[x.pid] = (score[x.pid] || 0) + (1 - w);
+  });
+  const top = P.filter(p => score[p.id] > 0).sort((a, b) => score[b.id] - score[a.id] || a.name.localeCompare(b.name, 'th')).slice(0, 6);
+  if (!top.length) return '';
+  return `<div class="qb" id="quickBar"><div class="qb-title">⚡ เบิกด่วน</div><div class="qb-row">${top.map(p => {
+    const st = status(p);
+    return `<button type="button" class="qb-chip ${st}" data-quick="${esc(p.id)}"${st === 'out' ? ' disabled' : ''}><b>${esc(p.name)}</b><small>${st === 'out' ? 'หมดสต็อก' : `เหลือ ${num(p.qty)} ${esc(p.unit)}`}</small></button>`;
+  }).join('')}</div></div>`;
 }
 function rows() {
 const list = filtered();
@@ -2173,6 +2205,7 @@ card.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefau
 });
 if ($('#add')) $('#add').onclick = () => prodModal();
 bindStockReorder();
+if ($('#quickBar')) $('#quickBar').onclick = e => { const b = e.target.closest('[data-quick]'); if (b && !b.disabled) itemDetailModal(b.dataset.quick); };
 $('#list').onclick = e => {
 if (e.target.closest('[data-drag-handle]')) return;
 const row = e.target.closest('.row');
