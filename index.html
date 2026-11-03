@@ -829,6 +829,7 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
 @media(max-width:380px){#nav .nav-pill{border-radius:10px}}
 @media(hover:none){#nav.nav button:hover{background:transparent}}
 #main{backface-visibility:hidden}
+@media(max-width:1099px){#nav{touch-action:none}}
 #modal .ov{background:transparent!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;transition:none!important;opacity:1!important}
 #modal .ov .sheet{animation:none!important;transition:none!important;position:relative;z-index:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;backface-visibility:hidden}
 #modal .ov .ov-backdrop{position:absolute;inset:0;z-index:0;background:rgba(92,63,79,.4);pointer-events:none}
@@ -2075,11 +2076,14 @@ onlineUsers = new Set(); updateOnlineUsers([]);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshPresence(); });
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
+let cloudRefreshBusy = false;
 async function refreshCloudState() {
-if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600) return;
+if (!cloudToken || !syncSnapshot || cloudBusy || cloudRefreshBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600 || Date.now() < (window.__navHoldUntil || 0)) return;
 if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
+cloudRefreshBusy = true;
 try {
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
+if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
 if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
 if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
 if (result.version !== syncVersion) {
@@ -2087,7 +2091,7 @@ applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersi
 me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
 build(); showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
-} catch {}
+} catch {} finally { cloudRefreshBusy = false; }
 }
 /* ---------- Announcement ticker (shown under the header, set by kiangkai only) ---------- */
 const isAnnouncer = () => String(me?.name || '').toLowerCase() === 'kiangkai';
@@ -2352,10 +2356,16 @@ const main = $('#main');
 let called = false;
 const go = () => {
 if (called) return;
-called = true; navPending = false;
+called = true;
+const run = () => {
+navPending = false;
 const leaving = exitAnim; exitAnim = null;
 try { render(true); }
 finally { if (leaving) { try { leaving.cancel(); } catch (err) {} } }
+};
+// mobile: remove the old page in one frame (page is already invisible), build the new one in the next
+if (!isWideDesktop() && main && !document.querySelector('#ov[data-closing]')) { main.replaceChildren(); requestAnimationFrame(run); }
+else run();
 };
 if (matchMedia('(prefers-reduced-motion: reduce)').matches || !main || typeof main.animate !== 'function') {
 requestAnimationFrame(go);
@@ -2387,20 +2397,73 @@ const els = [document.scrollingElement, document.documentElement, document.body,
 els.forEach(el => { if (el && el.scrollTop) el.scrollTop = 0; });
 window.scrollTo(0, 0);
 }
-document.addEventListener('click', e => {
-const button = e.target.closest('[data-t]');
-if (!button || !me) return;
-if (button.dataset.t !== tab) resetScrollTopMobile();
+function goTab(target) {
+if (target !== tab) resetScrollTopMobile();
 historyCardFilter = null;
 const availableTabs = tabs().map(item => item[0]);
-pageDirection = availableTabs.indexOf(button.dataset.t) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
-tab = button.dataset.t;
+pageDirection = availableTabs.indexOf(target) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
+tab = target;
 navBusyStart();
 syncNav();
 if (navPending) return;
 navPending = true;
 runPageExit();
+}
+let navClickSuppressUntil = 0;
+document.addEventListener('click', e => {
+const button = e.target.closest('[data-t]');
+if (!button || !me) return;
+if (button.closest('#nav') && performance.now() < navClickSuppressUntil) return;
+goTab(button.dataset.t);
 });
+// Bottom bar follows the finger: the pill moves on touch-down and slides under the finger;
+// the page switches once, on release, to whatever button the finger is on.
+(function navScrub() {
+let sc = null;
+const holdPoll = ms => { window.__navHoldUntil = Date.now() + ms; };
+const pick = x => {
+if (!sc) return null;
+const r = sc.rects;
+const hit = r.find(i => x >= i.left && x <= i.right) || (x < r[0].left ? r[0] : r[r.length - 1]);
+return hit.btn;
+};
+const preview = btn => {
+const nav = sc.nav, pill = nav.querySelector('.nav-pill');
+if (!pill || !btn || sc.shown === btn) return;
+sc.shown = btn;
+nav.querySelectorAll('button[data-t]').forEach(b => b.classList.toggle('on', b === btn));
+pill.style.width = btn.offsetWidth + 'px'; pill.style.height = btn.offsetHeight + 'px';
+pill.style.transform = `translate3d(${btn.offsetLeft}px,${btn.offsetTop}px,0)`;
+};
+document.addEventListener('pointerdown', e => {
+if (sc || !me || e.pointerType === 'mouse' || !e.isPrimary || isWideDesktop()) return;
+const nav = e.target.closest && e.target.closest('#nav');
+if (!nav) return;
+const btns = [...nav.querySelectorAll('button[data-t]')];
+if (!btns.length) return;
+sc = { id: e.pointerId, nav, shown: null, target: null, rects: btns.map(btn => { const r = btn.getBoundingClientRect(); return { btn, left: r.left, right: r.right }; }), box: nav.getBoundingClientRect() };
+try { nav.setPointerCapture(e.pointerId); } catch (_) {}
+holdPoll(8000); navBusyStart();
+sc.target = pick(e.clientX); preview(sc.target);
+});
+document.addEventListener('pointermove', e => {
+if (!sc || e.pointerId !== sc.id) return;
+const b = sc.box, outside = e.clientY < b.top - 70 || e.clientY > b.bottom + 70;
+sc.target = outside ? null : pick(e.clientX);
+preview(sc.target || sc.nav.querySelector('button[data-t].on') && [...sc.nav.querySelectorAll('button[data-t]')].find(x => x.dataset.t === tab));
+}, { passive: true });
+const end = (e, cancelled) => {
+if (!sc || e.pointerId !== sc.id) return;
+const s = sc; sc = null;
+try { s.nav.releasePointerCapture(e.pointerId); } catch (_) {}
+holdPoll(1500); navBusyStart();
+if (cancelled || !s.target) { syncNav(); return; }
+navClickSuppressUntil = performance.now() + 500;
+goTab(s.target.dataset.t);
+};
+document.addEventListener('pointerup', e => end(e, false));
+document.addEventListener('pointercancel', e => end(e, true));
+})();
 function updatePageMascots() {
 const main = $('#main'), friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
 main.querySelectorAll('.page-mascots').forEach(row => row.remove());
@@ -3890,17 +3953,18 @@ toast('เพิ่มวัตถุดิบแล้ว');
 save(); closeModal(); render();
 };
 }
-const HIST_PAGE = 150;
+const HIST_INITIAL_PAGE = 80;
+const HIST_LOAD_BATCH = 100;
 let histState = null;
 function histMoreHtml(total, shown) {
   if (total <= shown) return '';
-  const next = Math.min(HIST_PAGE, total - shown);
+  const next = Math.min(HIST_LOAD_BATCH, total - shown);
   return `<div class="hist-more" id="historyMoreWrap"><button type="button" class="ih-more" id="historyMore">โหลดเพิ่มอีก ${next} รายการ</button><small>แสดง ${shown} จาก ${total} รายการ</small></div>`;
 }
 function histLoadMore() {
   const st = histState, list = document.querySelector('.history-list'), wrap = document.getElementById('historyMoreWrap');
   if (!st || !list || !wrap) return;
-  const from = st.shown, to = Math.min(from + HIST_PAGE, st.rows.length);
+  const from = st.shown, to = Math.min(from + HIST_LOAD_BATCH, st.rows.length);
   list.insertAdjacentHTML('beforeend', st.rows.slice(from, to).map(st.rowHtml).join(''));
   st.shown = to;
   wrap.outerHTML = histMoreHtml(st.rows.length, to);
@@ -3948,18 +4012,22 @@ edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.
 delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>',
 import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9l5 5V20a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 20z"/><path d="M14 3.5v5h5M12 11v7m-3-3 3 3 3-3"/></svg>'
 };
+const historyUserRoles = new Map(U.map(user => [user.name, ROLE[user.role] || user.role || '']));
+const historyProductUnits = new Map(P.map(product => [product.id, product.unit || '']));
+const historyDateFormatter = new Intl.DateTimeFormat('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
 const rowHtml = x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
-    const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
-    const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
+    const unit = x.unit || historyProductUnits.get(x.pid) || '';
+    const date = historyDateFormatter.format(new Date(x.ts));
+    const role = x.role || historyUserRoles.get(x.user) || '';
     const movementIcon = historyIcons[x.type] || historyIcons.adjust;
-    return `<article class="history-item"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
+    return `<article class="history-item"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
 };
-histState = { rows: l, rowHtml, shown: Math.min(HIST_PAGE, l.length) };
+histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
 return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
 `<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
-(l.length ? `<div class="history-list">${l.slice(0, HIST_PAGE).map(rowHtml).join('')}</div>${histMoreHtml(l.length, Math.min(HIST_PAGE, l.length))}` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
+(l.length ? `<div class="history-list">${l.slice(0, HIST_INITIAL_PAGE).map(rowHtml).join('')}</div>${histMoreHtml(l.length, Math.min(HIST_INITIAL_PAGE, l.length))}` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
 }
 document.addEventListener('change', e => {
 if (/^history/.test(e.target.id || '')) historyCardFilter = null;
