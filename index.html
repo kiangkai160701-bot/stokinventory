@@ -1995,7 +1995,7 @@ function annFill(message) {
   move.innerHTML = `<span class="ann-lead" aria-hidden="true"></span><span class="ann-seg"></span>`;
   move.querySelector('.ann-seg').textContent = message;
   const lead = move.querySelector('.ann-lead'), seg = move.querySelector('.ann-seg');
-  const W = track.clientWidth || 280; lead.style.width = W + 'px';
+  const W = track.clientWidth || 280; annState.w = W; lead.style.width = W + 'px';
   const dist = W + seg.offsetWidth + 12;
   move.style.setProperty('--ann-end', `-${dist}px`);
   move.style.setProperty('--ann-dur', `${Math.max(9, dist / 55).toFixed(1)}s`);
@@ -2029,7 +2029,8 @@ async function refreshAnnouncement(force = false) {
 setInterval(() => refreshAnnouncement(), 30000);
 window.addEventListener('focus', () => refreshAnnouncement(true));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshAnnouncement(true); });
-window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); if (annState.message && !$('#announceBar').hidden) annFill(annState.message); }, 200); });
+// Mobile browsers fire 'resize' while scrolling (address bar collapses). Only rebuild when the track WIDTH really changed, otherwise the text would restart from the right.
+window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); const track = $('#announceTrack'); if (annState.message && track && !$('#announceBar').hidden && Math.abs(track.clientWidth - (annState.w || 0)) > 2) annFill(annState.message); }, 200); });
 if ('ResizeObserver' in window) { const h = document.querySelector('#app .top'); if (h) new ResizeObserver(syncAnnounceOffset).observe(h); }
 
 const annRemain = sec => { const m = Math.max(1, Math.round(sec / 60)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60; return `เหลือ ${d ? d + ' วัน ' : ''}${h ? h + ' ชม. ' : ''}${mm || (!d && !h) ? mm + ' นาที' : ''}`.trim(); };
