@@ -963,10 +963,18 @@ button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:trans
 .bm-info summary::before{content:'ⓘ';font-size:13px}
 .bm-info[open] summary{color:var(--ink)}
 .bm-info .settings-hint{margin:2px 0 4px;font-size:11.5px;line-height:1.5;overflow-wrap:anywhere}
-.bm-list{display:grid;gap:6px}
+.bm-list{display:grid;grid-template-columns:minmax(0,1fr);gap:6px}
 .bm-row{display:flex;align-items:center;gap:8px;min-height:50px;padding:5px 6px 5px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
 .bm-row.is-current{border-color:rgba(81,169,113,.45);background:linear-gradient(135deg,rgba(81,169,113,.1),var(--theme-wash))}
-.bm-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650;color:var(--ink)}
+.bm-name-wrap{flex:1 1 0;min-width:0;overflow:hidden;display:flex;align-items:center;gap:8px}
+.bm-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px;font-weight:650;color:var(--ink)}
+.bm-online{flex:none;display:inline-flex;align-items:center;gap:5px;min-width:34px;height:22px;padding:0 8px 0 7px;justify-content:center;border-radius:99px;border:1px solid var(--line);background:var(--card-bg);color:var(--mute);font-size:12px;font-weight:800;line-height:1;font-variant-numeric:tabular-nums;transition:background-color .25s ease,color .25s ease,border-color .25s ease}
+.bm-online::before{content:'';flex:none;width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.55}
+.bm-online.is-live{border-color:rgba(81,169,113,.45);background:rgba(81,169,113,.15);color:#2f7a4d}
+.bm-online.is-live::before{opacity:1;background:#3fae68;box-shadow:0 0 0 3px rgba(63,174,104,.22);animation:bmPulse 2.4s ease-in-out infinite}
+html.dark-theme .bm-online.is-live{color:#8fd1a8}
+@keyframes bmPulse{0%,100%{box-shadow:0 0 0 3px rgba(63,174,104,.22)}50%{box-shadow:0 0 0 5px rgba(63,174,104,.06)}}
+@media(prefers-reduced-motion:reduce){.bm-online.is-live::before{animation:none}}
 .bm-actions{display:flex;flex:none;gap:6px}
 .bm-card .bm-btn{width:auto;min-width:54px;height:38px;min-height:38px;padding:0 14px;border-radius:11px;font-size:13px;font-weight:700;line-height:1;white-space:nowrap}
 .bm-card .bm-enter{background:linear-gradient(135deg,#51a971,#368b58)!important;border:1px solid #368b58!important;color:#fff!important;box-shadow:0 2px 7px rgba(54,139,88,.2)}
@@ -1966,16 +1974,55 @@ const key = label.dataset.lastOnlineUser.toLowerCase(), last = lastOnlineByUser.
 const text = last ? new Date(last).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' }) : onlineUsers.has(key) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล';
 label.textContent = `ออนไลน์ล่าสุด: ${text}`;
 });
+updateBranchOnlineBadges();
 }
 async function refreshPresence() {
 if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
 presenceBusy = true;
 try {
 const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-if (result.ok) updateOnlineUsers(result.users || [], result.lastOnline || {});
+if (result.ok) { updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
 else if (result.error?.includes('หมดเวลา')) logout();
 } catch {}
 finally { presenceBusy = false; }
+}
+// ===== จำนวนผู้ใช้ออนไลน์ต่อสาขา (แสดงท้ายชื่อสาขาในหน้าจัดการสาขา) =====
+let branchOnlineCounts = {}, branchOnlineUnavailable = false, branchOnlineBusy = false;
+function branchOnlineValue(b) {
+  if (currentBranch && String(b.id) === String(currentBranch.id)) return onlineUsers.size; // สาขาปัจจุบัน: นับจากรายชื่อออนไลน์จริง
+  const v = branchOnlineCounts[String(b.id)];
+  return Number.isFinite(v) ? v : null;
+}
+function branchOnlineHtml(b) {
+  const n = branchOnlineValue(b);
+  return `<span class="bm-online${n > 0 ? ' is-live' : ''}" data-branch-online="${esc(b.id)}" title="${n === null ? 'ยังโหลดจำนวนผู้ใช้ออนไลน์ไม่ได้' : `ผู้ใช้ออนไลน์ ${n} คน`}" aria-label="${n === null ? 'ไม่ทราบจำนวนผู้ใช้ออนไลน์' : `ผู้ใช้ออนไลน์ ${n} คน`}">${n === null ? '–' : n}</span>`;
+}
+function updateBranchOnlineBadges() {
+  document.querySelectorAll('[data-branch-online]').forEach(el => {
+    const b = branches.find(x => String(x.id) === el.dataset.branchOnline); if (!b) return;
+    const n = branchOnlineValue(b), text = n === null ? '–' : String(n);
+    if (el.textContent !== text) el.textContent = text;
+    el.classList.toggle('is-live', n > 0);
+    const label = n === null ? 'ยังโหลดจำนวนผู้ใช้ออนไลน์ไม่ได้' : `ผู้ใช้ออนไลน์ ${n} คน`;
+    el.title = label; el.setAttribute('aria-label', label);
+  });
+}
+async function refreshBranchOnline() {
+  if (!document.querySelector('[data-branch-online]')) return;
+  updateBranchOnlineBadges();
+  if (!cloudToken || branchOnlineBusy || branchOnlineUnavailable) return;
+  branchOnlineBusy = true;
+  try {
+    const r = await cloudRpc('api_presence_branch_counts', { p_token: cloudToken });
+    if (r?.ok) {
+      const src = r.counts || r.branches || [], map = {};
+      if (Array.isArray(src)) src.forEach(x => { const id = x.branch_id ?? x.id, n = Number(x.online ?? x.count ?? x.online_count); if (id != null && Number.isFinite(n)) map[String(id)] = n; });
+      else Object.entries(src).forEach(([id, n]) => { if (Number.isFinite(Number(n))) map[String(id)] = Number(n); });
+      branchOnlineCounts = map; updateBranchOnlineBadges();
+    }
+  } catch (error) {
+    if (/Could not find the function|api_presence_branch_counts|schema cache/i.test(String(error?.message || ''))) branchOnlineUnavailable = true;
+  } finally { branchOnlineBusy = false; }
 }
 function startPresence() {
 clearInterval(presenceTimer);
@@ -2990,7 +3037,7 @@ const stockResetLog = L.find(x => x.note === STOCK_RESET_NOTE);
 const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Number(lastReset.ts || 0)) ? { scope: 'stock', user: stockResetLog.user, ts: stockResetLog.ts } : lastReset;
 return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
-    ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
+    ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name-wrap"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${branchOnlineHtml(b)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
     ${isAnnouncer() ? `<div class="dash-card disclosure-card announce-card" id="announceCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="announceDisclosurePanel"><span>📢 ประกาศข้อความ</span><span class="disclosure-count" id="announceCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="announceDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p class="settings-hint">ข้อความจะเลื่อนจากขวาไปซ้ายใต้หัวเว็บไซต์ของผู้ใช้ในสาขาที่เลือก จนครบเวลาที่กำหนด หรือจนกว่าจะยกเลิก</p>
       <label class="fld"><span>ข้อความประกาศ</span><textarea class="in" id="annText" rows="3" maxlength="200" placeholder="พิมพ์ข้อความที่ต้องการประกาศ"></textarea><small class="ann-counter" id="annCounter">0/200</small></label>
@@ -3107,7 +3154,7 @@ if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
 document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => toggleDisclosure(button));
-bindAnnounceCard();
+bindAnnounceCard(); refreshBranchOnline();
 const resetScopeSelect = $('#resetScope');
 if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
 const resetButton = $('#resetDataBtn');
