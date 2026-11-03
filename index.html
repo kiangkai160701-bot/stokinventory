@@ -1262,6 +1262,122 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron::after{transform:rotate(180deg)}
 .disclosure-summary:active .disclosure-chevron{transform:scale(.92)}
 @media(max-width:680px){.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.backup-card .disclosure-inner>div[style*="flex-wrap"] .btn{width:100%;justify-content:center}}
+/* ===== เมนูด้านข้าง + จ๊อบพนักงาน (mobile only) ===== */
+.sd-scrim{position:fixed;inset:0;z-index:42;background:rgba(40,28,36,.22);opacity:0;pointer-events:none;transition:opacity .26s ease}
+.sd-scrim.show{opacity:1;pointer-events:auto}
+.sd-dock{position:fixed;left:0;top:calc(env(safe-area-inset-top,0px) + 92px);z-index:43;display:none;transform:translate3d(-100%,0,0);transition:transform .28s cubic-bezier(.32,.72,0,1)}
+.sd-dock.on{display:block}
+.sd-dock.open{transform:none}
+.sd-panel{min-width:178px;padding:8px;border:1px solid var(--line);border-left:0;border-radius:0 18px 18px 0;background:var(--card-bg)}
+.sd-title{padding:4px 8px 6px;color:var(--mute);font-size:11px;font-weight:800}
+.sd-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 12px;border:1px solid color-mix(in srgb,var(--acc) 32%,var(--card-bg));border-radius:13px;background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--ink);font:inherit;font-size:14px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s ease,background-color .15s ease}
+.sd-item:active{transform:scale(.97);background:color-mix(in srgb,var(--acc) 24%,var(--card-bg))}
+.sd-item svg{margin-left:auto;width:16px;height:16px;fill:none;stroke:var(--acc-hover);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.sd-tab{position:absolute;left:calc(100% + 7px);top:0;width:36px;height:42px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:14px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background-color .2s ease}
+.sd-dock.open .sd-tab{background:color-mix(in srgb,var(--acc) 72%,transparent)}
+.sd-tab:active{transform:scale(.93)}
+.sd-tab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .28s cubic-bezier(.32,.72,0,1)}
+.sd-dock.open .sd-tab svg{transform:rotate(180deg)}
+@media(min-width:1100px){.sd-dock,.sd-scrim,.jp{display:none!important}}
+
+.jp{--j-off:#a99be0;--j-leave:#6fc08f;--j-late:#eeaa5d;--j-absent:#e9808b;--j-closed:#7db7e6;position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;contain:layout paint style}
+.jp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
+.jp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
+.jp-head h2{flex:1;margin:0;font-size:17px}
+.jp-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:38px;padding:0 13px;border:1px solid color-mix(in srgb,var(--acc) 38%,var(--card-bg));border-radius:12px;background:color-mix(in srgb,var(--acc) 15%,var(--card-bg));color:var(--acc-hover,var(--ink));font:inherit;font-size:13px;font-weight:700;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s ease,background-color .15s ease}
+.jp-btn:active{transform:scale(.96);background:color-mix(in srgb,var(--acc) 26%,var(--card-bg))}
+.jp-btn.sq{width:38px;padding:0}
+.jp-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.jp-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:14px 12px calc(92px + env(safe-area-inset-bottom,0px))}
+.jp-card{margin-bottom:12px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--card-bg);box-shadow:var(--shadow-sm)}
+.jp-card.has-card-mascot.jp-today,.jp-card.has-card-mascot.jp-team{padding-right:44px}
+.jp-seg{display:flex;gap:4px;padding:4px;margin-bottom:10px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg)}
+.jp-seg button{flex:1;min-height:36px;border:0;border-radius:10px;background:transparent;color:var(--mute);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.jp-seg button.on{background:var(--acc);color:#fff}
+.jp-who{display:flex;gap:6px;margin:0 -12px 10px;padding:0 12px 2px;overflow-x:auto;scrollbar-width:none}
+.jp-who::-webkit-scrollbar{display:none}
+.jp-who button{flex:none;min-height:34px;padding:0 13px;border:1px solid var(--line);border-radius:99px;background:var(--card-bg);color:var(--mute);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer}
+.jp-who button.on{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--card-bg));color:var(--ink)}
+.jp-today{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px}
+.jp-today b{margin-right:2px;color:var(--mute);font-weight:800}
+.jp-chip{padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:color-mix(in srgb,var(--c,var(--mute)) 18%,var(--card-bg));color:var(--ink)}
+.jp-chip.t-off,.jp-pill.t-off,.jp-tag.t-off{--c:var(--j-off)}.jp-chip.t-leave,.jp-pill.t-leave,.jp-tag.t-leave{--c:var(--j-leave)}.jp-chip.t-late,.jp-pill.t-late,.jp-tag.t-late{--c:var(--j-late)}.jp-chip.t-absent,.jp-pill.t-absent,.jp-tag.t-absent{--c:var(--j-absent)}.jp-chip.t-ok,.jp-tag.t-ok{--c:var(--j-leave)}.jp-tag.t-closed{--c:var(--j-closed)}
+.jp-month{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.jp-month b{flex:1;text-align:center;font-size:15px}
+.jp-wd,.jp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.jp-wd span{padding:2px 0 4px;text-align:center;color:var(--mute);font-size:11px;font-weight:700}
+.jp-d{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;padding:4px 0;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--ink);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.jp-d.x{visibility:hidden}
+.jp-d.pre b{opacity:.45}
+.jp-d b{font-size:14px;font-weight:700;line-height:1}
+.jp-d i.dots{display:flex;gap:3px;height:7px}
+.jp-d i.dots i{width:7px;height:7px;border-radius:50%;background:var(--c)}
+.jp-d.fut i.dots i{background:transparent;border:1.5px solid var(--c)}
+.jp-d i.t-off{--c:var(--j-off)}.jp-d i.t-leave{--c:var(--j-leave)}.jp-d i.t-late{--c:var(--j-late)}.jp-d i.t-absent{--c:var(--j-absent)}
+.jp-tag{display:block;min-width:26px;padding:1px 4px;border-radius:7px;background:color-mix(in srgb,var(--c) 30%,var(--card-bg));color:var(--ink);font-size:9.5px;font-weight:800;line-height:1.35;text-align:center}
+.jp-d.fut .jp-tag{background:transparent;border:1.5px dashed var(--c);padding:0 3px}
+.jp-d.closed{background:color-mix(in srgb,var(--j-closed) 20%,var(--card-bg))}
+.jp-d.today{border-color:var(--acc);border-width:2px}
+.jp-d.sel{background:color-mix(in srgb,var(--acc) 20%,var(--card-bg))}
+.jp-d.sel b{color:var(--acc-hover,var(--ink));font-weight:800}
+.jp-legend{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);color:var(--mute);font-size:10.5px}
+.jp-legend span{display:inline-flex;align-items:center;gap:4px}
+.jp-legend i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.jp-legend i.dash{background:transparent;border:1.5px dashed var(--mute);border-radius:4px}
+.jp-day-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.jp-day-top h3{flex:1;margin:0;font-size:14px}
+.jp-phase{display:inline-block;margin-bottom:8px;padding:2px 10px;border-radius:99px;font-size:11px;font-weight:800;background:var(--theme-soft);color:var(--acc-hover,var(--ink))}
+.jp-phase.fut{border:1.5px dashed var(--acc);background:transparent}
+.jp-row{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;margin-bottom:6px;border:1px solid var(--line);border-radius:13px;background:var(--card-bg);color:var(--ink);font:inherit;text-align:left}
+.jp-row[data-edit]{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.jp-av{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:color-mix(in srgb,var(--acc) 18%,var(--card-bg));color:var(--acc-hover,var(--ink));font-size:13px;font-weight:800}
+.jp-info{flex:1;min-width:0}
+.jp-info b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.jp-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--mute);font-size:11px}
+.jp-pill{flex:none;padding:4px 10px;border-radius:99px;background:color-mix(in srgb,var(--c) 22%,var(--card-bg));font-size:12px;font-weight:700;white-space:nowrap}
+.jp-warn{margin-bottom:8px;padding:9px 11px;border-radius:12px;background:var(--warn-bg);color:var(--warn);font-size:12px;font-weight:700}
+.jp-closed{margin-bottom:8px;padding:9px 11px;border-radius:12px;background:color-mix(in srgb,var(--j-closed) 22%,var(--card-bg));font-size:12.5px;font-weight:700}
+.jp-ok{color:var(--mute);font-size:12px;line-height:1.5}
+.jp-tools{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.jp-tools .jp-btn{padding:0 8px;font-size:12.5px}
+.jp-stat{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.jp-fab{position:absolute;right:16px;bottom:calc(18px + env(safe-area-inset-bottom,0px));display:inline-flex;align-items:center;gap:6px;min-height:48px;padding:0 20px;border:1px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 60%,transparent);border-radius:16px;background:var(--acc);color:#fff;font:inherit;font-size:14.5px;font-weight:800;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s ease}
+.jp-fab:active{transform:scale(.95)}
+.jp-undo{position:absolute;left:14px;right:14px;bottom:calc(76px + env(safe-area-inset-bottom,0px));display:none;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);font-size:13px;font-weight:700}
+.jp-undo.show{display:flex}
+.jp-undo span{flex:1}
+.jp-types{display:flex;gap:4px;margin-bottom:12px}
+.jp-types label{flex:1;min-width:0}
+.jp-types input{position:absolute;opacity:0;pointer-events:none}
+.jp-types span{display:flex;align-items:center;justify-content:center;min-height:42px;padding:0 2px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg);color:var(--mute);font-size:12.5px;font-weight:700;text-align:center;cursor:pointer}
+.jp-types input:checked+span{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 16%,var(--card-bg));color:var(--ink)}
+.jp-mins{display:flex;gap:6px;margin:-4px 0 12px}
+.jp-mins button{flex:1;min-height:34px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.jp-step{display:flex;align-items:center;justify-content:center;gap:16px;margin:10px 0 14px}
+.jp-step b{min-width:40px;text-align:center;font-size:24px}
+.jp-opt{display:flex;align-items:center;gap:8px;margin:6px 0;font-size:13px}
+.jp-opt input{width:18px;height:18px;accent-color:var(--acc)}
+.jp-pick{max-height:48vh;overflow-y:auto;margin-bottom:12px}
+.jp-pick .jp-opt{padding:9px 10px;border:1px solid var(--line);border-radius:12px}
+.jp-pick .jp-opt em{margin-left:auto;color:var(--mute);font-size:11px;font-style:normal}
+.jp-wkrow{margin-bottom:10px}
+.jp-wkrow>b{font-size:13px}
+.jp-wk{display:flex;gap:4px;margin-top:5px}
+.jp-wk button{flex:1;min-height:36px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--mute);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.jp-wk button.on{border-color:var(--acc);background:var(--acc);color:#fff}
+
+/* ===== ปุ่มปิดแท็บของแผ่นสไลด์ทุกหน้า ===== */
+.sheet-bar{position:sticky;top:-6px;z-index:6;height:0;display:flex;justify-content:flex-end;overflow:visible}
+.sheet-close{position:relative;top:-6px;right:-4px;flex:none;height:32px;padding:0 13px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line,#f1d9e0);border-radius:999px;background:var(--theme-wash,#fff0f4);color:var(--acc-hover,#a24c68);font:inherit;font-size:12.5px;font-weight:700;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);touch-action:manipulation}
+.sheet-close:active{transform:scale(.94)}
+.sheet-bar+h3,.sheet-bar+.sect,.sheet-bar+h2{padding-right:96px}
+.ov[data-lock] .sheet-close{display:none}
+/* ===== ความลื่นไหล (60/90/120Hz) ===== */
+html{-webkit-tap-highlight-color:transparent}
+button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
+.ov,.sheet,.item-stage1{overscroll-behavior:contain}
+#nav .nav-pill,#nav.nav{will-change:transform;transform:translateZ(0)}
+.sheet,.ov-backdrop,.theme-picker,.theme-page{backface-visibility:hidden;-webkit-backface-visibility:hidden}
 </style>
 </head>
 <body data-theme="teal">
@@ -1450,7 +1566,7 @@ const ts = typeof entry?.ts === 'number' ? entry.ts : Date.parse(entry?.ts);
 return Number.isFinite(ts) && ts >= cutoff;
 });
 }
-const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset });
+const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset, ...(JOBS_CLOUD && J ? { jobs: J } : {}) });
 function applyCloudState(state) {
 U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
 P = state.products || [];
@@ -1460,6 +1576,7 @@ logNeedsPrune = logNeedsPrune || L.length !== sourceLog.length;
 ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) }; delete ROLE.viewer;
 CATS = state.categories || []; UNITS = state.units || [];
 lastReset = state.lastReset || null;
+if (JOBS_CLOUD && state.jobs) { J = state.jobs; store.set(jKey(), J); }
 }
 function migrateLegacyBrowserData(result) {
 if (result.version !== 1 || result.me?.role !== 'admin') return false;
@@ -1555,11 +1672,11 @@ const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || Strin
 const globalAdminDirectoryUser = Object.freeze({ name: 'kiangkai', role: 'admin', active: true, owner: true, globalAdmin: true });
 const isGlobalBranchAdmin = user => !!user?.owner && !user?.branchManagerAccess;
 const defaultPermissions = role => role === 'admin'
-? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false }
+? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true }
 : role === 'supervisor'
-? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
-: role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false }
-: { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false };
+? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true }
+: role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false }
+: { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false };
 const I = {
 plus: '<path d="M12 5v14M5 12h14"/>',
 up: '<path d="M12 20V9m-4 4 4-4 4 4M5 4h14"/>',
@@ -1701,7 +1818,7 @@ const save = () => {
 syncQueue = syncQueue.then(async () => {
 if (!cloudToken || !syncSnapshot) return;
 L = pruneActivityLog(L);
-const next = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS }, base = syncSnapshot;
+const next = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS, ...(JOBS_CLOUD && J ? { jobs: J } : {}) }, base = syncSnapshot;
 if (!logNeedsPrune && JSON.stringify(safeState()) === JSON.stringify(base)) return;
 cloudBusy = true;
 try {
@@ -1813,7 +1930,7 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
 async function refreshCloudState() {
-if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov')) return;
+if (!cloudToken || !syncSnapshot || cloudBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600) return;
 if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
 try {
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
@@ -1847,7 +1964,9 @@ users: () => fullAccessUser(me) || !!me?.permissions?.manageUsers,
 lists: () => fullAccessUser(me) || !!me?.permissions?.manageLists,
 permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
 manageBranches: () => isGlobalBranchAdmin(me),
-reset: () => fullAccessUser(me) || !!me?.permissions?.resetData
+reset: () => fullAccessUser(me) || !!me?.permissions?.resetData,
+sideMenu: () => fullAccessUser(me) || !!(me?.permissions?.sideMenu ?? defaultPermissions(me?.role).sideMenu),
+manageJobs: () => fullAccessUser(me) || !!(me?.permissions?.manageJobs ?? defaultPermissions(me?.role).manageJobs)
 };
 function tabs() {
 const items = [
@@ -2006,7 +2125,7 @@ add('.history-main', 'mascot-history', 3);
 } else if (tab === 'users') {
 add('.user-activity-card .t', 'mascot-user');
 } else if (tab === 'settings') {
-add('.branch-admin-card,.text-scale-card,.theme-picker-card,.permission-user', 'mascot-top-right');
+add('.branch-admin-card,.permission-user', 'mascot-top-right');
 }
 cards.forEach(({ card, placement }, index) => {
 const mascot = document.createElement('span');
@@ -2017,7 +2136,7 @@ mascot.style.animationDelay = `-${(index % 5) * 0.45}s`;
 card.classList.add('has-card-mascot');
 card.append(mascot);
 });
-const cornerSel = '.dash-chart,.dash-grid > .dash-card,.branch-admin-card,.text-scale-card,.theme-picker-card';
+const cornerSel = '.dash-chart,.dash-grid > .dash-card:not(.disclosure-card),.branch-admin-card';
 [...main.querySelectorAll(cornerSel)].forEach((card, index) => {
 if (index % 2 !== 0 || !card.classList.contains('has-card-mascot')) return;
 const m = document.createElement('span');
@@ -2669,14 +2788,13 @@ const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Nu
 return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
-    ${canViewStorage ? `<div class="dash-card storage-card" id="storageUsageCard"><div class="storage-heading"><div><h3>🗄️ พื้นที่ฐานข้อมูล</h3><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div>` : ''}
-    <div class="dash-card text-scale-card"><h3>🔠 ขนาดตัวอักษร</h3><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div>
-    <div class="dash-card theme-picker-card">
-      <h3>🎨 เลือกธีม</h3>
+    ${canViewStorage ? `<div class="dash-card storage-card disclosure-card" id="storageUsageCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="storageDisclosurePanel"><span>🗄️ พื้นที่ฐานข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="storageDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><div class="storage-heading"><div><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div></div></div>` : ''}
+    <div class="dash-card disclosure-card text-scale-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="textScaleDisclosurePanel"><span>🔠 ขนาดตัวอักษร</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="textScaleDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div></div></div>
+    <div class="dash-card disclosure-card theme-picker-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="themeDisclosurePanel"><span>🎨 เลือกธีม</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="themeDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ${isWideDesktop()?'เลื่อนแถบด้านล่างเพื่อดูธีมเพิ่มเติม':'ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม'}</p>
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
-    </div>
+    </div></div></div>
     <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -2701,8 +2819,8 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล']
-        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || user.permissions?.[key] ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน']
+        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || (key === 'sideMenu' || key === 'manageJobs' ? (user.permissions?.[key] ?? defaultPermissions(user.role)[key]) : user.permissions?.[key]) ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div></div></div>
     </div>` : ''}
     ${can.reset() || can.permissions() ? '</div>' : ''}
@@ -3085,6 +3203,15 @@ host.innerHTML = '';
 flushDeferredRender();
 host.innerHTML = `<div class="ov${kind ? ` ov-${kind}` : ''}" id="ov"><div class="ov-backdrop" aria-hidden="true"></div><div class="sheet" role="dialog" aria-modal="true">${html}</div></div>`;
 const overlay = $('#ov');
+if (kind !== 'item' && kind !== 'itemwide') {
+const sheetEl = overlay.querySelector('.sheet');
+if (sheetEl && !sheetEl.querySelector('.item-close,.iw-close,.sheet-close')) {
+const bar = document.createElement('div'); bar.className = 'sheet-bar';
+const closeBtn = document.createElement('button'); closeBtn.type = 'button'; closeBtn.className = 'sheet-close'; closeBtn.setAttribute('aria-label', 'ปิดแท็บ'); closeBtn.textContent = '↓ ปิดแท็บ';
+closeBtn.onclick = () => { if (!overlay.dataset.lock) closeModal(); };
+bar.appendChild(closeBtn); sheetEl.insertBefore(bar, sheetEl.firstChild);
+}
+}
 overlay.onmousedown = e => { if (e.target.id === 'ov' && !$('#ov').dataset.lock) closeModal(); };
 const sheet = overlay.querySelector('.sheet'), backdrop = overlay.querySelector('.ov-backdrop');
 if (matchMedia('(prefers-reduced-motion: reduce)').matches || typeof sheet.animate !== 'function') return;
@@ -3762,6 +3889,7 @@ let ticking=false;
 const update=()=>{ticking=false;btn.classList.toggle('show',(tab==='log'||tab==='dashboard'||tab==='stock')&&!isWideDesktop()&&pos()>300);};
 const queue=()=>{if(!ticking){ticking=true;requestAnimationFrame(update);}};
 document.addEventListener('scroll',queue,{passive:true,capture:true});
+document.addEventListener('scroll',()=>{window.__lastScrollTs=Date.now();},{passive:true,capture:true});
 window.addEventListener('resize',queue);
 const main=document.querySelector('#main');
 if(main)new MutationObserver(queue).observe(main,{childList:true});
@@ -3773,6 +3901,294 @@ if(el&&el.scrollTop>0&&el.scrollTo)el.scrollTo({top:0,behavior});
 if(window.scrollY>0)window.scrollTo({top:0,behavior});
 });
 queue();
+})();
+// ===== เมนูด้านข้าง + จ๊อบพนักงาน =====
+var JOBS_CLOUD = true; // ฐานข้อมูล (api_sync) รองรับฟิลด์ jobs แล้ว (ต้องรัน supabase-jobs-sync-migration.sql ก่อน)
+var J = null;
+const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '📝' }, late: { l: 'สาย', e: '⏰' }, absent: { l: 'ขาด', e: '❌' } };
+const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+const JORDER = ['absent', 'late', 'leave', 'off'];
+const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
+const jDef = () => ({ v: 2, ev: {}, rec: {}, closed: {}, max: 2, start: '', staff: null });
+const p2 = n => String(n).padStart(2, '0');
+const dk = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
+const pk = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+const jToday = () => dk(new Date());
+const jPhase = k => { const t = jToday(); return k < t ? 'past' : k === t ? 'today' : 'fut'; };
+const jMgr = () => can.manageJobs();
+function loadJ() {
+  const d = store.get(jKey(), null); J = d && typeof d === 'object' ? { ...jDef(), ...d } : jDef();
+  if (!J.start && jMgr()) { J.start = jToday(); saveJ(); }
+}
+function saveJ() { store.set(jKey(), J); if (JOBS_CLOUD) save(); }
+// พนักงานที่อยู่ในจ๊อบ: หัวหน้าติ๊กเลือกเอง (ถ้ายังไม่เลือก ใช้บัญชีที่ไม่ใช่เจ้าของ/ผู้ดูแล/หัวหน้างาน)
+const jCand = () => U.filter(u => u.active !== false && String(u.name).toLowerCase() !== 'kiangkai');
+const jStaff = () => Array.isArray(J.staff) ? jCand().filter(u => J.staff.includes(u.name)).map(u => u.name) : jCand().filter(u => !fullAccessUser(u) && u.role !== 'supervisor').map(u => u.name);
+const JS = (() => { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth(), sel: dk(t), view: 'cal', who: 'all' }; })();
+const jNames = () => jMgr() ? (JS.who !== 'all' && jStaff().includes(JS.who) ? [JS.who] : jStaff()) : (jStaff().includes(me.name) ? [me.name] : []);
+const jFmt = (k, o) => pk(k).toLocaleDateString('th-TH', o);
+function jEff(k, name) {
+  const e = J.ev[k]?.[name];
+  if (e) return e.t === 'work' ? null : e;
+  if ((J.rec[name] || []).includes(pk(k).getDay()) && (!J.start || k >= J.start)) return { t: 'off', rec: true };
+  return null;
+}
+function jDay(k, names = jNames()) {
+  const o = { off: 0, leave: 0, late: 0, absent: 0, rows: [], normal: [], closed: !!J.closed[k] };
+  if (o.closed) return o;
+  names.forEach(n => { const e = jEff(k, n); if (e) { o[e.t]++; o.rows.push({ n, e }); } else o.normal.push(n); });
+  o.rows.sort((a, b) => JORDER.indexOf(a.e.t) - JORDER.indexOf(b.e.t));
+  return o;
+}
+function jStat(name, y, m) {
+  const s = { off: 0, leave: 0, late: 0, absent: 0, min: 0 };
+  for (let d = 1, n = new Date(y, m + 1, 0).getDate(); d <= n; d++) {
+    const k = dk(new Date(y, m, d)); if (J.closed[k]) continue;
+    const e = jEff(k, name); if (e) { s[e.t]++; if (e.t === 'late') s.min += Number(e.m) || 0; }
+  }
+  return s;
+}
+const jPill = e => `<span class="jp-pill t-${e.t}">${JT[e.t].e} ${JT[e.t].l}${e.t === 'late' && e.m ? ` ${e.m} นาที` : ''}</span>`;
+const jChips = s => ['absent', 'late', 'leave', 'off'].map(t => `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
+const jFriends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
+const jMas = (i, cls) => { const f = jFriends(); return f.length ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
+const jNav = () => `<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>${jFmt(dk(new Date(JS.y, JS.m, 1)), { month: 'long', year: 'numeric' })}</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`;
+const jpBody = () => $('#jpBody');
+
+// ---------- หน้าจอ ----------
+function jRender() {
+  if (!J || !me) return;
+  const mgr = jMgr(), todayK = jToday(), start = J.start || todayK, inList = jStaff().includes(me.name);
+  const names = jNames(), single = names.length === 1;
+  let html = '';
+  if (mgr) html += `<div class="jp-seg"><button type="button" data-view="cal" class="${JS.view === 'cal' ? 'on' : ''}">📅 ปฏิทิน</button><button type="button" data-view="team" class="${JS.view === 'team' ? 'on' : ''}">👥 สรุปทีม</button></div>`;
+  if (!mgr && !inList) { jpBody().innerHTML = '<div class="jp-card jp-ok">คุณยังไม่ได้ถูกเลือกให้อยู่ในรายการจ๊อบพนักงาน กรุณาแจ้งหัวหน้างาน</div>'; $('#jpAdd').style.display = 'none'; return; }
+  if (JS.view === 'team' && mgr) {
+    const all = jStaff();
+    html += `<div class="jp-month">${jNav()}</div><p class="jp-ok" style="margin:-2px 2px 10px">รวมวันที่วางแผนไว้ล่วงหน้าของเดือนนี้ด้วย</p>`;
+    html += all.length ? all.map((n, i) => `<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none"><span class="jp-av">${esc([...n][0] || '?')}</span><div class="jp-info"><b>${esc(n)}</b></div></div><div class="jp-stat">${jChips(jStat(n, JS.y, JS.m))}</div>${jMas(i, 'mascot-top-right')}</div>`).join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+    jpBody().innerHTML = html; $('#jpAdd').style.display = 'none'; return;
+  }
+  // แถบวันนี้
+  const t = jDay(todayK, mgr ? jStaff() : names);
+  const te = !mgr && !t.closed ? jEff(todayK, me.name) : null;
+  html += `<div class="jp-card jp-today has-card-mascot"><b>${mgr ? 'ทีมวันนี้' : 'วันนี้ของฉัน'}</b>${t.closed ? '<span class="jp-chip" style="--c:var(--j-closed)">🏪 วันหยุดร้าน</span>' : mgr ? jChips(t) : te ? jPill(te) : '<span class="jp-chip t-ok">✅ ทำงานตามปกติ</span>'}${jMas(0, 'mascot-top-right')}</div>`;
+  // เลือกดูรายคน (หัวหน้า)
+  if (mgr && jStaff().length > 1) html += `<div class="jp-who"><button type="button" data-who="all" class="${JS.who === 'all' ? 'on' : ''}">👥 ทั้งทีม</button>${jStaff().map(n => `<button type="button" data-who="${esc(n)}" class="${JS.who === n ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>`;
+  // ปฏิทิน
+  const first = new Date(JS.y, JS.m, 1), lead = first.getDay(), days = new Date(JS.y, JS.m + 1, 0).getDate();
+  html += `<div class="jp-card has-card-mascot has-corner-stk"><div class="jp-month">${jNav()}</div><div class="jp-wd">${JDAYS.map(d => `<span>${d}</span>`).join('')}</div><div class="jp-grid">`;
+  for (let i = 0; i < lead; i++) html += '<span class="jp-d x"></span>';
+  for (let d = 1; d <= days; d++) {
+    const k = dk(new Date(JS.y, JS.m, d)), ph = jPhase(k), info = jDay(k);
+    let inner;
+    if (single) {
+      const e = info.closed ? null : jEff(k, names[0]);
+      inner = info.closed ? '<span class="jp-tag t-closed">ปิด</span>' : e ? `<span class="jp-tag t-${e.t}">${JT[e.t].l}</span>` : (ph !== 'fut' && k >= start) ? '<span class="jp-tag t-ok">✓</span>' : '';
+    } else inner = `<i class="dots">${JORDER.filter(x => info[x]).slice(0, 3).map(x => `<i class="t-${x}"></i>`).join('')}</i>`;
+    html += `<button type="button" class="jp-d ${ph === 'fut' ? 'fut' : ph}${ph === 'past' && k < start ? ' pre' : ''}${k === JS.sel ? ' sel' : ''}${info.closed ? ' closed' : ''}" data-d="${k}"><b>${d}</b>${inner}</button>`;
+  }
+  html += `</div><div class="jp-legend"><span><i style="--c:var(--j-leave)"></i>ปกติ ✓</span><span><i style="--c:var(--j-off)"></i>หยุด</span><span><i style="--c:var(--j-leave)"></i>ลา</span><span><i style="--c:var(--j-late)"></i>สาย</span><span><i style="--c:var(--j-absent)"></i>ขาด</span><span><i class="dash"></i>แผนล่วงหน้า</span></div>${jMas(1, 'mascot-tl')}</div>`;
+  // เครื่องมือหัวหน้า
+  if (mgr) html += `<div class="jp-tools"><button type="button" class="jp-btn" id="jpCopy">📋 ใช้ตารางสัปดาห์ก่อน</button><button type="button" class="jp-btn" id="jpSwap">🔄 สลับวันหยุด</button><button type="button" class="jp-btn" id="jpWeekly">🔁 วันหยุดประจำ</button><button type="button" class="jp-btn" id="jpPick">👥 เลือกพนักงาน</button></div>`;
+  // รายละเอียดวัน
+  const info = jDay(JS.sel), off = info.off + info.leave + info.absent, ph = jPhase(JS.sel), phL = { past: 'ย้อนหลัง', today: 'วันนี้', fut: 'แผนล่วงหน้า' }[ph];
+  html += `<div class="jp-card jp-day has-card-mascot has-corner-stk"><div class="jp-day-top"><h3>${jFmt(JS.sel, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</h3>${mgr ? `<button type="button" class="jp-btn" id="jpClose">${info.closed ? 'ยกเลิกวันหยุดร้าน' : '🏪 วันหยุดร้าน'}</button>` : ''}</div><span class="jp-phase ${ph === 'fut' ? 'fut' : ''}">${phL}</span>`;
+  const pre = ph !== 'fut' && JS.sel < start;
+  if (info.closed) html += '<div class="jp-closed">🏪 วันหยุดร้าน — ไม่นับลา สาย ขาด</div>';
+  else if (mgr) {
+    if (off > J.max) html += `<div class="jp-warn">⚠️ วันนี้มีคนหยุด/ลา/ขาด ${off} คน เกินที่ตั้งไว้ (${J.max} คน)</div>`;
+    html += info.rows.map(({ n, e }) => `<button type="button" class="jp-row" data-edit="${esc(n)}"><span class="jp-av">${esc([...n][0] || '?')}</span><span class="jp-info"><b>${esc(n)}</b>${e.n || e.rec ? `<small>${esc(e.n || 'หยุดประจำทุกสัปดาห์')}</small>` : ''}</span>${jPill(e)}</button>`).join('');
+    if (pre && !info.rows.length) html += '<div class="jp-ok">— ยังไม่เริ่มบันทึกในวันนี้</div>';
+    else if (info.normal.length) html += `<div class="jp-ok">${ph === 'fut' ? '🗓️ ตามปกติ' : '✅ ปกติ'} ${info.normal.length} คน: ${info.normal.map(esc).join(', ')}</div>`;
+    else if (!info.rows.length) html += '<div class="jp-ok">ยังไม่ได้เลือกพนักงาน</div>';
+  } else {
+    const e = jEff(JS.sel, me.name);
+    html += `<div class="jp-row"><span class="jp-av">${esc([...me.name][0] || '?')}</span><span class="jp-info"><b>${esc(me.name)}</b>${e?.n ? `<small>${esc(e.n)}</small>` : pre && !e ? '<small>ยังไม่เริ่มบันทึก</small>' : ''}</span>${e ? jPill(e) : pre ? '' : `<span class="jp-chip t-ok">${ph === 'fut' ? '🗓️ ปกติ' : '✅ ปกติ'}</span>`}</div>`;
+  }
+  html += `${jMas(2, 'mascot-bl')}</div>`;
+  if (!mgr) html += `<div class="jp-card has-card-mascot jp-today"><b style="font-size:13px">สรุปเดือนนี้ของฉัน</b><div class="jp-stat">${jChips(jStat(me.name, JS.y, JS.m))}</div>${jMas(3, 'mascot-top-right')}</div>`;
+  jpBody().innerHTML = html; $('#jpAdd').style.display = mgr ? '' : 'none';
+}
+
+// ---------- ฟอร์มบันทึก ----------
+function jForm(ed) {
+  if (!jMgr()) return;
+  const names = jStaff(); if (!names.length) return toast('ยังไม่ได้เลือกพนักงาน', 1);
+  const cur = ed ? jEff(ed.k, ed.n) : null, t0 = cur?.t || 'off', who0 = ed?.n || (JS.who !== 'all' ? JS.who : names[0]);
+  openModal(`<h3>${ed ? '✏️ แก้ไขรายการ' : '➕ แจ้งสถานะพนักงาน'}</h3><form id="jobForm">
+<label class="fld"><span>พนักงาน</span><select class="in" name="who">${names.map(n => `<option value="${esc(n)}"${n === who0 ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
+<div class="jp-types">${[['off', '🛌 หยุด'], ['leave', '📝 ลา'], ['late', '⏰ สาย'], ['absent', '❌ ขาด'], ['work', '✅ ปกติ']].map(([v, l]) => `<label><input type="radio" name="t" value="${v}"${v === t0 ? ' checked' : ''}><span>${l}</span></label>`).join('')}</div>
+<label class="fld"><span>วันที่</span><input class="in" type="date" name="date" value="${ed?.k || JS.sel}" required></label>
+<div id="jfLate" class="hide"><label class="fld"><span>สายกี่นาที</span><input class="in" type="number" inputmode="numeric" min="1" max="600" name="min" value="${cur?.t === 'late' ? esc(cur.m || '') : ''}"></label><div class="jp-mins">${[5, 10, 15, 30].map(v => `<button type="button" data-min="${v}">${v}</button>`).join('')}</div></div>
+<label class="fld"><span>หมายเหตุ (ไม่บังคับ)</span><input class="in" name="note" maxlength="80" value="${esc(cur?.n || '')}"></label>
+<div id="jfWarn" class="jp-warn hide"></div>
+<div class="acts">${ed ? '<button type="button" class="btn sec" id="jfDel">ลบ</button>' : '<button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button>'}<button class="btn">ยืนยันแจ้งสถานะ</button></div></form>`);
+  const f = $('#jobForm'), el = f.elements;
+  const sync = () => {
+    const t = el.t.value; $('#jfLate').classList.toggle('hide', t !== 'late');
+    const k = el.date.value, w = el.who.value; let n = 0;
+    if (k && !J.closed[k]) jStaff().forEach(x => { if (x === w) return; const e = jEff(k, x); if (e && e.t !== 'late') n++; });
+    const off = ['off', 'leave', 'absent'].includes(t); if (off) n++;
+    const bad = off && k && !J.closed[k] && n > J.max, warn = $('#jfWarn');
+    warn.classList.toggle('hide', !bad); if (bad) warn.textContent = `⚠️ วันนั้นจะมีคนหยุด/ลา/ขาด ${n} คน เกินที่ตั้งไว้ (${J.max} คน)`;
+  };
+  f.onchange = sync; f.oninput = e => { if (e.target.name === 'date') sync(); };
+  f.onclick = e => { const b = e.target.closest('[data-min]'); if (b) el.min.value = b.dataset.min; };
+  sync();
+  if ($('#jfDel')) $('#jfDel').onclick = () => {
+    if (J.ev[ed.k]?.[ed.n]) { delete J.ev[ed.k][ed.n]; if (!Object.keys(J.ev[ed.k]).length) delete J.ev[ed.k]; }
+    else if (cur?.rec) { J.ev[ed.k] ||= {}; J.ev[ed.k][ed.n] = { t: 'work', n: 'งดหยุดประจำวันนี้', by: me.name, ts: Date.now() }; }
+    saveJ(); closeModal(); jRender(); toast('ลบรายการแล้ว');
+  };
+  f.onsubmit = e => {
+    e.preventDefault();
+    const who = el.who.value, t = el.t.value, k = el.date.value, note = el.note.value.trim(), mins = Number(el.min.value) || 0;
+    if (!k) return toast('เลือกวันที่', 1);
+    if (t === 'late' && mins < 1) return toast('กรอกจำนวนนาทีที่สาย', 1);
+    if (ed && (ed.n !== who || ed.k !== k) && J.ev[ed.k]?.[ed.n]) { delete J.ev[ed.k][ed.n]; if (!Object.keys(J.ev[ed.k]).length) delete J.ev[ed.k]; }
+    J.ev[k] ||= {};
+    const rec = (J.rec[who] || []).includes(pk(k).getDay()), meta = { by: me.name, ts: Date.now() };
+    if (t === 'work') { if (rec) J.ev[k][who] = { t: 'work', ...(note ? { n: note } : {}), ...meta }; else delete J.ev[k][who]; }
+    else J.ev[k][who] = { t, ...(t === 'late' ? { m: mins } : {}), ...(note ? { n: note } : {}), ...meta };
+    if (!Object.keys(J.ev[k]).length) delete J.ev[k];
+    const d = pk(k); JS.y = d.getFullYear(); JS.m = d.getMonth(); JS.sel = k;
+    saveJ(); closeModal(); jRender(); toast('บันทึกแล้ว');
+  };
+}
+
+// ---------- วันหยุดประจำ (เช่น นายเอหยุดทุกวันเสาร์) ----------
+function jWeekly() {
+  const names = jStaff(); if (!names.length) return toast('ยังไม่ได้เลือกพนักงาน', 1);
+  const rec = JSON.parse(JSON.stringify(J.rec));
+  openModal(`<h3>🔁 วันหยุดประจำสัปดาห์</h3><p class="settings-hint">แตะวันที่พนักงานหยุดทุกสัปดาห์ เช่น เอ หยุดทุกวันเสาร์ ถ้าสัปดาห์ไหนต้องสลับ ใช้ปุ่ม "🔄 สลับวันหยุด" ได้</p><form id="weeklyForm"><div class="jp-pick">${names.map(n => `<div class="jp-wkrow"><b>${esc(n)}</b><div class="jp-wk" data-n="${esc(n)}">${JDAYS.map((d, i) => `<button type="button" data-w="${i}" class="${(rec[n] || []).includes(i) ? 'on' : ''}">${d}</button>`).join('')}</div></div>`).join('')}</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
+  const form = $('#weeklyForm');
+  form.onclick = e => {
+    const b = e.target.closest('[data-w]'); if (!b) return;
+    const n = b.parentElement.dataset.n, w = Number(b.dataset.w), arr = new Set(rec[n] || []);
+    arr.has(w) ? arr.delete(w) : arr.add(w); rec[n] = [...arr].sort(); b.classList.toggle('on');
+  };
+  form.onsubmit = e => { e.preventDefault(); Object.keys(rec).forEach(n => { if (!rec[n].length) delete rec[n]; }); J.rec = rec; saveJ(); closeModal(); jRender(); toast('บันทึกวันหยุดประจำแล้ว'); };
+}
+
+// ---------- สลับวันหยุด ----------
+function jSwap() {
+  const names = jStaff(); if (names.length < 2) return toast('ต้องมีพนักงานอย่างน้อย 2 คน', 1);
+  const wd = pk(JS.sel).getDay(), a0 = names.find(n => (J.rec[n] || []).includes(wd)) || names[0], b0 = names.find(n => n !== a0);
+  const opts = sel => names.map(n => `<option value="${esc(n)}"${n === sel ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  openModal(`<h3>🔄 สลับวันหยุด</h3><p class="settings-hint">คนที่ขอสลับจะทำงานในวันนั้น และอีกคนมาหยุดแทน</p><form id="swapForm">
+<label class="fld"><span>คนที่ขอสลับ (ปกติหยุดวันนี้)</span><select class="in" name="a">${opts(a0)}</select></label>
+<label class="fld"><span>วันที่ที่ขอสลับ</span><input class="in" type="date" name="d" value="${JS.sel}" required></label>
+<label class="fld"><span>คนที่หยุดแทน</span><select class="in" name="b">${opts(b0)}</select></label>
+<label class="fld"><span>วันที่คนหยุดแทนต้องมาทำงานชดเชย (ไม่บังคับ)</span><input class="in" type="date" name="e"></label>
+<div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สลับ</button></div></form>`);
+  $('#swapForm').onsubmit = e => {
+    e.preventDefault(); const f = e.target.elements, a = f.a.value, b = f.b.value, d = f.d.value, x = f.e.value;
+    if (a === b) return toast('เลือกพนักงานคนละคน', 1);
+    if (!d) return toast('เลือกวันที่', 1);
+    const meta = { by: me.name, ts: Date.now() }, put = (k, n, t, other) => { J.ev[k] ||= {}; J.ev[k][n] = { t, n: `สลับกับ ${other}`, ...meta }; };
+    put(d, a, 'work', b); put(d, b, 'off', a);
+    if (x) { put(x, b, 'work', a); put(x, a, 'off', b); }
+    const dd = pk(d); JS.y = dd.getFullYear(); JS.m = dd.getMonth(); JS.sel = d;
+    saveJ(); closeModal(); jRender(); toast('สลับวันหยุดแล้ว');
+  };
+}
+
+// ---------- เลือกพนักงานที่อยู่ในจ๊อบ ----------
+function jPick() {
+  const on = new Set(jStaff());
+  openModal(`<h3>👥 เลือกพนักงานในจ๊อบ</h3><p class="settings-hint">ติ๊กเฉพาะคนที่ต้องจัดตารางงาน ผู้จัดการและเจ้าของร้านไม่ต้องติ๊ก</p><form id="pickForm"><div class="jp-pick">${jCand().map(u => `<label class="jp-opt"><input type="checkbox" value="${esc(u.name)}"${on.has(u.name) ? ' checked' : ''}><span>${esc(u.name)}</span><em>${esc(ROLE[u.role] || u.role || '')}</em></label>`).join('')}</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
+  $('#pickForm').onsubmit = e => {
+    e.preventDefault(); J.staff = [...e.target.querySelectorAll('input:checked')].map(i => i.value);
+    if (JS.who !== 'all' && !J.staff.includes(JS.who)) JS.who = 'all';
+    saveJ(); closeModal(); jRender(); toast('บันทึกรายชื่อแล้ว');
+  };
+}
+
+// ---------- คัดลอกสัปดาห์ก่อน ----------
+let jUndoTimer = null;
+const jWeek = k => { const d = pk(k); d.setDate(d.getDate() - d.getDay()); return d; };
+const jAdd = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+function jCopy() {
+  const t0 = jWeek(JS.sel), s0 = jAdd(t0, -7), rng = d => `${jFmt(dk(d), { day: 'numeric', month: 'short' })} – ${jFmt(dk(jAdd(d, 6)), { day: 'numeric', month: 'short' })}`;
+  let items = 0; for (let i = 0; i < 7; i++) { const k = dk(jAdd(s0, i)); if (!J.closed[k]) items += Object.keys(J.ev[k] || {}).length; }
+  openModal(`<h3>📋 ใช้ตารางสัปดาห์ก่อน</h3><p class="settings-hint">${items ? `คัดลอก <b>${items}</b> รายการ<br>จากสัปดาห์ ${rng(s0)}<br>ไปสัปดาห์ ${rng(t0)}` : `สัปดาห์ ${rng(s0)} ไม่มีรายการให้คัดลอก`}</p><form id="copyForm"><label class="jp-opt"><input type="radio" name="mode" value="skip" checked><span>ข้ามวันที่มีข้อมูลอยู่แล้ว</span></label><label class="jp-opt"><input type="radio" name="mode" value="replace"><span>แทนที่ทั้งสัปดาห์</span></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn"${items ? '' : ' disabled'}>คัดลอก</button></div></form>`);
+  $('#copyForm').onsubmit = e => {
+    e.preventDefault();
+    const snap = JSON.stringify(J.ev), replace = e.target.elements.mode.value === 'replace';
+    for (let i = 0; i < 7; i++) {
+      const from = dk(jAdd(s0, i)), to = dk(jAdd(t0, i)); if (J.closed[to]) continue;
+      if (replace) delete J.ev[to];
+      const src = J.ev[from]; if (!src) continue;
+      J.ev[to] ||= {};
+      Object.entries(src).forEach(([n, ev]) => { if (replace || !J.ev[to][n]) J.ev[to][n] = { ...ev, by: me.name, ts: Date.now() }; });
+      if (!Object.keys(J.ev[to]).length) delete J.ev[to];
+    }
+    saveJ(); closeModal(); jRender();
+    const bar = $('#jpUndo'); bar.classList.add('show'); clearTimeout(jUndoTimer);
+    jUndoTimer = setTimeout(() => bar.classList.remove('show'), 10000);
+    $('#jpUndoBtn').onclick = () => { J.ev = JSON.parse(snap); saveJ(); bar.classList.remove('show'); clearTimeout(jUndoTimer); jRender(); toast('ย้อนกลับแล้ว'); };
+  };
+}
+function jSettings() {
+  let mx = J.max;
+  openModal(`<h3>⚙️ ตั้งค่าจ๊อบพนักงาน</h3><p class="settings-hint">เตือนเมื่อวันเดียวกันมีคนหยุด/ลา/ขาดเกินกี่คน</p><div class="jp-step"><button type="button" class="jp-btn sq" id="jsMinus">−</button><b id="jsVal">${mx}</b><button type="button" class="jp-btn sq" id="jsPlus">+</button></div><label class="fld"><span>เริ่มบันทึกตั้งแต่วันที่ (วันก่อนหน้านี้จะเว้นว่าง)</span><input class="in" type="date" id="jsStart" value="${J.start || jToday()}"></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn" id="jsOk">บันทึก</button></div>`);
+  const show = () => { $('#jsVal').textContent = mx; };
+  $('#jsMinus').onclick = () => { mx = Math.max(1, mx - 1); show(); };
+  $('#jsPlus').onclick = () => { mx = Math.min(30, mx + 1); show(); };
+  $('#jsOk').onclick = () => { J.max = mx; J.start = $('#jsStart').value || J.start; saveJ(); closeModal(); jRender(); toast('บันทึกแล้ว'); };
+}
+
+// ---------- เมนูด้านข้าง + หน้าจอ ----------
+const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => true, open: () => jOpenPage() }];
+(function setupSideMenu() {
+  const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
+  const dock = document.createElement('div'); dock.className = 'sd-dock';
+  dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>';
+  const page = document.createElement('div'); page.className = 'jp'; page.id = 'jobPage'; page.setAttribute('aria-hidden', 'true');
+  page.innerHTML = '<div class="jp-head"><button type="button" class="jp-btn sq" id="jpBack" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🗓️ จ๊อบพนักงาน</h2><button type="button" class="jp-btn sq" id="jpGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="jp-body" id="jpBody"></div><div class="jp-undo" id="jpUndo"><span>คัดลอกตารางแล้ว</span><button type="button" class="jp-btn" id="jpUndoBtn">ย้อนกลับ</button></div><button type="button" class="jp-fab" id="jpAdd">+ แจ้งสถานะ</button>';
+  document.body.append(scrim, dock, page);
+  const items = $('#sdItems');
+  const menuOpen = v => { dock.classList.toggle('open', v); scrim.classList.toggle('show', v); dock.querySelector('.sd-tab').setAttribute('aria-label', v ? 'ปิดเมนูด้านข้าง' : 'เปิดเมนูด้านข้าง'); };
+  window.jMenuClose = () => menuOpen(false);
+  window.jPageClose = () => { page.classList.remove('open'); page.setAttribute('aria-hidden', 'true'); clearTimeout(jUndoTimer); $('#jpUndo').classList.remove('show'); };
+  window.jOpenPage = () => {
+    loadJ(); JS.view = 'cal'; JS.who = 'all'; const t = new Date(); JS.y = t.getFullYear(); JS.m = t.getMonth(); JS.sel = dk(t);
+    $('#jpGear').style.display = jMgr() ? '' : 'none';
+    jRender(); jpBody().scrollTop = 0; page.classList.add('open'); page.setAttribute('aria-hidden', 'false');
+  };
+  const refresh = () => {
+    const on = !!me && !$('#app').classList.contains('hide') && can.sideMenu() && !isWideDesktop();
+    dock.classList.toggle('on', on);
+    if (on) items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join('');
+    else { menuOpen(false); window.jPageClose(); }
+  };
+  dock.querySelector('.sd-tab').onclick = () => menuOpen(!dock.classList.contains('open'));
+  scrim.onclick = () => menuOpen(false);
+  let sx = 0; dock.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+  dock.addEventListener('touchend', e => { if (e.changedTouches[0].clientX - sx < -50) menuOpen(false); }, { passive: true });
+  items.onclick = e => { const b = e.target.closest('[data-m]'); if (b) JMENU.find(m => m.id === b.dataset.m)?.open(); };
+  $('#jpBack').onclick = () => window.jPageClose();
+  $('#jpGear').onclick = () => jSettings();
+  $('#jpAdd').onclick = () => jForm(null);
+  jpBody().onclick = e => {
+    const t = e.target; let b;
+    if ((b = t.closest('[data-view]'))) { JS.view = b.dataset.view; jRender(); }
+    else if ((b = t.closest('[data-who]'))) { JS.who = b.dataset.who; jRender(); }
+    else if ((b = t.closest('[data-mon]'))) { const d = new Date(JS.y, JS.m + Number(b.dataset.mon), 1); JS.y = d.getFullYear(); JS.m = d.getMonth(); if (JS.view === 'cal') JS.sel = dk(d); jRender(); }
+    else if ((b = t.closest('[data-d]'))) { JS.sel = b.dataset.d; jRender(); }
+    else if ((b = t.closest('[data-edit]'))) jForm({ n: b.dataset.edit, k: JS.sel });
+    else if (t.closest('#jpCopy')) jCopy();
+    else if (t.closest('#jpSwap')) jSwap();
+    else if (t.closest('#jpWeekly')) jWeekly();
+    else if (t.closest('#jpPick')) jPick();
+    else if (t.closest('#jpClose')) { if (J.closed[JS.sel]) delete J.closed[JS.sel]; else J.closed[JS.sel] = true; saveJ(); jRender(); }
+  };
+  const main = $('#main');
+  new MutationObserver(refresh).observe($('#app'), { attributes: true, attributeFilter: ['class'] });
+  if (main) new MutationObserver(refresh).observe(main, { childList: true });
+  window.addEventListener('resize', refresh);
+  refresh();
 })();
 </script>
 </body>
