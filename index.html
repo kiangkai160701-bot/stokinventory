@@ -1378,6 +1378,47 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .ov,.sheet,.item-stage1{overscroll-behavior:contain}
 #nav .nav-pill,#nav.nav{will-change:transform;transform:translateZ(0)}
 .sheet,.ov-backdrop,.theme-picker,.theme-page{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+
+/* ===== Dropdown: size changes instantly, motion is compositor-only ===== */
+.disclosure-panel.disc-instant,.disclosure-panel.disc-instant .disclosure-inner{transition:none!important}
+.disclosure-card{contain:layout paint}
+/* ===== Announcement ticker ===== */
+.announce-bar{position:sticky;top:var(--top-h,56px);z-index:29;display:flex;align-items:center;gap:10px;height:36px;margin:6px 10px 0;padding:0 12px 0 6px;border:1px solid var(--theme-border-strong,var(--line));border-radius:999px;background:var(--acc-light,var(--theme-wash));color:var(--ink);box-shadow:0 4px 14px var(--theme-shadow,rgba(0,0,0,.08));overflow:hidden;-webkit-tap-highlight-color:transparent}
+.announce-bar[hidden]{display:none}
+.announce-icon{flex:none;width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--acc);font-size:14px;line-height:1}
+.announce-track{position:relative;flex:1;min-width:0;height:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+.announce-move{position:absolute;left:0;top:0;height:100%;display:flex;align-items:center;white-space:nowrap;will-change:transform;animation:annMove var(--ann-dur,12s) linear infinite}
+.ann-lead{flex:none;display:block;height:1px}
+.ann-seg{flex:none;font-size:13.5px;font-weight:600}
+.announce-bar:active .announce-move{animation-play-state:paused}
+@keyframes annMove{from{transform:translate3d(0,0,0)}to{transform:translate3d(var(--ann-end,-100%),0,0)}}
+@media(min-width:1100px){.announce-bar{top:calc(12px + var(--top-h,72px) + 8px);width:calc(100% - clamp(48px,6vw,112px));max-width:1680px;margin:8px auto 0;box-sizing:border-box}}
+@media(prefers-reduced-motion:reduce){.announce-move{animation:none;position:static;white-space:normal}.ann-lead{display:none}.announce-bar{height:auto;min-height:36px;padding-top:4px;padding-bottom:4px}}
+/* ===== Announcement settings card ===== */
+.ann-counter{display:block;margin-top:4px;text-align:right;color:var(--mute);font-size:11px}
+.announce-card textarea.in{width:100%;min-height:78px;resize:vertical;font-size:16px;box-sizing:border-box}
+.ann-branches{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.ann-check{display:flex!important;align-items:center;gap:9px;min-height:44px;margin:0!important;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash);cursor:pointer}
+.ann-check input{flex:none;width:18px;height:18px;accent-color:var(--acc)}
+.ann-check span{margin:0!important;font-size:13px!important;font-weight:600;color:var(--ink)!important;overflow-wrap:anywhere}
+.ann-all{width:100%}
+.ann-duration{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ann-duration label{display:flex!important;align-items:center;gap:8px;margin:0!important}
+.ann-duration input{min-width:0;height:44px;font-size:16px;text-align:center}
+.ann-duration em{flex:none;font-style:normal;font-size:12px;color:var(--mute)}
+.ann-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ann-chip{height:34px;padding:0 12px;border:1px solid var(--line);border-radius:99px;background:var(--theme-wash);color:var(--ink);font:inherit;font-size:12px;font-weight:600}
+.ann-chip:active{background:var(--theme-soft)}
+.ann-until{display:block;margin-top:8px;color:var(--mute);font-size:11.5px}
+.ann-save{width:100%;margin-top:4px}
+.ann-active{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.ann-active>b{display:block;margin-bottom:8px;font-size:13px}
+.ann-item{display:grid;gap:5px;margin-bottom:8px;padding:11px 12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
+.ann-item-text{font-size:13.5px;font-weight:600;color:var(--ink);overflow-wrap:anywhere}
+.ann-item small{color:var(--mute);font-size:11.5px}
+.ann-item-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ann-cancel.armed{background:var(--bad);border-color:var(--bad);color:#fff}
+.ann-empty{display:block;color:var(--mute);font-size:12px;line-height:1.5}
 </style>
 </head>
 <body data-theme="teal">
@@ -1427,6 +1468,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
       <button class="me-btn" id="btnOut" title="ออกจากระบบ"><svg viewBox="0 0 24 24" style="width:15px;height:15px;"><path d="M9 4H5v16h4M16 8l4 4-4 4M20 12H9"/></svg></button>
     </div>
   </header>
+  <div class="announce-bar" id="announceBar" role="status" aria-live="off" hidden><span class="announce-icon" aria-hidden="true">📢</span><div class="announce-track" id="announceTrack"><div class="announce-move" id="announceMove"></div></div></div>
   <main id="main"></main>
   <!-- LUXURY MOBILE BOTTOM TAB BAR -->
   <nav class="nav" id="nav"></nav>
@@ -1882,12 +1924,12 @@ setCurrentBranch(branch);
 me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); startPresence(); if (u.must) pinModal(true);
+tab = 'stock'; build(); startPresence(); refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 stopPresence();
 const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
-sess.set(null); syncSnapshot = null; me = null; closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
+sess.set(null); syncSnapshot = null; me = null; renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
 function updateOnlineUsers(users = [], lastOnline = {}) {
@@ -1943,6 +1985,103 @@ build(); showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
 } catch {}
 }
+/* ---------- Announcement ticker (shown under the header, set by kiangkai only) ---------- */
+const isAnnouncer = () => String(me?.name || '').toLowerCase() === 'kiangkai';
+const annState = { id: null, message: '', endAt: 0, timer: null, unavailable: false, busy: false, resize: null };
+function annFill(message) {
+  const bar = $('#announceBar'), track = $('#announceTrack'), move = $('#announceMove');
+  if (!bar || !track || !move) return;
+  move.style.animation = 'none';
+  move.innerHTML = `<span class="ann-lead" aria-hidden="true"></span><span class="ann-seg"></span>`;
+  move.querySelector('.ann-seg').textContent = message;
+  const lead = move.querySelector('.ann-lead'), seg = move.querySelector('.ann-seg');
+  const W = track.clientWidth || 280; lead.style.width = W + 'px';
+  const dist = W + seg.offsetWidth + 12;
+  move.style.setProperty('--ann-end', `-${dist}px`);
+  move.style.setProperty('--ann-dur', `${Math.max(9, dist / 55).toFixed(1)}s`);
+  void move.offsetWidth; move.style.animation = '';
+}
+function renderAnnounce(a) {
+  const bar = $('#announceBar'); if (!bar) return;
+  clearTimeout(annState.timer);
+  if (!a || !a.message) { annState.id = null; annState.message = ''; bar.hidden = true; return; }
+  annState.endAt = Date.now() + (Number(a.remaining_seconds) || 0) * 1000;
+  annState.timer = setTimeout(() => { renderAnnounce(null); refreshAnnouncement(true); }, Math.min(2147000000, Math.max(1000, annState.endAt - Date.now())));
+  if (annState.id === a.id && annState.message === a.message && !bar.hidden) return;
+  annState.id = a.id; annState.message = a.message;
+  bar.hidden = false; annFill(a.message); syncAnnounceOffset();
+}
+function syncAnnounceOffset() {
+  const header = document.querySelector('#app .top'); if (!header) return;
+  document.documentElement.style.setProperty('--top-h', header.offsetHeight + 'px');
+}
+async function refreshAnnouncement(force = false) {
+  if (!cloudToken || !me || annState.unavailable || annState.busy) return;
+  if (!force && document.hidden) return;
+  annState.busy = true;
+  try {
+    const r = await cloudRpc('api_announcement_get', { p_token: cloudToken });
+    if (r?.ok) renderAnnounce(r.announcement);
+  } catch (error) {
+    if (/Could not find the function|api_announcement|schema cache/i.test(String(error?.message || ''))) annState.unavailable = true;
+  } finally { annState.busy = false; }
+}
+setInterval(() => refreshAnnouncement(), 30000);
+window.addEventListener('focus', () => refreshAnnouncement(true));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshAnnouncement(true); });
+window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); if (annState.message && !$('#announceBar').hidden) annFill(annState.message); }, 200); });
+if ('ResizeObserver' in window) { const h = document.querySelector('#app .top'); if (h) new ResizeObserver(syncAnnounceOffset).observe(h); }
+
+const annRemain = sec => { const m = Math.max(1, Math.round(sec / 60)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60; return `เหลือ ${d ? d + ' วัน ' : ''}${h ? h + ' ชม. ' : ''}${mm || (!d && !h) ? mm + ' นาที' : ''}`.trim(); };
+function annBranchNames(ids) { return (ids || []).map(id => branches.find(b => String(b.id) === String(id))?.name || 'สาขาที่ปิดแล้ว').join(', '); }
+async function annReloadList() {
+  const box = $('#annList'); if (!box) return;
+  try {
+    const r = await cloudRpc('api_announcement_list', { p_token: cloudToken });
+    if (!r?.ok) { box.innerHTML = `<small class="ann-empty">${esc(r?.error || 'โหลดรายการไม่สำเร็จ')}</small>`; return; }
+    const items = r.items || [];
+    if ($('#announceCount')) $('#announceCount').textContent = items.length ? `${items.length} รายการ` : '';
+    box.innerHTML = items.length ? items.map(a => `<div class="ann-item"><div class="ann-item-text">${esc(a.message)}</div><small>📍 ${esc(annBranchNames(a.branch_ids))}</small><div class="ann-item-foot"><small>⏳ ${annRemain(a.remaining_seconds)}</small><button type="button" class="btn sm sec ann-cancel" data-ann-cancel="${esc(a.id)}">ยกเลิกการแสดง</button></div></div>`).join('') : '<small class="ann-empty">ยังไม่มีประกาศที่กำลังแสดง</small>';
+  } catch (error) {
+    box.innerHTML = /Could not find the function|api_announcement|schema cache/i.test(String(error?.message || '')) ? '<small class="ann-empty">ยังไม่ได้ติดตั้งระบบประกาศบน Supabase กรุณารันไฟล์ supabase-announcement-migration.sql ก่อน</small>' : `<small class="ann-empty">${esc(error.message || 'โหลดรายการไม่สำเร็จ')}</small>`;
+  }
+}
+function bindAnnounceCard() {
+  const card = $('#announceCard'); if (!card) return;
+  const text = $('#annText'), counter = $('#annCounter'), hrs = $('#annHours'), mins = $('#annMins'), until = $('#annUntil');
+  const total = () => { const h = Math.min(720, Math.max(0, parseInt(hrs.value, 10) || 0)), m = Math.min(59, Math.max(0, parseInt(mins.value, 10) || 0)); return h * 60 + m; };
+  const showUntil = () => { const t = total(); until.textContent = t ? `แสดงถึง ${new Date(Date.now() + t * 60000).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'กำหนดอย่างน้อย 1 นาที'; };
+  text.oninput = () => { counter.textContent = `${text.value.length}/200`; };
+  hrs.oninput = mins.oninput = showUntil; showUntil();
+  $('#annChips').onclick = e => { const c = e.target.closest('[data-ann-min]'); if (!c) return; const t = Number(c.dataset.annMin); hrs.value = Math.floor(t / 60); mins.value = t % 60; showUntil(); };
+  $('#annAllBranches').onclick = () => { const boxes = [...card.querySelectorAll('[data-ann-branch]')], all = boxes.every(b => b.checked); boxes.forEach(b => { b.checked = !all; }); };
+  $('#annSave').onclick = async () => {
+    const message = text.value.trim(), ids = [...card.querySelectorAll('[data-ann-branch]:checked')].map(b => b.value), minutes = total();
+    if (!message) return toast('กรุณากรอกข้อความประกาศ', 1);
+    if (!ids.length) return toast('กรุณาเลือกสาขาที่จะแสดงอย่างน้อย 1 สาขา', 1);
+    if (!minutes) return toast('กรุณากำหนดระยะเวลาอย่างน้อย 1 นาที', 1);
+    const btn = $('#annSave'); btn.disabled = true;
+    try {
+      const r = await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: message, p_branch_ids: ids, p_minutes: minutes });
+      if (!r?.ok) return toast(r?.error || 'บันทึกประกาศไม่สำเร็จ', 1);
+      text.value = ''; counter.textContent = '0/200'; toast('บันทึกประกาศแล้ว กำลังแสดงที่สาขาที่เลือก');
+      annReloadList(); refreshAnnouncement(true);
+    } catch (error) { toast(/Could not find the function|api_announcement|schema cache/i.test(String(error?.message || '')) ? 'ยังไม่ได้ติดตั้งระบบประกาศบน Supabase (รันไฟล์ supabase-announcement-migration.sql)' : (error.message || 'บันทึกประกาศไม่สำเร็จ'), 1); }
+    finally { btn.disabled = false; }
+  };
+  $('#annList').onclick = async e => {
+    const b = e.target.closest('[data-ann-cancel]'); if (!b) return;
+    if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { if (b.isConnected) { b.classList.remove('armed'); b.textContent = 'ยกเลิกการแสดง'; } }, 3500); return; }
+    b.disabled = true;
+    try {
+      const r = await cloudRpc('api_announcement_cancel', { p_token: cloudToken, p_id: b.dataset.annCancel });
+      if (!r?.ok) { b.disabled = false; return toast(r?.error || 'ยกเลิกไม่สำเร็จ', 1); }
+      toast('ยกเลิกการแสดงประกาศแล้ว'); annReloadList(); refreshAnnouncement(true);
+    } catch (error) { b.disabled = false; toast(error.message || 'ยกเลิกไม่สำเร็จ', 1); }
+  };
+  annReloadList();
+}
+
 let syncStatusTimer = null;
 function showSyncUpdateStatus() {
 const status = $('#syncStatus');
@@ -2788,6 +2927,14 @@ const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Nu
 return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
+    ${isAnnouncer() ? `<div class="dash-card disclosure-card announce-card" id="announceCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="announceDisclosurePanel"><span>📢 ประกาศข้อความ</span><span class="disclosure-count" id="announceCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="announceDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
+      <p class="settings-hint">ข้อความจะเลื่อนจากขวาไปซ้ายใต้หัวเว็บไซต์ของผู้ใช้ในสาขาที่เลือก จนครบเวลาที่กำหนด หรือจนกว่าจะยกเลิก</p>
+      <label class="fld"><span>ข้อความประกาศ</span><textarea class="in" id="annText" rows="3" maxlength="200" placeholder="พิมพ์ข้อความที่ต้องการประกาศ"></textarea><small class="ann-counter" id="annCounter">0/200</small></label>
+      <div class="fld"><span>แสดงที่สาขา</span><div class="ann-branches">${branches.map(b => `<label class="ann-check"><input type="checkbox" data-ann-branch value="${esc(b.id)}"><span>${esc(b.name)}</span></label>`).join('')}</div><button type="button" class="btn sm sec ann-all" id="annAllBranches">เลือก/ยกเลิกทุกสาขา</button></div>
+      <div class="fld"><span>ระยะเวลาที่แสดง</span><div class="ann-duration"><label><input class="in" type="number" id="annHours" min="0" max="720" inputmode="numeric" value="1"><em>ชั่วโมง</em></label><label><input class="in" type="number" id="annMins" min="0" max="59" inputmode="numeric" value="0"><em>นาที</em></label></div><div class="ann-chips" id="annChips">${[[30,'30 นาที'],[60,'1 ชม.'],[180,'3 ชม.'],[720,'12 ชม.'],[1440,'24 ชม.']].map(([v,t]) => `<button type="button" class="ann-chip" data-ann-min="${v}">${t}</button>`).join('')}</div><small class="ann-until" id="annUntil"></small></div>
+      <button type="button" class="btn ann-save" id="annSave">📢 บันทึกและแสดงประกาศ</button>
+      <div class="ann-active"><b>กำลังแสดงอยู่</b><div id="annList"><small class="ann-empty">กำลังโหลด…</small></div></div>
+    </div></div></div>` : ''}
     ${canViewStorage ? `<div class="dash-card storage-card disclosure-card" id="storageUsageCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="storageDisclosurePanel"><span>🗄️ พื้นที่ฐานข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="storageDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><div class="storage-heading"><div><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div></div></div>` : ''}
     <div class="dash-card disclosure-card text-scale-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="textScaleDisclosurePanel"><span>🔠 ขนาดตัวอักษร</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="textScaleDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกขนาดข้อความที่อ่านสบาย ระบบจะจำค่าที่เลือกไว้ในอุปกรณ์นี้</p><div class="text-scale-presets" id="textScalePresets" role="group" aria-label="ขนาดตัวอักษร">${[[92,'เล็ก'],[100,'ปกติ'],[112,'ใหญ่']].map(([value,label]) => `<button type="button" class="btn sm sec text-scale-option" data-text-scale="${value}" aria-pressed="${uiTextScale===value}">${label}</button>`).join('')}</div></div></div></div>
     <div class="dash-card disclosure-card theme-picker-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="themeDisclosurePanel"><span>🎨 เลือกธีม</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="themeDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
@@ -2826,6 +2973,48 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
     ${can.reset() || can.permissions() ? '</div>' : ''}
   </div>`;
 }
+/* ---------- Smooth dropdowns: the card changes size once, everything else glides with transform/opacity (compositor, no per-frame layout) ---------- */
+const DISC_EASE = 'cubic-bezier(.32,.72,0,1)';
+function discSetOpen(button, panel, open) {
+  button.setAttribute('aria-expanded', String(open));
+  panel.setAttribute('aria-hidden', String(!open));
+  panel.inert = !open;
+  panel.classList.toggle('open', open);
+}
+function discFollowers(card) {
+  const list = [], root = $('#main');
+  for (let n = card; n && n !== root; n = n.parentElement) for (let x = n.nextElementSibling; x; x = x.nextElementSibling) list.push(x);
+  return list;
+}
+function toggleDisclosure(button) {
+  const panel = document.getElementById(button.getAttribute('aria-controls')); if (!panel) return;
+  const card = button.closest('.disclosure-card'), inner = panel.querySelector('.disclosure-inner');
+  const open = button.getAttribute('aria-expanded') !== 'true';
+  const afterMascots = () => { clearTimeout(window.__mascotTimer); window.__mascotTimer = setTimeout(updatePageMascots, 480); };
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!card || !inner || reduce || typeof card.animate !== 'function' || card.__discBusy) { discSetOpen(button, panel, open); afterMascots(); return; }
+  card.__discBusy = true;
+  const followers = discFollowers(card);
+  const glide = (delta, done) => {
+    if (!delta) { done && done(); return; }
+    let finished = 0;
+    followers.forEach(el => { const a = el.animate([{ transform: `translate3d(0,${-delta}px,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: 440, easing: DISC_EASE }); a.onfinish = a.oncancel = () => { if (++finished === followers.length) done && done(); }; });
+    if (!followers.length) done && done();
+  };
+  const heightNow = () => card.getBoundingClientRect().height;
+  panel.classList.add('disc-instant');
+  if (open) {
+    const h0 = heightNow(); discSetOpen(button, panel, true); const delta = heightNow() - h0;
+    inner.animate([{ opacity: 0, transform: 'translate3d(0,-12px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 400, easing: DISC_EASE });
+    glide(delta, () => { card.__discBusy = false; afterMascots(); });
+  } else {
+    const fade = inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 130, easing: 'ease-out', fill: 'forwards' });
+    fade.onfinish = () => {
+      const h0 = heightNow(); discSetOpen(button, panel, false); fade.cancel(); const delta = heightNow() - h0;
+      glide(delta, () => { card.__discBusy = false; afterMascots(); });
+    };
+  }
+}
 function bindSettings() {
 clearInterval(storageUsageTimer); storageUsageTimer = null;
 if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
@@ -2853,17 +3042,8 @@ applyTextScale();
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
-document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => {
-const panel = document.getElementById(button.getAttribute('aria-controls'));
-if (!panel) return;
-const open = button.getAttribute('aria-expanded') !== 'true';
-button.setAttribute('aria-expanded', String(open));
-panel.setAttribute('aria-hidden', String(!open));
-panel.inert = !open;
-panel.classList.toggle('open', open);
-clearTimeout(window.__mascotTimer);
-window.__mascotTimer = setTimeout(updatePageMascots, 480);
-});
+document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => toggleDisclosure(button));
+bindAnnounceCard();
 const resetScopeSelect = $('#resetScope');
 if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
 const resetButton = $('#resetDataBtn');
