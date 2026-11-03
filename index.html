@@ -1265,7 +1265,7 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 /* ===== เมนูด้านข้าง + จ๊อบพนักงาน (mobile only) ===== */
 .sd-scrim{position:fixed;inset:0;z-index:42;background:rgba(40,28,36,.22);opacity:0;pointer-events:none;transition:opacity .26s ease}
 .sd-scrim.show{opacity:1;pointer-events:auto}
-.sd-dock{position:fixed;left:0;top:calc(env(safe-area-inset-top,0px) + 92px);z-index:43;display:none;transform:translate3d(-100%,0,0);transition:transform .28s cubic-bezier(.32,.72,0,1)}
+.sd-dock{position:fixed;left:0;top:calc(var(--top-h,56px) + var(--ann-h,0px) + var(--dock-gap,14px));z-index:43;display:none;transform:translate3d(-100%,0,0);transition:transform .28s cubic-bezier(.32,.72,0,1),top .25s ease}
 .sd-dock.on{display:block}
 .sd-dock.open{transform:none}
 .sd-panel{min-width:178px;padding:8px;border:1px solid var(--line);border-left:0;border-radius:0 18px 18px 0;background:var(--card-bg)}
@@ -1273,10 +1273,10 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .sd-item{display:flex;align-items:center;gap:9px;width:100%;padding:11px 12px;border:1px solid color-mix(in srgb,var(--acc) 32%,var(--card-bg));border-radius:13px;background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--ink);font:inherit;font-size:14px;font-weight:700;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:transform .12s ease,background-color .15s ease}
 .sd-item:active{transform:scale(.97);background:color-mix(in srgb,var(--acc) 24%,var(--card-bg))}
 .sd-item svg{margin-left:auto;width:16px;height:16px;fill:none;stroke:var(--acc-hover);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.sd-tab{position:absolute;left:calc(100% + 7px);top:0;width:36px;height:42px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:14px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background-color .2s ease}
+.sd-tab{position:absolute;left:calc(100% + 6px);top:0;width:32px;height:38px;display:grid;place-items:center;padding:0;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:13px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background-color .2s ease}
 .sd-dock.open .sd-tab{background:color-mix(in srgb,var(--acc) 72%,transparent)}
 .sd-tab:active{transform:scale(.93)}
-.sd-tab svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .28s cubic-bezier(.32,.72,0,1)}
+.sd-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .28s cubic-bezier(.32,.72,0,1)}
 .sd-dock.open .sd-tab svg{transform:rotate(180deg)}
 @media(min-width:1100px){.sd-dock,.sd-scrim,.jp{display:none!important}}
 
@@ -1401,7 +1401,26 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .ann-check{display:flex!important;align-items:center;gap:9px;min-height:44px;margin:0!important;padding:8px 11px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash);cursor:pointer}
 .ann-check input{flex:none;width:18px;height:18px;accent-color:var(--acc)}
 .ann-check span{margin:0!important;font-size:13px!important;font-weight:600;color:var(--ink)!important;overflow-wrap:anywhere}
-.ann-all{width:100%}
+.ann-branch-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.ann-sel-count{font-size:11.5px;font-weight:800;padding:3px 11px;border-radius:99px;background:var(--acc-light,var(--theme-wash));color:var(--acc-hover,var(--ink));white-space:nowrap}
+.ann-check{position:relative;transition:border-color .15s ease,background-color .15s ease,transform .12s ease;-webkit-tap-highlight-color:transparent}
+.ann-check:active{transform:scale(.98)}
+.ann-check.is-on{border-color:var(--acc);background:var(--acc-light,var(--theme-soft))}
+.ann-check.is-on span{font-weight:700}
+.ann-live{margin-left:auto;flex:none;font-style:normal;font-size:10.5px;font-weight:800;line-height:1;padding:4px 8px;border-radius:99px;background:color-mix(in srgb,var(--ok,#10b981) 18%,var(--card-bg));color:var(--ok,#10b981)}
+.ann-live[hidden]{display:none}
+.ann-bar{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ann-toggle,.ann-cancel-sel{display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 10px;border-radius:12px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:background-color .15s ease,color .15s ease,transform .12s ease,opacity .15s ease}
+.ann-toggle:active,.ann-cancel-sel:active{transform:scale(.97)}
+.ann-toggle{border:1.5px solid var(--acc);background:var(--acc-light,var(--theme-wash));color:var(--acc-hover,var(--ink))}
+.ann-toggle[data-state=all]{background:var(--acc);color:#fff}
+.ann-toggle-box{flex:none;width:18px;height:18px;display:grid;place-items:center;border:2px solid currentColor;border-radius:6px;font-size:13px;line-height:1}
+.ann-toggle[data-state=all] .ann-toggle-box::after{content:'✓'}
+.ann-toggle[data-state=some] .ann-toggle-box::after{content:'–'}
+.ann-cancel-sel{border:1.5px solid var(--bad,#e11d48);background:transparent;color:var(--bad,#e11d48)}
+.ann-cancel-sel:disabled{opacity:.38;cursor:not-allowed}
+.ann-cancel-sel.armed{background:var(--bad,#e11d48);color:#fff}
+.ann-hint{display:block;min-height:16px;margin-top:8px;color:var(--mute);font-size:11.5px;line-height:1.45}
 .ann-duration{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .ann-duration label{display:flex!important;align-items:center;gap:8px;margin:0!important}
 .ann-duration input{min-width:0;height:44px;font-size:16px;text-align:center}
@@ -2004,7 +2023,7 @@ function annFill(message) {
 function renderAnnounce(a) {
   const bar = $('#announceBar'); if (!bar) return;
   clearTimeout(annState.timer);
-  if (!a || !a.message) { annState.id = null; annState.message = ''; bar.hidden = true; return; }
+  if (!a || !a.message) { annState.id = null; annState.message = ''; bar.hidden = true; syncAnnounceOffset(); return; }
   annState.endAt = Date.now() + (Number(a.remaining_seconds) || 0) * 1000;
   annState.timer = setTimeout(() => { renderAnnounce(null); refreshAnnouncement(true); }, Math.min(2147000000, Math.max(1000, annState.endAt - Date.now())));
   if (annState.id === a.id && annState.message === a.message && !bar.hidden) return;
@@ -2013,7 +2032,11 @@ function renderAnnounce(a) {
 }
 function syncAnnounceOffset() {
   const header = document.querySelector('#app .top'); if (!header) return;
-  document.documentElement.style.setProperty('--top-h', header.offsetHeight + 'px');
+  const root = document.documentElement.style, bar = $('#announceBar');
+  root.setProperty('--top-h', header.offsetHeight + 'px');
+  // เมนูด้านข้างต้องอยู่ใต้ประกาศเสมอ: มีประกาศ = เว้นความสูงแถบ + ขอบบน 6px, ไม่มีประกาศ = ไม่เว้น (ขยับขึ้น)
+  root.setProperty('--ann-h', bar && !bar.hidden ? (bar.offsetHeight + 6) + 'px' : '0px');
+  root.setProperty('--dock-gap', bar && !bar.hidden ? '4px' : '14px'); // มีประกาศ: ห่างใต้แถบแค่ 4px พอให้พ้น
 }
 async function refreshAnnouncement(force = false) {
   if (!cloudToken || !me || annState.unavailable || annState.busy) return;
@@ -2040,12 +2063,29 @@ async function annReloadList() {
   try {
     const r = await cloudRpc('api_announcement_list', { p_token: cloudToken });
     if (!r?.ok) { box.innerHTML = `<small class="ann-empty">${esc(r?.error || 'โหลดรายการไม่สำเร็จ')}</small>`; return; }
-    const items = r.items || [];
+    const items = r.items || []; annState.items = items;
     if ($('#announceCount')) $('#announceCount').textContent = items.length ? `${items.length} รายการ` : '';
     box.innerHTML = items.length ? items.map(a => `<div class="ann-item"><div class="ann-item-text">${esc(a.message)}</div><small>📍 ${esc(annBranchNames(a.branch_ids))}</small><div class="ann-item-foot"><small>⏳ ${annRemain(a.remaining_seconds)}</small><button type="button" class="btn sm sec ann-cancel" data-ann-cancel="${esc(a.id)}">ยกเลิกการแสดง</button></div></div>`).join('') : '<small class="ann-empty">ยังไม่มีประกาศที่กำลังแสดง</small>';
+    annSyncBranchUI();
   } catch (error) {
     box.innerHTML = /Could not find the function|api_announcement|schema cache/i.test(String(error?.message || '')) ? '<small class="ann-empty">ยังไม่ได้ติดตั้งระบบประกาศบน Supabase กรุณารันไฟล์ supabase-announcement-migration.sql ก่อน</small>' : `<small class="ann-empty">${esc(error.message || 'โหลดรายการไม่สำเร็จ')}</small>`;
   }
+}
+function annSyncBranchUI() {
+  const card = $('#announceCard'); if (!card) return;
+  const boxes = [...card.querySelectorAll('[data-ann-branch]')], items = annState.items || [];
+  const liveIds = new Set(); items.forEach(a => (a.branch_ids || []).forEach(id => liveIds.add(String(id))));
+  boxes.forEach(b => { const label = b.closest('.ann-check'); label.classList.toggle('is-on', b.checked); const badge = label.querySelector('.ann-live'); if (badge) badge.hidden = !liveIds.has(String(b.value)); });
+  const picked = boxes.filter(b => b.checked), n = picked.length;
+  const state = !n ? 'none' : n === boxes.length ? 'all' : 'some';
+  const tog = $('#annAllBranches'); if (tog) { tog.dataset.state = state; tog.setAttribute('aria-pressed', String(state === 'all')); }
+  const lab = $('#annAllLabel'); if (lab) lab.textContent = state === 'all' ? 'ไม่เลือกทั้งหมด' : 'เลือกทั้งหมด';
+  const cnt = $('#annSelCount'); if (cnt) cnt.textContent = `เลือก ${n}/${boxes.length}`;
+  const pickedIds = new Set(picked.map(b => String(b.value)));
+  const affected = items.filter(a => (a.branch_ids || []).some(id => pickedIds.has(String(id))));
+  const cancel = $('#annCancelSel'), hint = $('#annSelHint');
+  if (cancel) { cancel.disabled = !affected.length; if (!cancel.classList.contains('armed')) cancel.textContent = '🚫 ยกเลิกประกาศที่เลือก'; }
+  if (hint) hint.textContent = !n ? 'ติ๊กสาขา แล้วกด "ยกเลิกประกาศที่เลือก" เพื่อหยุดแสดงประกาศที่สาขานั้น' : affected.length ? `สาขาที่เลือกมีประกาศกำลังแสดง ${affected.length} รายการ` : 'สาขาที่เลือกยังไม่มีประกาศที่กำลังแสดง';
 }
 function bindAnnounceCard() {
   const card = $('#announceCard'); if (!card) return;
@@ -2055,7 +2095,30 @@ function bindAnnounceCard() {
   text.oninput = () => { counter.textContent = `${text.value.length}/200`; };
   hrs.oninput = mins.oninput = showUntil; showUntil();
   $('#annChips').onclick = e => { const c = e.target.closest('[data-ann-min]'); if (!c) return; const t = Number(c.dataset.annMin); hrs.value = Math.floor(t / 60); mins.value = t % 60; showUntil(); };
-  $('#annAllBranches').onclick = () => { const boxes = [...card.querySelectorAll('[data-ann-branch]')], all = boxes.every(b => b.checked); boxes.forEach(b => { b.checked = !all; }); };
+  $('#annAllBranches').onclick = () => { const boxes = [...card.querySelectorAll('[data-ann-branch]')], all = boxes.length && boxes.every(b => b.checked); boxes.forEach(b => { b.checked = !all; }); annSyncBranchUI(); };
+  card.addEventListener('change', e => { if (e.target.matches('[data-ann-branch]')) annSyncBranchUI(); });
+  $('#annCancelSel').onclick = async () => {
+    const btn = $('#annCancelSel'), pickedIds = new Set([...card.querySelectorAll('[data-ann-branch]:checked')].map(b => String(b.value)));
+    const affected = (annState.items || []).filter(a => (a.branch_ids || []).some(id => pickedIds.has(String(id))));
+    if (!affected.length) return toast('สาขาที่เลือกยังไม่มีประกาศที่กำลังแสดง', 1);
+    if (!btn.classList.contains('armed')) { btn.classList.add('armed'); btn.textContent = `แตะอีกครั้งเพื่อยืนยัน (${affected.length} รายการ)`; setTimeout(() => { if (btn.isConnected && btn.classList.contains('armed')) { btn.classList.remove('armed'); annSyncBranchUI(); } }, 3500); return; }
+    btn.disabled = true; btn.classList.remove('armed'); btn.textContent = 'กำลังยกเลิก…';
+    try {
+      for (const a of affected) {
+        const r = await cloudRpc('api_announcement_cancel', { p_token: cloudToken, p_id: a.id });
+        if (!r?.ok) throw new Error(r?.error || 'ยกเลิกไม่สำเร็จ');
+        // ประกาศเดียวอาจแสดงหลายสาขา: ยกเลิกเฉพาะสาขาที่ติ๊ก แล้วคืนประกาศเดิมให้สาขาที่เหลือ
+        const keep = (a.branch_ids || []).filter(id => !pickedIds.has(String(id)));
+        if (keep.length) {
+          const back = await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: a.message, p_branch_ids: keep, p_minutes: Math.max(1, Math.ceil((Number(a.remaining_seconds) || 60) / 60)) });
+          if (!back?.ok) throw new Error(back?.error || 'คืนประกาศให้สาขาที่เหลือไม่สำเร็จ');
+        }
+      }
+      card.querySelectorAll('[data-ann-branch]').forEach(b => { b.checked = false; });
+      toast(`ยกเลิกประกาศแล้ว ${affected.length} รายการ`);
+    } catch (error) { toast(error.message || 'ยกเลิกไม่สำเร็จ', 1); }
+    finally { btn.disabled = false; await annReloadList(); annSyncBranchUI(); refreshAnnouncement(true); }
+  };
   $('#annSave').onclick = async () => {
     const message = text.value.trim(), ids = [...card.querySelectorAll('[data-ann-branch]:checked')].map(b => b.value), minutes = total();
     if (!message) return toast('กรุณากรอกข้อความประกาศ', 1);
@@ -2931,7 +2994,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
     ${isAnnouncer() ? `<div class="dash-card disclosure-card announce-card" id="announceCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="announceDisclosurePanel"><span>📢 ประกาศข้อความ</span><span class="disclosure-count" id="announceCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="announceDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p class="settings-hint">ข้อความจะเลื่อนจากขวาไปซ้ายใต้หัวเว็บไซต์ของผู้ใช้ในสาขาที่เลือก จนครบเวลาที่กำหนด หรือจนกว่าจะยกเลิก</p>
       <label class="fld"><span>ข้อความประกาศ</span><textarea class="in" id="annText" rows="3" maxlength="200" placeholder="พิมพ์ข้อความที่ต้องการประกาศ"></textarea><small class="ann-counter" id="annCounter">0/200</small></label>
-      <div class="fld"><span>แสดงที่สาขา</span><div class="ann-branches">${branches.map(b => `<label class="ann-check"><input type="checkbox" data-ann-branch value="${esc(b.id)}"><span>${esc(b.name)}</span></label>`).join('')}</div><button type="button" class="btn sm sec ann-all" id="annAllBranches">เลือก/ยกเลิกทุกสาขา</button></div>
+      <div class="fld"><div class="ann-branch-head"><span>แสดงที่สาขา</span><b class="ann-sel-count" id="annSelCount">เลือก 0/${branches.length}</b></div><div class="ann-branches">${branches.map(b => `<label class="ann-check"><input type="checkbox" data-ann-branch value="${esc(b.id)}"><span>${esc(b.name)}</span><i class="ann-live" hidden>กำลังแสดง</i></label>`).join('')}</div><div class="ann-bar"><button type="button" class="ann-toggle" id="annAllBranches" data-state="none" aria-pressed="false"><span class="ann-toggle-box" aria-hidden="true"></span><span id="annAllLabel">เลือกทั้งหมด</span></button><button type="button" class="ann-cancel-sel" id="annCancelSel" disabled>🚫 ยกเลิกประกาศที่เลือก</button></div><small class="ann-hint" id="annSelHint">ติ๊กสาขา แล้วกด "ยกเลิกประกาศที่เลือก" เพื่อหยุดแสดงประกาศที่สาขานั้น</small></div>
       <div class="fld"><span>ระยะเวลาที่แสดง</span><div class="ann-duration"><label><input class="in" type="number" id="annHours" min="0" max="720" inputmode="numeric" value="1"><em>ชั่วโมง</em></label><label><input class="in" type="number" id="annMins" min="0" max="59" inputmode="numeric" value="0"><em>นาที</em></label></div><div class="ann-chips" id="annChips">${[[30,'30 นาที'],[60,'1 ชม.'],[180,'3 ชม.'],[720,'12 ชม.'],[1440,'24 ชม.']].map(([v,t]) => `<button type="button" class="ann-chip" data-ann-min="${v}">${t}</button>`).join('')}</div><small class="ann-until" id="annUntil"></small></div>
       <button type="button" class="btn ann-save" id="annSave">📢 บันทึกและแสดงประกาศ</button>
       <div class="ann-active"><b>กำลังแสดงอยู่</b><div id="annList"><small class="ann-empty">กำลังโหลด…</small></div></div>
