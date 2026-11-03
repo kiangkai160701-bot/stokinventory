@@ -811,6 +811,8 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 @media(max-width:1099px){.history-filter .history-actions{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}.history-filter .history-actions::-webkit-scrollbar{display:none}.history-filter .history-actions>button{flex:0 0 auto;width:auto;min-width:0}}
 @media(max-width:680px){.history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}.history-filter.range-filter:not(.dashboard-range)>.history-actions>#clearHistoryRange{min-width:0}}
 @media(max-width:1099px){.history-filter .history-quick{display:inline-flex!important;align-items:center;justify-content:center;padding:4px 11px;font-weight:700;white-space:nowrap;color:var(--acc-hover);background:var(--acc-light);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent)}.history-filter .history-quick:active{background:color-mix(in srgb,var(--acc) 22%,var(--acc-light))}.history-filter .history-quick.on{color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc-hover));border-color:var(--acc-hover);box-shadow:0 3px 9px var(--acc-glow)}}
+.hist-more{display:flex;flex-direction:column;gap:6px;align-items:stretch;margin:14px 0 24px}.hist-more small{text-align:center;color:var(--mute);font-size:12px}.hist-more .ih-more{width:100%}
+@media(max-width:1099px){.history-item,.ih-item{content-visibility:auto;contain-intrinsic-size:auto 92px}}
 </style>
 <style id="smooth-motion">
 html{-webkit-text-size-adjust:100%}
@@ -1712,13 +1714,49 @@ void root.offsetWidth;
 root.classList.remove('font-scale-instant');
 }
 let textScaleObserver = null;
+const TS_SKIP = '.card-mascot,.page-mascots,[aria-hidden="true"]';
+let tsPending = new Set(), tsRaf = 0;
+function applyTextScaleNew(root) {
+  if (!root || !root.isConnected) return;
+  if (uiTextScale === 100) { applyTextScale(); return; }
+  for (let a = root.parentElement; a; a = a.parentElement) { if (textScaleTracked.has(a)) { applyTextScale(); return; } }
+  for (const el of textScaleTracked) if (!el.isConnected) textScaleTracked.delete(el);
+  const els = [root, ...root.querySelectorAll('*')].filter(el => {
+    if (textScaleTracked.has(el) || el.closest('svg,script,style,[aria-hidden="true"]')) return false;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return true;
+    for (const n of el.childNodes) if (n.nodeType === 3 && n.textContent.trim()) return true;
+    return false;
+  });
+  const app = document.querySelector('#app');
+  if (els.length) {
+    app && app.classList.add('font-scale-instant');
+    const sizes = els.map(el => {
+      if (!textScaleBaseInline.has(el)) textScaleBaseInline.set(el, el.style.fontSize);
+      textScaleTracked.add(el);
+      return Number.parseFloat(getComputedStyle(el).fontSize) || 14;
+    });
+    els.forEach((el, i) => { el.style.fontSize = `${(sizes[i] * uiTextScale / 100).toFixed(2)}px`; });
+    if (app) { void app.offsetWidth; app.classList.remove('font-scale-instant'); }
+  }
+  document.querySelectorAll('[data-text-scale]').forEach(b => {
+    const sel = Number(b.dataset.textScale) === uiTextScale;
+    b.setAttribute('aria-pressed', String(sel)); b.classList.toggle('active', sel);
+  });
+}
 function watchTextScale() {
-const appRoot = document.querySelector('#app');
-if (!appRoot || textScaleObserver) return;
-textScaleObserver = new MutationObserver(records => {
-if (records.some(record => record.addedNodes.length)) applyTextScale(appRoot);
-});
-textScaleObserver.observe(appRoot, { childList: true, subtree: true });
+  const appRoot = document.querySelector('#app');
+  if (!appRoot || textScaleObserver) return;
+  textScaleObserver = new MutationObserver(records => {
+    if (uiTextScale === 100) return;
+    for (const r of records) for (const n of r.addedNodes) {
+      if (n.nodeType === 1 && !n.matches(TS_SKIP)) tsPending.add(n);
+    }
+    if (tsPending.size && !tsRaf) tsRaf = requestAnimationFrame(() => {
+      tsRaf = 0; const nodes = [...tsPending]; tsPending.clear();
+      nodes.forEach(n => applyTextScaleNew(n));
+    });
+  });
+  textScaleObserver.observe(appRoot, { childList: true, subtree: true });
 }
 function resumeTextScaleWatch() {
 const appRoot = document.querySelector('#app');
@@ -2323,7 +2361,17 @@ if (matchMedia('(prefers-reduced-motion: reduce)').matches || !main || typeof ma
 requestAnimationFrame(go);
 return;
 }
-if (!isWideDesktop()) { stagedPageSwitch(go); return; }
+if (!isWideDesktop()) {
+const mdx = pageDirection === 'prev' ? 8 : -8;
+main.style.willChange = 'transform, opacity';
+exitAnim = main.animate(
+[{ opacity: 1, transform: 'translate3d(0,0,0)' }, { opacity: 0, transform: `translate3d(${mdx}px,0,0)` }],
+{ duration: 110, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' }
+);
+exitAnim.onfinish = go;
+setTimeout(go, 400);
+return;
+}
 if (IS_MOBILE_BROWSER) { requestAnimationFrame(() => requestAnimationFrame(go)); return; }
 const dx = pageDirection === 'prev' ? 10 : -10;
 exitAnim = main.animate(
@@ -2412,7 +2460,7 @@ card.classList.add('has-card-mascot');
 card.append(mascot);
 });
 }
-let pageAnimation = null;
+let pageAnimation = null, mascotTimer = 0;
 const isWideDesktop = () => window.matchMedia('(min-width: 1100px)').matches;
 const isDashboardWorkspace = () => tab === 'dashboard' || (tab === 'stock' && isWideDesktop());
 function desktopStockDashboardView() {
@@ -2450,14 +2498,16 @@ else if (tab === 'dashboard') main.innerHTML = dashboardView();
 else if (tab === 'log') main.innerHTML = logView();
 else if (tab === 'users') main.innerHTML = usersView();
 else if (tab === 'settings') main.innerHTML = settingsView();
-if (isWideDesktop()) updatePageMascots(); else requestAnimationFrame(updatePageMascots);
+if (isWideDesktop()) updatePageMascots();
+else if (animatePage) { clearTimeout(mascotTimer); mascotTimer = setTimeout(() => { if (main.isConnected) updatePageMascots(); }, 360); }
+else requestAnimationFrame(updatePageMascots);
 };
 const finishRender = () => {
 if (tab === 'stock') bindStock();
 if (tab === 'settings') bindSettings();
 if (tab === 'users') refreshPresence();
 watchTextScale();
-applyTextScale();
+applyTextScaleNew(main);
 resumeTextScaleWatch();
 };
 if (animatePage) window.scrollTo(0, 0);
@@ -2465,7 +2515,7 @@ paintPage();
 if (desktopPanelScroll !== null) main.querySelector('.desktop-dashboard-panel').scrollTop = desktopPanelScroll;
 if (desktopHistoryScroll !== null) main.querySelector('.desktop-history-panel>.history-list').scrollTop = desktopHistoryScroll;
 finishRender();
-resetScrollTopMobile();
+if (!(animatePage && !isWideDesktop())) resetScrollTopMobile();
 requestAnimationFrame(resetScrollTopMobile);
 if (!animatePage) window.scrollTo(0, 0);
 else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
@@ -2473,7 +2523,7 @@ const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 2
 main.style.willChange = 'transform, opacity';
 pageAnimation = main.animate(
 [{ opacity: 0, transform: `translate3d(${offset}px,0,0)` }, { opacity: 1, transform: 'translate3d(0,0,0)' }],
-{ duration: IS_MOBILE_BROWSER ? 170 : 380, easing: 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
+{ duration: IS_MOBILE_BROWSER ? 320 : 380, easing: IS_MOBILE_BROWSER ? 'cubic-bezier(.32,.72,0,1)' : 'cubic-bezier(.22,.8,.24,1)', fill: 'backwards' }
 );
 const activeAnimation = pageAnimation;
 activeAnimation.onfinish = () => {
@@ -3707,7 +3757,7 @@ el.addEventListener('pointercancel', e => dragEnd(e, true));
 }
 function setupItemHistory(p) {
 const base = itemHistoryBase(p).sort((a, b) => (Number(b.ts) || 0) - (Number(a.ts) || 0));
-const st = { user: '', from: '', to: '', limit: 30 };
+const st = { user: '', from: '', to: '', limit: 150 };
 const fmt = n => num(Number(n) || 0);
 const draw = () => {
 const from = st.from ? new Date(`${st.from}T00:00:00`).getTime() : 0;
@@ -3722,19 +3772,19 @@ $('#ihList').innerHTML = shown.map((x, idx) => {
 const [ico, label, cls] = IH_KINDS[x.type], amt = Number(x.amt) || 0, d = new Date(Number(x.ts) || 0);
 const sign = x.type === 'in' ? '+' : x.type === 'out' ? '−' : amt > 0 ? '+' : amt < 0 ? '−' : '±';
 return `<div class="ih-item ${cls}"><span class="ih-ico" aria-hidden="true">${ico}</span><div class="ih-main"><div class="ih-line"><b>${label}</b><strong>${sign}${fmt(Math.abs(amt))} <small>${esc(x.unit || p.unit || '')}</small></strong></div><div class="ih-sub"><span>👤 ${esc(x.user || '-')}</span><span>${IH_DATE.format(d)} · ${IH_TIME.format(d)}</span></div><div class="ih-bal">คงเหลือ ${fmt(x.before)} → ${fmt(x.after)}</div>${x.note ? `<div class="ih-note">“${esc(x.note)}”</div>` : ''}</div>${!x.note && idx % 3 === 1 ? ihSticker(idx, 'stk-item') : ''}</div>`;
-}).join('') + (rows.length > shown.length ? `<button type="button" class="ih-more" id="ihMore">แสดงเพิ่มอีก ${Math.min(30, rows.length - shown.length)} รายการ</button>` : '');
+}).join('') + (rows.length > shown.length ? `<button type="button" class="ih-more" id="ihMore">แสดงเพิ่มอีก ${Math.min(150, rows.length - shown.length)} รายการ</button>` : '');
 };
-$('#ihUser').onchange = e => { st.user = e.target.value; st.limit = 30; draw(); };
+$('#ihUser').onchange = e => { st.user = e.target.value; st.limit = 150; draw(); };
 $('#ihFrom').onchange = e => {
 if (e.target.value && st.to && e.target.value > st.to) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = st.from; return; }
-st.from = e.target.value; st.limit = 30; draw();
+st.from = e.target.value; st.limit = 150; draw();
 };
 $('#ihTo').onchange = e => {
 if (e.target.value && st.from && st.from > e.target.value) { toast('วันที่เริ่มต้นต้องไม่อยู่หลังวันที่สิ้นสุด', 1); e.target.value = st.to; return; }
-st.to = e.target.value; st.limit = 30; draw();
+st.to = e.target.value; st.limit = 150; draw();
 };
-$('#ihClear').onclick = () => { st.user = st.from = st.to = ''; st.limit = 30; $('#ihUser').value = ''; $('#ihFrom').value = ''; $('#ihTo').value = ''; draw(); };
-$('#ihList').onclick = e => { if (e.target.closest('#ihMore')) { st.limit += 30; draw(); } };
+$('#ihClear').onclick = () => { st.user = st.from = st.to = ''; st.limit = 150; $('#ihUser').value = ''; $('#ihFrom').value = ''; $('#ihTo').value = ''; draw(); };
+$('#ihList').onclick = e => { if (e.target.closest('#ihMore')) { st.limit += 150; draw(); } };
 draw();
 }
 function itemDetailModal(id) {
@@ -3840,6 +3890,33 @@ toast('เพิ่มวัตถุดิบแล้ว');
 save(); closeModal(); render();
 };
 }
+const HIST_PAGE = 150;
+let histState = null;
+function histMoreHtml(total, shown) {
+  if (total <= shown) return '';
+  const next = Math.min(HIST_PAGE, total - shown);
+  return `<div class="hist-more" id="historyMoreWrap"><button type="button" class="ih-more" id="historyMore">โหลดเพิ่มอีก ${next} รายการ</button><small>แสดง ${shown} จาก ${total} รายการ</small></div>`;
+}
+function histLoadMore() {
+  const st = histState, list = document.querySelector('.history-list'), wrap = document.getElementById('historyMoreWrap');
+  if (!st || !list || !wrap) return;
+  const from = st.shown, to = Math.min(from + HIST_PAGE, st.rows.length);
+  list.insertAdjacentHTML('beforeend', st.rows.slice(from, to).map(st.rowHtml).join(''));
+  st.shown = to;
+  wrap.outerHTML = histMoreHtml(st.rows.length, to);
+}
+let histScrollBusy = false;
+function nearBottom(el) { if (!el) return false; const r = el.getBoundingClientRect(); return r.top < innerHeight + 500 && r.bottom > 0; }
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#historyMore')) histLoadMore(); });
+document.addEventListener('scroll', () => {
+  if (histScrollBusy) return;
+  histScrollBusy = true;
+  requestAnimationFrame(() => {
+    histScrollBusy = false;
+    const m = document.getElementById('historyMore'); if (m && nearBottom(m)) histLoadMore();
+    const ih = document.getElementById('ihMore'); if (ih && nearBottom(ih)) ih.click();
+  });
+}, true);
 let historyQuickKey = null;
 let historyCardFilter = null;
 function logView() {
@@ -3871,16 +3948,18 @@ edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.
 delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>',
 import: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 3.5h9l5 5V20a.5.5 0 0 1-.5.5h-13A.5.5 0 0 1 5 20z"/><path d="M14 3.5v5h5M12 11v7m-3-3 3 3 3-3"/></svg>'
 };
-return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-`<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
-(l.length ? `<div class="history-list">${l.map(x => {
+const rowHtml = x => {
     const t = LT[x.type] || ['ทำรายการ', '', '📋', 'บันทึกรายการ'];
     const amount = Number(x.amt || 0), delta = ['out', 'delete'].includes(x.type) ? '−' : x.type === 'in' ? '+' : amount > 0 ? '+' : amount < 0 ? '−' : '';
     const unit = x.unit || P.find(p => p.id === x.pid)?.unit || '';
     const date = new Date(x.ts).toLocaleString('th-TH', { dateStyle: 'medium', timeStyle: 'short' });
     const movementIcon = historyIcons[x.type] || historyIcons.adjust;
     return `<article class="history-item"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span></div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(x.role || (U.find(u => u.name === x.user)?.role ? ROLE[U.find(u => u.name === x.user).role] : ''))}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
-  }).join('')}</div>` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
+};
+histState = { rows: l, rowHtml, shown: Math.min(HIST_PAGE, l.length) };
+return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
+`<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
+(l.length ? `<div class="history-list">${l.slice(0, HIST_PAGE).map(rowHtml).join('')}</div>${histMoreHtml(l.length, Math.min(HIST_PAGE, l.length))}` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
 }
 document.addEventListener('change', e => {
 if (/^history/.test(e.target.id || '')) historyCardFilter = null;
