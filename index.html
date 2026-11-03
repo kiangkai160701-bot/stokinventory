@@ -720,7 +720,7 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-panel.open .disclosure-inner{padding:2px 14px 14px;opacity:1;transform:translateY(0)}
 .settings-grid{align-items:stretch;gap:12px}
 .settings-grid>.dash-card{min-width:0;border:1px solid var(--line);border-radius:var(--r);background:var(--card-bg);box-shadow:var(--shadow-sm)}
-.disclosure-inner.has-card-mascot{padding-right:44px!important}
+.disclosure-inner.has-card-mascot{padding-right:14px!important}
 .settings-grid>.disclosure-card{padding:0!important}
 .settings-grid>.disclosure-card>.disclosure-summary{min-height:54px}
 .settings-grid>.settings-bottom-row{display:contents}
@@ -1249,6 +1249,19 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .qb-chip.low small{color:var(--warn);font-weight:700}
 .qb-chip.out{background:var(--line);border-color:var(--line);opacity:.6;cursor:not-allowed}
 @media(min-width:1100px){.qb{display:none}}
+
+.pin-remember{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:13px;color:var(--mute);cursor:pointer;-webkit-user-select:none;user-select:none}
+.pin-remember input{width:18px;height:18px;margin:0;accent-color:var(--acc);flex:none}
+
+/* ===== Settings drop-down: full-width panel + new chevron badge ===== */
+.disclosure-panel.open .disclosure-inner,.disclosure-inner{padding-right:14px!important}
+.disclosure-chevron{display:grid;place-items:center;width:30px;height:30px;margin-left:auto;border:1px solid color-mix(in srgb,var(--acc) 34%,var(--card-bg));border-radius:10px;background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--acc-hover);transform:none;transition:background-color .25s ease,border-color .25s ease,color .25s ease!important}
+.disclosure-count+.disclosure-chevron{margin-left:0}
+.disclosure-chevron::after{content:"";width:15px;height:15px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .36s cubic-bezier(.32,.72,0,1)}
+.disclosure-summary[aria-expanded="true"] .disclosure-chevron{transform:none;background:var(--acc);border-color:var(--acc);color:#fff}
+.disclosure-summary[aria-expanded="true"] .disclosure-chevron::after{transform:rotate(180deg)}
+.disclosure-summary:active .disclosure-chevron{transform:scale(.92)}
+@media(max-width:680px){.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.backup-card .disclosure-inner>div[style*="flex-wrap"] .btn{width:100%;justify-content:center}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1994,7 +2007,6 @@ add('.history-main', 'mascot-history', 3);
 add('.user-activity-card .t', 'mascot-user');
 } else if (tab === 'settings') {
 add('.branch-admin-card,.text-scale-card,.theme-picker-card,.permission-user', 'mascot-top-right');
-add('.disclosure-panel.open .disclosure-inner', 'mascot-top-right');
 }
 cards.forEach(({ card, placement }, index) => {
 const mascot = document.createElement('span');
@@ -2924,14 +2936,17 @@ renderBranchOptions(branches); closeModal(); build(); toast(`สร้าง${re
 function switchBranch(branchId) {
 if (!can.manageBranches()) return toast('บัญชีนี้ไม่มีสิทธิ์จัดการสาขา', 1);
 const branch = branches.find(item => String(item.id) === String(branchId)); if (!branch) return toast('ไม่พบสาขาที่เลือก', 1);
-openModal(`<h3>🏬 เข้าสาขา${esc(branch.name)}</h3><p class="settings-hint">ยืนยันตัวตนด้วยรหัสผ่าน 6 หลัก เพื่อสลับสาขาโดยไม่ออกจากระบบ</p><form id="switchBranchForm"><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" required></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">เข้าสาขานี้</button></div></form>`);
+openModal(`<h3>🏬 เข้าสาขา${esc(branch.name)}</h3><p class="settings-hint">ยืนยันตัวตนด้วยรหัสผ่าน 6 หลัก เพื่อสลับสาขาโดยไม่ออกจากระบบ</p><form id="switchBranchForm"><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" required></label><label class="pin-remember"><input type="checkbox" name="remember"><span>จำรหัสผ่านไว้ในเครื่องนี้</span></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">เข้าสาขานี้</button></div></form>`);
+const pinKey = `branchPin:${branch.id}`;
+try { const saved = localStorage.getItem(pinKey); if (/^\d{6}$/.test(saved || '')) { const f = $('#switchBranchForm').elements; f.pin.value = saved; f.remember.checked = true; } } catch (_) {}
 $('#switchBranchForm').onsubmit = async e => {
-e.preventDefault(); const button = e.submitter, pin = e.target.elements.pin.value;
+e.preventDefault(); const button = e.submitter, pin = e.target.elements.pin.value, remember = e.target.elements.remember.checked;
 if (!/^\d{6}$/.test(pin)) return toast('กรุณากรอกรหัสผ่าน 6 หลัก', 1);
 if (button) button.disabled = true;
 try {
 const result = await cloudRpc('api_branch_switch', { p_token: cloudToken, p_branch_id: branch.id, p_pin_hash: await hash(pin) });
-if (!result.ok) { if (button) button.disabled = false; e.target.elements.pin.value = ''; return toast(result.error || 'เข้าสาขาไม่สำเร็จ', 1); }
+if (!result.ok) { if (button) button.disabled = false; e.target.elements.pin.value = ''; try { localStorage.removeItem(pinKey); } catch (_) {} return toast(result.error || 'เข้าสาขาไม่สำเร็จ', 1); }
+try { remember ? localStorage.setItem(pinKey, pin) : localStorage.removeItem(pinKey); } catch (_) {}
 sess.set(cloudToken, result.branch.id); setCurrentBranch(result.branch); applyCloudState(result.state); me = result.me;
 syncSnapshot = cloneData(result.state); syncVersion = result.version; closeModal(); enter(me, result.branch); toast(`เข้าสาขา${result.branch.name}แล้ว`);
 } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
