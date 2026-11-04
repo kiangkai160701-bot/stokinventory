@@ -4705,7 +4705,7 @@ function jSettings() {
 }
 
 // ---------- เมนูด้านข้าง + หน้าจอ ----------
-const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => true, open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => isAnnouncer(), open: () => window.chatOpenRooms && window.chatOpenRooms() }];
+const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
 (function setupSideMenu() {
   const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
   const dock = document.createElement('div'); dock.className = 'sd-dock';
@@ -4723,7 +4723,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     jRender(); jpBody().scrollTop = 0; page.classList.add('open'); page.setAttribute('aria-hidden', 'false');
   };
   const refresh = () => {
-    const on = !!me && !$('#app').classList.contains('hide') && can.sideMenu() && !isWideDesktop();
+    const on = !!me && !$('#app').classList.contains('hide') && !isWideDesktop() && JMENU.some(m => m.show());
     dock.classList.toggle('on', on);
     if (on) { items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span>${m.id === 'chat' ? '<i class="chat-dot" data-chat-dot="rooms"></i>' : ''}<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join(''); window.chatUpdateDots && window.chatUpdateDots(); }
     else { menuOpen(false); window.jPageClose(); }
@@ -4810,7 +4810,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
 
   /* ---------- จุดแดง ---------- */
   function updateDots() {
-    const adm = isAdminMe(), own = !!me && !adm && CH.total > 0, rooms = !!me && adm && CH.total > 0;
+    const adm = isAdminMe(), own = !!me && !adm && CH.total > 0, rooms = !!me && CH.total > 0;
     document.querySelectorAll('[data-chat-dot]').forEach(el => {
       const k = el.dataset.chatDot; let on = false;
       if (k === 'tab' || k === 'own') on = own;
@@ -4880,13 +4880,32 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
       roomData = r.rooms || []; renderRooms();
     } catch (e) { q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดรายชื่อไม่สำเร็จ'))}</div>`; }
   }
+  /* ผู้ใช้ทั่วไปเห็นห้องเดียว: ผู้ดูแลระบบ (kiangkai) */
+  let selfLast = null;
+  function renderSelfRoom() {
+    const unread = CH.total || 0, m = selfLast;
+    const sub = m ? ((m.sender === 'user' ? 'คุณ: ' : '') + (m.kind === 'image' ? '📷 รูปภาพ' : m.kind === 'audio' ? '🎤 ข้อความเสียง' : (m.body || ''))) : 'แตะเพื่อเริ่มคุยกับผู้ดูแลระบบ';
+    const when = m ? (dayLabel(m.ts) === 'วันนี้' ? fmtTime(m.ts) : dayLabel(m.ts)) : '';
+    q('#crList').innerHTML = `<div class="cr-hero has-card-mascot"><b>💬 ห้องแชทของคุณ</b><small>คุยกับผู้ดูแลระบบได้โดยตรง</small>${stk(0, 'mascot-top-right')}</div>
+      <button type="button" class="cr-row" data-self-room="1"><span class="cr-av">👑</span><span class="cr-mid"><b>ผู้ดูแลระบบ</b><small>${esc(sub)}</small></span><span class="cr-end">${when ? `<span>${esc(when)}</span>` : ''}${unread ? `<span class="cr-badge">${unread}</span>` : ''}</span></button>`;
+  }
+  async function loadSelfRoom() {
+    renderSelfRoom();
+    try {
+      const r = await rpc('chat_get', { p_room: null, p_after: 0, p_mark: false });
+      if (r?.ok) { const ms = (r.messages || []).slice().sort((a, b) => a.id - b.id); selfLast = ms.length ? ms[ms.length - 1] : null; renderSelfRoom(); }
+    } catch (e) { if (missing(e)) q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดแชทไม่สำเร็จ'))}</div>`; }
+  }
   function openRooms() {
-    if (!isAdminMe()) return;
+    if (!me) return;
     window.jMenuClose && window.jMenuClose();
+    const adm = isAdminMe();
+    q('.chp-search').hidden = !adm;
     paintChat(); elRooms.classList.add('open'); elRooms.setAttribute('aria-hidden', 'false');
-    q('#crList').innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
-    loadRooms(); clearInterval(CH.roomsTimer);
-    CH.roomsTimer = setInterval(() => { if (document.visibilityState === 'visible') { loadRooms(); pollUnread(); } }, 6000);
+    if (adm) q('#crList').innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
+    const load = adm ? loadRooms : loadSelfRoom;
+    load(); clearInterval(CH.roomsTimer);
+    CH.roomsTimer = setInterval(() => { if (document.visibilityState === 'visible') { load(); pollUnread(); } }, 6000);
   }
   function closeRooms() { elRooms.classList.remove('open'); elRooms.setAttribute('aria-hidden', 'true'); clearInterval(CH.roomsTimer); }
   window.chatOpenRooms = openRooms;
@@ -4973,7 +4992,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   function closeRoom() {
     clearInterval(CH.timer); recCancel(); stopAudio();
     elRoom.classList.remove('open'); elRoom.setAttribute('aria-hidden', 'true');
-    pollUnread(); if (elRooms.classList.contains('open')) loadRooms();
+    pollUnread(); if (elRooms.classList.contains('open')) { if (isAdminMe()) loadRooms(); else loadSelfRoom(); }
   }
   function closeAll() { if (elRoom.classList.contains('open')) closeRoom(); if (elRooms.classList.contains('open')) closeRooms(); }
 
@@ -5000,11 +5019,13 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     const text = elText.value.trim();
     if (CH.sending || (!text && !CH.pending)) return;
     const btn = q('#chSend'); btn.disabled = true;
+    const keepKeyboard = document.activeElement === elText;
     let ok;
     if (CH.pending) { const p = CH.pending; ok = await send({ p_kind: 'image', p_body: text, p_media: p.data, p_mime: p.mime }, p.preview); }
     else ok = await send({ p_kind: 'text', p_body: text });
     btn.disabled = false;
     if (ok) { elText.value = ''; clearPending(); autoGrow(); syncComposer(); }
+    if (keepKeyboard && document.activeElement !== elText) elText.focus({ preventScroll: true });
   }
   function compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -5080,6 +5101,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   q('#chBack').onclick = closeRoom;
   q('#crSearch').oninput = renderRooms;
   q('#crList').onclick = e => {
+    if (e.target.closest('[data-self-room]')) { openRoom({}); return; }
     const b = e.target.closest('[data-room]'); if (!b) return;
     openRoom({ room: b.dataset.room, name: b.dataset.name, branch: b.dataset.branch });
   };
@@ -5103,6 +5125,9 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   elText.addEventListener('input', () => { autoGrow(); syncComposer(); });
   elText.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !IS_MOBILE_BROWSER) { e.preventDefault(); sendComposer(); } });
   q('#chSend').onclick = sendComposer;
+  /* กดปุ่มส่งแล้วไม่ให้ช่องพิมพ์เสียโฟกัส -> แป้นพิมพ์ค้างอยู่จนกว่าผู้ใช้จะปิดเอง */
+  ['mousedown', 'pointerdown'].forEach(ev => q('#chSend').addEventListener(ev, e => { if (e.pointerType === 'mouse' || e.type === 'mousedown') e.preventDefault(); }));
+  q('#chSend').addEventListener('touchend', e => { if (e.cancelable && document.activeElement === elText) { e.preventDefault(); sendComposer(); } }, { passive: false });
   q('#chImg').onclick = () => q('#chFile').click();
   q('#chFile').onchange = async e => {
     const f = e.target.files?.[0]; if (!f) return;
