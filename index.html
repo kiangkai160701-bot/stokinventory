@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
 <title>ไข่หวานบ้านซูชิ | ระบบจัดการสต็อกวัตถุดิบ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1527,7 +1527,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 #sdItems{display:flex;flex-direction:column;gap:10px}
 
 /* ===== แชท: สติ๊กเกอร์การ์ตูนตามธีม + จุดแจ้งเตือนกลม ===== */
-.chp{overflow:hidden}
+.chp{contain:paint}
 .chp::before,.chp::after{position:absolute;z-index:0;pointer-events:none;font-size:92px;line-height:1;opacity:.07}
 .chp::before{content:var(--cf1,"");right:-12px;bottom:96px;rotate:-12deg}
 .chp::after{content:var(--cf2,"");left:-14px;top:34%;rotate:10deg}
@@ -1545,6 +1545,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .cb-empty b{color:var(--ink);font-size:14px}
 .cb-empty .big{font-size:48px;line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.chp-stk,.cb-empty .big{animation:none}}
+.chp-comp textarea,.chp-search input{font-size:16px!important}
 #nav .chat-dot.nav,#dtabs .chat-dot.nav{width:9px!important;height:9px!important;min-width:9px;min-height:9px;max-width:9px;max-height:9px;aspect-ratio:1/1;padding:0;border:0;box-sizing:border-box;border-radius:50%!important;line-height:0;font-size:0;transform:none}
 #nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{display:block;animation:chatRingPulse 1.8s ease-out infinite}
 @keyframes chatRingPulse{0%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 2px rgba(239,68,68,.55)}70%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}}
@@ -5098,6 +5099,9 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   if (window.visualViewport) {
     const fit = () => { const v = window.visualViewport; [elRoom, elRooms].forEach(el => { if (window.innerWidth < 1100) { el.style.height = v.height + 'px'; el.style.top = v.offsetTop + 'px'; el.style.bottom = 'auto'; } else { el.style.height = ''; el.style.top = ''; el.style.bottom = ''; } }); if (elRoom.classList.contains('open')) elMsgs.scrollTop = elMsgs.scrollHeight; };
     window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); fit();
+    const settle = () => { fit(); [60, 180, 360, 650].forEach(t => setTimeout(fit, t)); };
+    elText.addEventListener('focus', settle); elText.addEventListener('blur', () => setTimeout(fit, 150));
+    q('#crSearch').addEventListener('focus', settle); q('#crSearch').addEventListener('blur', () => setTimeout(fit, 150));
   }
 })();
 </script>
