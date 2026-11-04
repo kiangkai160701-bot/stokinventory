@@ -1449,6 +1449,80 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .ann-item-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .ann-cancel.armed{background:var(--bad);border-color:var(--bad);color:#fff}
 .ann-empty{display:block;color:var(--mute);font-size:12px;line-height:1.5}
+/* ===== ระบบแชท ผู้ใช้ <-> ผู้ดูแลระบบ ===== */
+.chat-dot{display:none;width:10px;height:10px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--card-bg,#fff);flex:none;pointer-events:none}
+.chat-dot.show{display:inline-block;animation:chatDotPulse 1.8s ease-in-out infinite}
+@keyframes chatDotPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+#nav button,#dtabs button{position:relative}
+#nav .chat-dot.nav{position:absolute;top:4px;left:calc(50% + 9px);width:9px;height:9px}
+#dtabs .chat-dot.nav{position:absolute;top:4px;right:4px}
+.sd-tab .chat-dot{position:absolute;top:-4px;right:-4px}
+.sd-dock.open .sd-tab .chat-dot{display:none}
+.sd-item .chat-dot{margin-left:auto;margin-right:-4px}
+.btn.chat-btn{position:relative}
+.btn.chat-btn .chat-dot{position:absolute;top:4px;right:4px}
+.chat-rooms-btn{position:relative;gap:6px}
+.chat-rooms-btn .chat-dot{position:absolute;top:3px;right:3px}
+.user-card-actions .chat-btn{border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
+
+.chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
+.chp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
+.chp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
+.chp-head h2{flex:1;margin:0;font-size:17px}
+.chp-title{flex:1;min-width:0;display:grid;line-height:1.25}
+.chp-title b{font-size:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chp-title small{color:var(--mute);font-size:11.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chp .cp-btn{display:inline-grid;place-items:center;flex:none;width:38px;height:38px;padding:0;border:1px solid color-mix(in srgb,var(--acc) 38%,var(--card-bg));border-radius:12px;background:color-mix(in srgb,var(--acc) 15%,var(--card-bg));color:var(--acc-hover,var(--ink));font:inherit;font-size:17px;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.chp .cp-btn:active{transform:scale(.94)}
+.chp .cp-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.chp .cp-btn[hidden]{display:none}
+.chp-note{margin:0;padding:7px 14px;background:color-mix(in srgb,var(--warn,#d97706) 12%,var(--card-bg));border-bottom:1px solid var(--line);color:var(--ink);font-size:11.5px;line-height:1.45;text-align:center}
+.chp-search{padding:10px 12px 4px}
+.chp-search input{width:100%;min-height:40px;padding:0 13px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:14px}
+.chp-list{flex:1;min-height:0;overflow-y:auto;padding:6px 12px calc(24px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
+.cr-branch{display:flex;align-items:center;gap:8px;margin:14px 2px 6px;color:var(--mute);font-size:12px;font-weight:700}
+.cr-branch i{font-style:normal;margin-left:auto;padding:1px 8px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px}
+.cr-row{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:7px;padding:10px 11px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cr-row:active{transform:scale(.985)}
+.cr-av{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:color-mix(in srgb,var(--acc) 22%,var(--card-bg));color:var(--acc-hover,var(--ink));font-size:16px;font-weight:800}
+.cr-mid{flex:1;min-width:0;display:grid;gap:1px}
+.cr-mid b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-mid small{color:var(--mute);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cr-end{flex:none;display:grid;justify-items:end;gap:4px;color:var(--mute);font-size:10.5px}
+.cr-badge{min-width:20px;padding:1px 6px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;text-align:center}
+.cr-off{opacity:.62}
+.cr-empty{padding:30px 10px;color:var(--mute);text-align:center;font-size:13px}
+
+.chp-msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:5px;padding:12px 12px 10px}
+.cb-day{align-self:center;margin:8px 0 4px;padding:2px 11px;border-radius:99px;background:color-mix(in srgb,var(--mute) 16%,var(--card-bg));color:var(--mute);font-size:11px}
+.cb{max-width:80%;padding:7px 11px 5px;border-radius:17px;font-size:14px;line-height:1.42;overflow-wrap:anywhere;position:relative}
+.cb.mine{align-self:flex-end;background:var(--acc-hover,var(--acc));color:#fff;border-bottom-right-radius:5px}
+.cb.theirs{align-self:flex-start;background:var(--card-bg);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px}
+.cb-t{white-space:pre-wrap}
+.cb-m{display:flex;justify-content:flex-end;gap:5px;margin-top:2px;font-size:10px;opacity:.78}
+.cb img{display:block;max-width:100%;max-height:270px;min-width:130px;min-height:90px;margin:0 0 4px;border-radius:12px;object-fit:cover;background:rgba(127,127,127,.18);cursor:zoom-in}
+.cb-aud{display:flex;align-items:center;gap:9px;min-width:160px;padding:3px 0 2px}
+.cb-play{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.28);color:inherit;font-size:14px;cursor:pointer}
+.cb.theirs .cb-play{background:color-mix(in srgb,var(--acc) 20%,var(--card-bg));color:var(--acc-hover)}
+.cb-bar{flex:1;height:4px;border-radius:4px;background:rgba(127,127,127,.3);overflow:hidden}
+.cb-bar i{display:block;width:0;height:100%;background:currentColor;opacity:.85}
+.cb-sec{font-size:11px;font-variant-numeric:tabular-nums}
+.chp-prev{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);background:var(--card-bg)}
+.chp-prev[hidden],.chp-rec[hidden]{display:none}
+.chp-prev img{width:54px;height:54px;border-radius:10px;object-fit:cover}
+.chp-prev span{flex:1;color:var(--mute);font-size:12px}
+.chp-rec{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--card-bg);font-size:13px}
+.chp-rec i{width:11px;height:11px;border-radius:50%;background:#ef4444;animation:chatDotPulse 1s ease-in-out infinite}
+.chp-rec b{flex:1;font-variant-numeric:tabular-nums}
+.chp-comp{display:flex;align-items:flex-end;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card-bg)}
+.chp-comp textarea{flex:1;min-width:0;max-height:112px;min-height:40px;padding:9px 12px;border:1px solid var(--line);border-radius:20px;background:var(--bg-app);color:var(--ink);font:inherit;font-size:14.5px;line-height:1.35;resize:none}
+.chp-comp .cp-send{background:var(--acc);border-color:var(--acc);color:#fff}
+.chp-comp .cp-btn{width:40px;height:40px;border-radius:50%}
+.chp-comp .cp-btn.rec{background:#ef4444;border-color:#ef4444;color:#fff}
+.chp-zoom{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:14px;background:rgba(0,0,0,.86);cursor:zoom-out}
+.chp-zoom img{max-width:100%;max-height:100%;border-radius:8px}
+@media(min-width:1100px){.chp{inset:12px 12px 12px auto;width:min(460px,92vw);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.22)}}
+@media(prefers-reduced-motion:reduce){.chp{transition:none!important}.chat-dot.show{animation:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -2265,16 +2339,15 @@ const items = [
 ['stock', isWideDesktop() ? 'หน้าหลัก' : 'สต็อก', 'box'],
 ['dashboard', 'แดชบอร์ด', 'dashboard'],
 ['log', 'ประวัติ', 'log'],
-...(can.users() ? [['users', 'ผู้ใช้', 'users']] : []),
+['users', 'ผู้ใช้', 'users'],
 ['settings', 'ตั้งค่า', 'settings']
 ];
 return isWideDesktop() ? items.filter(([key]) => !['dashboard', 'log'].includes(key)) : items;
 }
 function build() {
-if (tab === 'users' && !can.users()) tab = 'settings';
 const nav = $('#nav');
-nav.innerHTML = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
-$('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
+nav.innerHTML = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span>${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
+$('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
 render();
 placeNavPill(true);
 if (!navPillObserver && 'ResizeObserver' in window) {
@@ -2548,7 +2621,6 @@ render(animate);
 function render(animatePage = false) {
 if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
 if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
-if (tab === 'users' && !can.users()) tab = 'settings';
 const main = $('#main');
 const desktopPanelScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? null : null;
 const desktopHistoryScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? null : null;
@@ -4130,14 +4202,14 @@ if (!card) return;
 e.preventDefault(); card.click();
 });
 function usersView() {
-const users = [globalAdminDirectoryUser, ...U.filter(user => String(user.name || '').toLowerCase() !== 'kiangkai')];
+const manageUsers = can.users(); const users = manageUsers ? [globalAdminDirectoryUser, ...U.filter(user => String(user.name || '').toLowerCase() !== 'kiangkai')] : [globalAdminDirectoryUser];
 const activity = user => { const logs=L.filter(x=>String(x.user||'').toLowerCase()===String(user.name).toLowerCase()); const last=logs.reduce((best,x)=>Math.max(best,Number(x.ts)||0),0); const day=86400000, now=Date.now(); return {count:logs.length, recent:logs.filter(x=>now-(Number(x.ts)||0)<=30*day).length, last:last?new Date(last).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'ยังไม่มีประวัติ',ins:logs.filter(x=>x.type==='in').length,outs:logs.filter(x=>x.type==='out').length}; };
 const summary=users.map(activity), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=users.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
-return `<div class="sect"><h2>จัดการผู้ใช้</h2><button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button></div>
-  <div class="stats"><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
+return `<div class="sect"><h2>${manageUsers ? 'จัดการผู้ใช้' : 'ผู้ใช้'}</h2><span style="display:flex;gap:8px">${isAnnouncer() ? '<button type="button" class="btn sm sec chat-rooms-btn" id="chatRoomsBtn">💬 ห้องแชท<i class="chat-dot" data-chat-dot="rooms"></i></button>' : ''}${manageUsers ? `<button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button>` : ''}</span></div>
+  <div class="stats"${manageUsers ? '' : ' style="display:none"'}><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
-  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${u.globalAdmin ? (isAnnouncer() ? '' : '<button type="button" class="btn sm sec chat-btn" data-chat-open="admin">💬 แชท<i class="chat-dot" data-chat-dot="own"></i></button>') : (isAnnouncer() ? `<button type="button" class="btn sm sec chat-btn" data-chat-open="user" data-chat-user="${esc(u.name)}">💬 แชท<i class="chat-dot" data-chat-dot="user:${esc(String(u.name).toLowerCase())}"></i></button>` : '')}${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 document.addEventListener('click', e => {
 if (!me || tab !== 'users') return;
@@ -4578,11 +4650,11 @@ function jSettings() {
 }
 
 // ---------- เมนูด้านข้าง + หน้าจอ ----------
-const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => true, open: () => jOpenPage() }];
+const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => true, open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => isAnnouncer(), open: () => window.chatOpenRooms && window.chatOpenRooms() }];
 (function setupSideMenu() {
   const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
   const dock = document.createElement('div'); dock.className = 'sd-dock';
-  dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>';
+  dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><i class="chat-dot" data-chat-dot="dock"></i></button>';
   const page = document.createElement('div'); page.className = 'jp'; page.id = 'jobPage'; page.setAttribute('aria-hidden', 'true');
   page.innerHTML = '<div class="jp-head"><button type="button" class="jp-btn sq" id="jpBack" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🗓️ จ๊อบพนักงาน</h2><button type="button" class="jp-btn sq" id="jpGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="jp-body" id="jpBody"></div><div class="jp-undo" id="jpUndo"><span>คัดลอกตารางแล้ว</span><button type="button" class="jp-btn" id="jpUndoBtn">ย้อนกลับ</button></div><button type="button" class="jp-fab" id="jpAdd">+ แจ้งสถานะ</button>';
   document.body.append(scrim, dock, page);
@@ -4598,7 +4670,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   const refresh = () => {
     const on = !!me && !$('#app').classList.contains('hide') && can.sideMenu() && !isWideDesktop();
     dock.classList.toggle('on', on);
-    if (on) items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join('');
+    if (on) { items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span>${m.id === 'chat' ? '<i class="chat-dot" data-chat-dot="rooms"></i>' : ''}<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join(''); window.chatUpdateDots && window.chatUpdateDots(); }
     else { menuOpen(false); window.jPageClose(); }
   };
   dock.querySelector('.sd-tab').onclick = () => menuOpen(!dock.classList.contains('open'));
@@ -4627,6 +4699,367 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   if (main) new MutationObserver(refresh).observe(main, { childList: true });
   window.addEventListener('resize', refresh);
   refresh();
+})();
+// ===== ระบบแชท: ผู้ใช้ทุกสาขา <-> ผู้ดูแลระบบ (kiangkai) | ข้อความอยู่ได้ 3 วัน =====
+(function chatSystem() {
+  const NOTE = '🕒 ข้อความในแชทนี้อยู่ได้ 3 วัน หลังจากนั้นระบบจะล้างให้อัตโนมัติเพื่อประหยัดพื้นที่เก็บข้อมูล';
+  const BACK = '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
+  const CH = { admin: false, total: 0, rooms: {}, branchId: '', unavailable: false, busy: false,
+    room: null, peer: '', msgs: [], lastId: 0, readUpto: 0, timer: null, roomsTimer: null, pulling: false,
+    sending: false, rec: null, pending: null, audio: null, audioId: 0 };
+  const isAdminMe = () => String(me?.name || '').toLowerCase() === 'kiangkai';
+  const missing = e => /Could not find the function|schema cache|chat_/i.test(String(e?.message || ''));
+  const rpc = (name, args = {}) => cloudRpc(name, { p_token: cloudToken, ...args });
+  const q = s => document.querySelector(s);
+
+  const layer = document.createElement('div');
+  layer.id = 'chatLayer';
+  layer.innerHTML = `
+  <div class="chp" id="chatRooms" aria-hidden="true">
+    <div class="chp-head"><button type="button" class="cp-btn" id="crBack" aria-label="กลับ">${BACK}</button><h2>💬 ห้องแชท</h2></div>
+    <p class="chp-note">${NOTE}</p>
+    <div class="chp-search"><input id="crSearch" type="search" placeholder="ค้นหาชื่อผู้ใช้หรือสาขา" autocomplete="off"></div>
+    <div class="chp-list" id="crList"></div>
+  </div>
+  <div class="chp" id="chatRoom" aria-hidden="true">
+    <div class="chp-head">
+      <button type="button" class="cp-btn" id="chBack" aria-label="กลับ">${BACK}</button>
+      <div class="chp-title"><b id="chTitle">แชท</b><small id="chSub"></small></div>
+      <button type="button" class="cp-btn" id="chDel" aria-label="ลบห้องแชทนี้" title="ลบห้องแชทนี้" hidden>🗑️</button>
+    </div>
+    <p class="chp-note">${NOTE}</p>
+    <div class="chp-msgs" id="chMsgs"></div>
+    <div class="chp-prev" id="chPrev" hidden><img id="chPrevImg" alt="รูปที่จะส่ง"><span>พร้อมส่งรูปนี้ (พิมพ์คำบรรยายได้)</span><button type="button" class="cp-btn" id="chPrevX" aria-label="ยกเลิกรูป">✕</button></div>
+    <div class="chp-rec" id="chRec" hidden><i></i><b id="chRecT">0:00</b><button type="button" class="cp-btn" id="chRecX" aria-label="ยกเลิกการอัด">🗑️</button><button type="button" class="cp-btn cp-send" id="chRecOk" aria-label="ส่งเสียง">➤</button></div>
+    <div class="chp-comp" id="chComp">
+      <button type="button" class="cp-btn" id="chImg" aria-label="ส่งรูปภาพ">📷</button>
+      <input type="file" id="chFile" accept="image/*" hidden>
+      <textarea id="chText" rows="1" maxlength="2000" placeholder="พิมพ์ข้อความ..."></textarea>
+      <button type="button" class="cp-btn" id="chMic" aria-label="อัดข้อความเสียง">🎤</button>
+      <button type="button" class="cp-btn cp-send" id="chSend" aria-label="ส่ง" hidden>➤</button>
+    </div>
+  </div>`;
+  document.body.appendChild(layer);
+  const elRooms = q('#chatRooms'), elRoom = q('#chatRoom'), elMsgs = q('#chMsgs'), elText = q('#chText');
+
+  /* ---------- จุดแดง ---------- */
+  function updateDots() {
+    const adm = isAdminMe(), own = !!me && !adm && CH.total > 0, rooms = !!me && adm && CH.total > 0;
+    document.querySelectorAll('[data-chat-dot]').forEach(el => {
+      const k = el.dataset.chatDot; let on = false;
+      if (k === 'tab' || k === 'own') on = own;
+      else if (k === 'rooms' || k === 'dock') on = rooms;
+      else if (k.startsWith('user:')) on = !!me && adm && (CH.rooms[`${CH.branchId}|${k.slice(5)}`] || 0) > 0;
+      el.classList.toggle('show', on);
+    });
+  }
+  window.chatUpdateDots = updateDots;
+  let dotRaf = 0;
+  const queueDots = () => { if (!dotRaf) dotRaf = requestAnimationFrame(() => { dotRaf = 0; updateDots(); }); };
+  ['#nav', '#dtabs', '#main'].forEach(sel => { const el = q(sel); if (el) new MutationObserver(queueDots).observe(el, { childList: true }); });
+
+  async function pollUnread() {
+    if (!me || !cloudToken) { if (CH.total || Object.keys(CH.rooms).length) { CH.total = 0; CH.rooms = {}; updateDots(); } closeAll(); return; }
+    if (CH.unavailable || CH.busy || document.visibilityState === 'hidden') return;
+    CH.busy = true;
+    try {
+      const r = await rpc('chat_unread');
+      if (r?.ok) { CH.admin = !!r.admin; CH.total = Number(r.total) || 0; CH.rooms = r.rooms || {}; CH.branchId = r.branch_id || ''; updateDots(); }
+    } catch (e) { if (missing(e)) CH.unavailable = true; }
+    finally { CH.busy = false; }
+  }
+  setInterval(pollUnread, 15000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollUnread(); });
+  window.addEventListener('focus', pollUnread);
+  const boot = setInterval(() => { if (me && cloudToken) { clearInterval(boot); pollUnread(); } }, 1200);
+
+  /* ---------- ตัวช่วย ---------- */
+  const fmtTime = ts => new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+  const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
+  const dayLabel = ts => {
+    const d = new Date(ts), now = new Date(), y = new Date(Date.now() - 864e5);
+    if (dayKey(d) === dayKey(now)) return 'วันนี้';
+    if (dayKey(d) === dayKey(y)) return 'เมื่อวาน';
+    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+  };
+  const preview = r => (r.last_sender === 'admin' ? 'คุณ: ' : '') + (r.last_kind === 'image' ? '📷 รูปภาพ' : r.last_kind === 'audio' ? '🎤 ข้อความเสียง' : (r.last_body || ''));
+  const errText = (e, fb) => missing(e) ? 'ยังไม่ได้ติดตั้งระบบแชทบน Supabase (รันไฟล์ supabase-chat-migration.sql)' : (e?.message || fb);
+
+  /* ---------- รายการห้อง (เฉพาะ kiangkai) ---------- */
+  let roomData = [];
+  function renderRooms() {
+    const term = q('#crSearch').value.trim().toLowerCase();
+    const list = roomData.filter(r => !term || `${r.user_name} ${r.branch_name}`.toLowerCase().includes(term));
+    const box = q('#crList');
+    if (!list.length) { box.innerHTML = `<div class="cr-empty">${roomData.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อผู้ใช้ในระบบแชท<br>รายชื่อจะปรากฏเมื่อมีผู้ใช้เข้าสู่ระบบ'}</div>`; return; }
+    const groups = new Map();
+    list.forEach(r => { const k = r.branch_name || '-'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
+    box.innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'th')).map(([branch, rows]) => {
+      rows.sort((a, b) => (b.unread > 0) - (a.unread > 0) || (b.last_at || 0) - (a.last_at || 0) || a.user_name.localeCompare(b.user_name, 'th'));
+      const un = rows.reduce((n, r) => n + (r.unread || 0), 0);
+      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}</div>` + rows.map(r => `
+        <button type="button" class="cr-row ${r.active === false ? 'cr-off' : ''}" data-room="${esc(r.room_key)}" data-name="${esc(r.user_name)}" data-branch="${esc(r.branch_name || '')}">
+          <span class="cr-av">${esc(String(r.user_name).trim().charAt(0).toUpperCase() || '?')}</span>
+          <span class="cr-mid"><b>${esc(r.user_name)}${r.active === false ? ' (ปิดใช้งาน)' : ''}</b><small>${r.last_at ? esc(preview(r)) : 'ยังไม่เคยสนทนา · แตะเพื่อเริ่มคุย'}</small></span>
+          <span class="cr-end">${r.last_at ? `<span>${esc(dayLabel(r.last_at) === 'วันนี้' ? fmtTime(r.last_at) : dayLabel(r.last_at))}</span>` : ''}${r.unread ? `<span class="cr-badge">${r.unread}</span>` : ''}</span>
+        </button>`).join('');
+    }).join('');
+  }
+  async function loadRooms() {
+    try {
+      const r = await rpc('chat_rooms');
+      if (!r?.ok) { q('#crList').innerHTML = `<div class="cr-empty">${esc(r?.error || 'โหลดรายชื่อไม่สำเร็จ')}</div>`; return; }
+      roomData = r.rooms || []; renderRooms();
+    } catch (e) { q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดรายชื่อไม่สำเร็จ'))}</div>`; }
+  }
+  function openRooms() {
+    if (!isAdminMe()) return;
+    window.jMenuClose && window.jMenuClose();
+    elRooms.classList.add('open'); elRooms.setAttribute('aria-hidden', 'false');
+    q('#crList').innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
+    loadRooms(); clearInterval(CH.roomsTimer);
+    CH.roomsTimer = setInterval(() => { if (document.visibilityState === 'visible') { loadRooms(); pollUnread(); } }, 6000);
+  }
+  function closeRooms() { elRooms.classList.remove('open'); elRooms.setAttribute('aria-hidden', 'true'); clearInterval(CH.roomsTimer); }
+  window.chatOpenRooms = openRooms;
+
+  /* ---------- ห้องสนทนา ---------- */
+  const mediaCache = new Map(), mediaLoading = new Map();
+  function mediaUrl(id, mime) {
+    if (mediaCache.has(id)) return Promise.resolve(mediaCache.get(id));
+    if (mediaLoading.has(id)) return mediaLoading.get(id);
+    const p = rpc('chat_get_media', { p_id: id }).then(r => {
+      if (!r?.ok) throw new Error(r?.error || 'โหลดไฟล์ไม่สำเร็จ');
+      const bin = atob(r.data), arr = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+      const url = URL.createObjectURL(new Blob([arr], { type: r.mime || mime }));
+      mediaCache.set(id, url); return url;
+    }).finally(() => mediaLoading.delete(id));
+    mediaLoading.set(id, p); return p;
+  }
+  const secText = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+  function bubble(m, mineSide, isLastMine) {
+    const mine = m.sender === mineSide;
+    let inner = '';
+    if (m.kind === 'image') inner += `<img data-img="${m.id}" alt="รูปภาพ" ${mediaCache.has(m.id) ? `src="${mediaCache.get(m.id)}"` : ''}>`;
+    if (m.kind === 'audio') inner += `<div class="cb-aud"><button type="button" class="cb-play" data-aud="${m.id}" data-mime="${esc(m.mime || 'audio/webm')}" aria-label="เล่นเสียง">▶</button><div class="cb-bar"><i></i></div><span class="cb-sec">${secText(m.secs || 0)}</span></div>`;
+    if (m.body) inner += `<div class="cb-t">${esc(m.body)}</div>`;
+    const tick = mine ? (m.read ? '· อ่านแล้ว' : '· ส่งแล้ว') : '';
+    return `<div class="cb ${mine ? 'mine' : 'theirs'}" data-mid="${m.id}">${inner}<div class="cb-m"><span>${fmtTime(m.ts)}</span>${mine && isLastMine ? `<span>${tick}</span>` : ''}</div></div>`;
+  }
+  function renderMsgs(forceBottom) {
+    const side = CH.admin ? 'admin' : 'user';
+    const nearBottom = elMsgs.scrollHeight - elMsgs.scrollTop - elMsgs.clientHeight < 90;
+    let lastMine = 0; CH.msgs.forEach(m => { if (m.sender === side) lastMine = m.id; });
+    let html = '', prevDay = '';
+    CH.msgs.forEach(m => {
+      const dk = dayKey(m.ts);
+      if (dk !== prevDay) { html += `<div class="cb-day">${esc(dayLabel(m.ts))}</div>`; prevDay = dk; }
+      html += bubble(m, side, m.id === lastMine);
+    });
+    if (!CH.msgs.length) html = '<div class="cr-empty">ยังไม่มีข้อความ ลองพิมพ์ทักทายได้เลย 👋</div>';
+    elMsgs.innerHTML = html;
+    elMsgs.querySelectorAll('img[data-img]').forEach(img => {
+      if (img.getAttribute('src')) return;
+      const id = Number(img.dataset.img);
+      mediaUrl(id, 'image/jpeg').then(u => { img.src = u; if (nearBottom) elMsgs.scrollTop = elMsgs.scrollHeight; }).catch(() => { img.alt = 'รูปหมดอายุแล้ว'; });
+    });
+    if (forceBottom || nearBottom) elMsgs.scrollTop = elMsgs.scrollHeight;
+    if (CH.audioId) { const b = elMsgs.querySelector(`[data-aud="${CH.audioId}"]`); if (b && CH.audio && !CH.audio.paused) b.textContent = '⏸'; }
+  }
+  async function pull(initial) {
+    if (CH.pulling || !elRoom.classList.contains('open')) return;
+    CH.pulling = true;
+    try {
+      const r = await rpc('chat_get', { p_room: CH.admin ? CH.room : null, p_after: initial ? 0 : CH.lastId, p_mark: document.visibilityState === 'visible' });
+      if (!r?.ok) { if (initial) toast(r?.error || 'โหลดแชทไม่สำเร็จ', 1); return; }
+      if (CH.admin && r.room_key) CH.room = r.room_key;
+      const incoming = r.messages || [];
+      let changed = !!initial;
+      if (initial) { CH.msgs = []; CH.lastId = 0; }
+      const have = new Set(CH.msgs.map(m => m.id));
+      incoming.forEach(m => { if (!have.has(m.id)) { CH.msgs.push(m); changed = true; } });
+      CH.msgs.sort((a, b) => a.id - b.id);
+      CH.lastId = CH.msgs.length ? CH.msgs[CH.msgs.length - 1].id : 0;
+      const ru = Number(r.read_upto) || 0;
+      if (ru !== CH.readUpto) { CH.readUpto = ru; changed = true; }
+      const side = CH.admin ? 'admin' : 'user';
+      CH.msgs.forEach(m => { if (m.sender === side && m.id <= CH.readUpto && !m.read) { m.read = true; changed = true; } });
+      if (changed) renderMsgs(initial);
+      if (document.visibilityState === 'visible') pollUnread();
+    } catch (e) { if (initial) toast(errText(e, 'โหลดแชทไม่สำเร็จ'), 1); }
+    finally { CH.pulling = false; }
+  }
+  function openRoom(opt = {}) {
+    CH.admin = isAdminMe();
+    CH.room = CH.admin ? opt.room : null; CH.msgs = []; CH.lastId = 0; CH.readUpto = 0;
+    q('#chTitle').textContent = CH.admin ? (opt.name || 'ผู้ใช้') : 'ผู้ดูแลระบบ';
+    q('#chSub').textContent = CH.admin ? (opt.branch ? `สาขา${opt.branch}` : '') : 'kiangkai · ตอบกลับเมื่อว่าง';
+    q('#chDel').hidden = !CH.admin;
+    elText.value = ''; clearPending(); syncComposer(); autoGrow();
+    elMsgs.innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
+    elRoom.classList.add('open'); elRoom.setAttribute('aria-hidden', 'false');
+    pull(true); clearInterval(CH.timer);
+    CH.timer = setInterval(() => { if (document.visibilityState === 'visible') pull(false); }, 3000);
+  }
+  function closeRoom() {
+    clearInterval(CH.timer); recCancel(); stopAudio();
+    elRoom.classList.remove('open'); elRoom.setAttribute('aria-hidden', 'true');
+    pollUnread(); if (elRooms.classList.contains('open')) loadRooms();
+  }
+  function closeAll() { if (elRoom.classList.contains('open')) closeRoom(); if (elRooms.classList.contains('open')) closeRooms(); }
+
+  /* ---------- ส่งข้อความ / รูป / เสียง ---------- */
+  function syncComposer() {
+    const has = !!elText.value.trim() || !!CH.pending;
+    q('#chSend').hidden = !has; q('#chMic').hidden = has; q('#chImg').hidden = !!CH.rec;
+  }
+  function autoGrow() { elText.style.height = 'auto'; elText.style.height = Math.min(112, elText.scrollHeight) + 'px'; }
+  function clearPending() { CH.pending = null; q('#chPrev').hidden = true; q('#chFile').value = ''; }
+  async function send(args, localUrl) {
+    if (CH.sending) return false;
+    CH.sending = true;
+    try {
+      const r = await rpc('chat_send', { p_room: CH.admin ? CH.room : null, ...args });
+      if (!r?.ok) { toast(r?.error || 'ส่งไม่สำเร็จ', 1); return false; }
+      if (CH.admin && r.room_key) CH.room = r.room_key;
+      if (localUrl && r.id) mediaCache.set(r.id, localUrl);
+      await pull(false); elMsgs.scrollTop = elMsgs.scrollHeight; return true;
+    } catch (e) { toast(errText(e, 'ส่งไม่สำเร็จ'), 1); return false; }
+    finally { CH.sending = false; }
+  }
+  async function sendComposer() {
+    const text = elText.value.trim();
+    if (CH.sending || (!text && !CH.pending)) return;
+    const btn = q('#chSend'); btn.disabled = true;
+    let ok;
+    if (CH.pending) { const p = CH.pending; ok = await send({ p_kind: 'image', p_body: text, p_media: p.data, p_mime: p.mime }, p.preview); }
+    else ok = await send({ p_kind: 'text', p_body: text });
+    btn.disabled = false;
+    if (ok) { elText.value = ''; clearPending(); autoGrow(); syncComposer(); }
+  }
+  function compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const url = URL.createObjectURL(file), img = new Image();
+      img.onload = () => {
+        let max = 1280, qlt = 0.72;
+        for (let i = 0; i < 5; i++) {
+          const sc = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement('canvas');
+          c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          const d = c.toDataURL('image/jpeg', qlt);
+          if (d.length <= 600000 || i === 4) {
+            URL.revokeObjectURL(url);
+            if (d.length > 880000) return reject(new Error('รูปใหญ่เกินไป'));
+            return resolve({ data: d.split(',')[1], mime: 'image/jpeg', preview: d });
+          }
+          max = Math.round(max * 0.8); qlt = Math.max(0.5, qlt - 0.07);
+        }
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('เปิดไฟล์รูปไม่ได้')); };
+      img.src = url;
+    });
+  }
+  /* เสียง */
+  function recTick() { if (!CH.rec) return; const s = (Date.now() - CH.rec.start) / 1000; q('#chRecT').textContent = `${secText(s)} / 1:00`; if (s >= 60) recFinish(); }
+  async function recStart() {
+    if (CH.rec) return;
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return toast('เครื่องนี้ยังไม่รองรับการอัดเสียง', 1);
+    let stream;
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
+    catch { return toast('ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน', 1); }
+    const mt = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
+    let mr;
+    try { mr = new MediaRecorder(stream, mt ? { mimeType: mt, audioBitsPerSecond: 24000 } : { audioBitsPerSecond: 24000 }); }
+    catch { stream.getTracks().forEach(t => t.stop()); return toast('เริ่มอัดเสียงไม่สำเร็จ', 1); }
+    const rec = { mr, stream, start: Date.now(), chunks: [], cancel: false, timer: null, mime: (mr.mimeType || mt || 'audio/webm') };
+    mr.ondataavailable = e => { if (e.data && e.data.size) rec.chunks.push(e.data); };
+    mr.onstop = async () => {
+      stream.getTracks().forEach(t => t.stop()); clearInterval(rec.timer);
+      const secs = Math.round((Date.now() - rec.start) / 1000);
+      if (rec.cancel) return;
+      if (secs < 1) return toast('ข้อความเสียงสั้นเกินไป', 1);
+      const blob = new Blob(rec.chunks, { type: rec.mime });
+      const data = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.readAsDataURL(blob); });
+      if (data.length > 880000) return toast('ข้อความเสียงใหญ่เกินไป ลองอัดให้สั้นลง', 1);
+      const localUrl = URL.createObjectURL(blob);
+      await send({ p_kind: 'audio', p_body: '', p_media: data, p_mime: rec.mime.split(';')[0], p_secs: secs }, localUrl);
+    };
+    CH.rec = rec; mr.start(); rec.timer = setInterval(recTick, 250);
+    q('#chRec').hidden = false; q('#chComp').hidden = true; q('#chRecT').textContent = '0:00 / 1:00';
+  }
+  function recEnd() { CH.rec = null; q('#chRec').hidden = true; q('#chComp').hidden = false; syncComposer(); }
+  function recFinish() { const r = CH.rec; if (!r) return; try { r.mr.stop(); } catch {} recEnd(); }
+  function recCancel() { const r = CH.rec; if (!r) return; r.cancel = true; try { r.mr.stop(); } catch {} r.stream.getTracks().forEach(t => t.stop()); clearInterval(r.timer); recEnd(); }
+  function stopAudio() { if (CH.audio) { try { CH.audio.pause(); } catch {} } CH.audio = null; CH.audioId = 0; elMsgs.querySelectorAll('.cb-play').forEach(b => { b.textContent = '▶'; }); elMsgs.querySelectorAll('.cb-bar i').forEach(i => { i.style.width = '0'; }); }
+  async function playAudio(btn) {
+    const id = Number(btn.dataset.aud);
+    if (CH.audio && CH.audioId === id) { if (CH.audio.paused) { CH.audio.play(); btn.textContent = '⏸'; } else { CH.audio.pause(); btn.textContent = '▶'; } return; }
+    stopAudio(); btn.textContent = '…';
+    try {
+      const url = await mediaUrl(id, btn.dataset.mime);
+      const a = new Audio(url); CH.audio = a; CH.audioId = id;
+      const bar = btn.parentElement.querySelector('.cb-bar i');
+      a.ontimeupdate = () => { if (a.duration) bar.style.width = (a.currentTime / a.duration * 100) + '%'; };
+      a.onended = () => { btn.textContent = '▶'; bar.style.width = '0'; CH.audio = null; CH.audioId = 0; };
+      await a.play(); btn.textContent = '⏸';
+    } catch (e) { btn.textContent = '▶'; CH.audio = null; CH.audioId = 0; toast(e?.message || 'เล่นเสียงไม่ได้', 1); }
+  }
+
+  /* ---------- events ---------- */
+  q('#crBack').onclick = closeRooms;
+  q('#chBack').onclick = closeRoom;
+  q('#crSearch').oninput = renderRooms;
+  q('#crList').onclick = e => {
+    const b = e.target.closest('[data-room]'); if (!b) return;
+    openRoom({ room: b.dataset.room, name: b.dataset.name, branch: b.dataset.branch });
+  };
+  q('#chDel').onclick = async () => {
+    if (!CH.admin || !CH.room) return;
+    if (!window.confirm(`ลบห้องแชทของ ${q('#chTitle').textContent} ทั้งหมดหรือไม่? ข้อความทั้งหมดในห้องนี้จะถูกลบถาวร`)) return;
+    try {
+      const r = await rpc('chat_delete_room', { p_room: CH.room });
+      if (!r?.ok) return toast(r?.error || 'ลบไม่สำเร็จ', 1);
+      toast('ลบห้องแชทแล้ว'); closeRoom(); pollUnread();
+    } catch (e) { toast(errText(e, 'ลบไม่สำเร็จ'), 1); }
+  };
+  elText.addEventListener('input', () => { autoGrow(); syncComposer(); });
+  elText.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !IS_MOBILE_BROWSER) { e.preventDefault(); sendComposer(); } });
+  q('#chSend').onclick = sendComposer;
+  q('#chImg').onclick = () => q('#chFile').click();
+  q('#chFile').onchange = async e => {
+    const f = e.target.files?.[0]; if (!f) return;
+    if (!/^image\//.test(f.type)) { e.target.value = ''; return toast('กรุณาเลือกไฟล์รูปภาพ', 1); }
+    try {
+      const p = await compressImage(f);
+      CH.pending = p; q('#chPrevImg').src = p.preview; q('#chPrev').hidden = false; syncComposer();
+    } catch (err) { toast(err.message || 'เปิดรูปไม่ได้', 1); e.target.value = ''; }
+  };
+  q('#chPrevX').onclick = () => { clearPending(); syncComposer(); };
+  q('#chMic').onclick = recStart;
+  q('#chRecX').onclick = recCancel;
+  q('#chRecOk').onclick = recFinish;
+  elMsgs.addEventListener('click', e => {
+    const img = e.target.closest('img[data-img]');
+    if (img && img.src) { const z = document.createElement('div'); z.className = 'chp-zoom'; z.innerHTML = `<img src="${img.src}" alt="">`; z.onclick = () => z.remove(); document.body.appendChild(z); return; }
+    const pb = e.target.closest('[data-aud]'); if (pb) playAudio(pb);
+  });
+  document.addEventListener('click', e => {
+    const b = e.target.closest('[data-chat-open]');
+    if (b) {
+      e.preventDefault(); e.stopPropagation();
+      if (isAdminMe()) openRoom({ room: '@' + b.dataset.chatUser, name: b.dataset.chatUser, branch: currentBranch?.name || '' });
+      else openRoom({});
+      return;
+    }
+    if (e.target.closest('#chatRoomsBtn')) openRooms();
+  }, true);
+  /* คีย์บอร์ดมือถือ: ให้ช่องพิมพ์ไม่ถูกบัง */
+  if (window.visualViewport) {
+    const fit = () => { const v = window.visualViewport; [elRoom, elRooms].forEach(el => { if (window.innerWidth < 1100) { el.style.height = v.height + 'px'; el.style.top = v.offsetTop + 'px'; el.style.bottom = 'auto'; } else { el.style.height = ''; el.style.top = ''; el.style.bottom = ''; } }); if (elRoom.classList.contains('open')) elMsgs.scrollTop = elMsgs.scrollHeight; };
+    window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); fit();
+  }
 })();
 </script>
 </body>
