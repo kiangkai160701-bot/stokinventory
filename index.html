@@ -1464,7 +1464,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .chat-rooms-btn{position:relative;gap:6px}
 .chat-rooms-btn .chat-dot{position:absolute;top:3px;right:3px}
 
-.chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
+.chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
 .chp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
 .chp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
 .chp-head h2{flex:1;margin:0;font-size:17px}
@@ -1588,6 +1588,16 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
   .history-filter.range-filter:not(.dashboard-range)>.range-field input,.history-filter.range-filter:not(.dashboard-range)>.range-field select{width:100%;min-width:0}
   .history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}
 }
+
+.jp{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s .6s!important;will-change:transform}
+.jp.open{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s!important}
+.chp{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s .6s!important;will-change:transform;contain:layout paint style}
+.chp.open{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s!important}
+.sticker-level-box{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.sticker-level-box>b{font-size:14px}
+.sticker-level-presets{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important}
+.sticker-level-presets .text-scale-option{padding-left:0;padding-right:0}
+@media(prefers-reduced-motion:reduce){.jp,.jp.open,.chp,.chp.open{transition-duration:.01ms!important}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1809,6 +1819,9 @@ const store = {
 get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
 set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+const STK_LEVELS = [20, 40, 60, 80, 100];
+let uiStickerLevel = (() => { const v = Number(store.get('inv_sticker_level', 100)) || 100; return STK_LEVELS.includes(v) ? v : 100; })();
+const stkKeep = i => uiStickerLevel >= 100 || Math.floor((i + 1) * uiStickerLevel / 100) > Math.floor(i * uiStickerLevel / 100);
 const TEXT_SCALE_PRESETS = [92, 100, 112];
 const savedTextScale = Number(store.get('inv_text_scale', 100)) || 100;
 let uiTextScale = TEXT_SCALE_PRESETS.reduce((closest, value) => Math.abs(value - savedTextScale) < Math.abs(closest - savedTextScale) ? value : closest, 100);
@@ -2706,6 +2719,7 @@ add('.user-activity-card .t', 'mascot-user');
 add('.branch-admin-card,.permission-user', 'mascot-top-right');
 }
 cards.forEach(({ card, placement }, index) => {
+if (!stkKeep(index)) return;
 const mascot = document.createElement('span');
 mascot.className = `card-mascot ${placement}`;
 mascot.setAttribute('aria-hidden', 'true');
@@ -2732,6 +2746,7 @@ list.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove(
 if (THEMES[currentTheme]?.formal) return;
 const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
 list.querySelectorAll('.row .c-name').forEach((card, index) => {
+if (!stkKeep(index)) return;
 const mascot = document.createElement('span');
 mascot.className = 'card-mascot mascot-stock';
 mascot.setAttribute('aria-hidden', 'true');
@@ -2902,12 +2917,13 @@ if (!all.length) return `<div class="empty"><b>ไม่พบวัตถุด
 const mascotOn = withMascots && !THEMES[currentTheme]?.formal;
 const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
 return list.map((p, index) => {
+const mOn = mascotOn && stkKeep(from + index);
 const state = status(p);
 const level = Math.max(1, Math.min(5, Math.ceil((p.qty / Math.max(p.min * 3, 1)) * 5)));
 const dots = Array.from({ length: 5 }, (_, i) => `<i class="stock-dot${i < level ? ' on' : ''}" aria-hidden="true"></i>`).join('');
 return `<article class="row ${state}" data-id="${esc(p.id)}">
     <button type="button" class="drag-handle" data-drag-handle ${can.edit() ? '' : 'disabled'} aria-label="กดค้างแล้วลากเพื่อจัดลำดับ ${esc(p.name)}" title="กดค้างแล้วลากเพื่อจัดลำดับ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></button>
-    <div class="c-name${mascotOn ? ' has-card-mascot' : ''}"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small>${mascotOn ? `<span class="card-mascot mascot-stock" aria-hidden="true">${friends[index % friends.length]}</span>` : ''}</div>
+    <div class="c-name${mOn ? ' has-card-mascot' : ''}"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small>${mOn ? `<span class="card-mascot mascot-stock" aria-hidden="true">${friends[index % friends.length]}</span>` : ''}</div>
     <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><span class="stock-dots ${state}" role="img" aria-label="${STX[state]} · ${p.qty} ${esc(p.unit)}">${dots}</span><span class="pill p-${state}">${STX[state]}</span></div>
     <div class="c-loc"><span aria-hidden="true">📍</span><span class="supplier-label">ซัพพลายเออร์</span><span>${esc(p.loc || 'ไม่ระบุ')}</span></div>
    </article>`;
@@ -3423,6 +3439,8 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ${isWideDesktop()?'เลื่อนแถบด้านล่างเพื่อดูธีมเพิ่มเติม':'ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม'}</p>
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
+
+      <div class="sticker-level-box"><b>🧸 จำนวนสติ๊กเกอร์การ์ตูน</b><p class="settings-hint">ลดจำนวนสติ๊กเกอร์ถ้าเครื่องกระตุกหรือช้า ค่าเริ่มต้น 100% ระบบจำค่านี้ไว้ในอุปกรณ์นี้</p><div class="text-scale-presets sticker-level-presets" id="stickerLevelPresets" role="group" aria-label="จำนวนสติ๊กเกอร์">${STK_LEVELS.map(v => `<button type="button" class="btn sm sec text-scale-option" data-sticker-level="${v}" aria-pressed="${uiStickerLevel===v}">${v}%</button>`).join('')}</div></div>
     </div></div></div>
     <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
@@ -3520,6 +3538,12 @@ if (!option) return;
 uiTextScale = Number(option.dataset.textScale) || 100;
 store.set('inv_text_scale', uiTextScale);
 applyTextScale();
+};
+if ($('#stickerLevelPresets')) $('#stickerLevelPresets').onclick = e => {
+const o = e.target.closest('[data-sticker-level]'); if (!o) return;
+uiStickerLevel = Number(o.dataset.stickerLevel) || 100; store.set('inv_sticker_level', uiStickerLevel);
+document.querySelectorAll('[data-sticker-level]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.stickerLevel) === uiStickerLevel)));
+updatePageMascots(); toast(`ตั้งจำนวนสติ๊กเกอร์ ${uiStickerLevel}% แล้ว`);
 };
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
@@ -3967,7 +3991,7 @@ return f && f.length ? f : IH_STK_FALLBACK;
 }
 function ihSticker(i, cls = '') {
 const f = itemSheetFriends();
-return f.length ? `<span class="ih-stk ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : '';
+return f.length && stkKeep(i) ? `<span class="ih-stk ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : '';
 }
 function decorateItemSheet(ov, sheet, stage) {
 if (!itemSheetFriends().length) return;
@@ -4647,7 +4671,7 @@ function jStat(name, y, m) {
 const jPill = e => `<span class="jp-pill t-${e.t}">${JT[e.t].e} ${JT[e.t].l}${e.t === 'late' && e.m ? ` ${e.m} นาที` : ''}</span>`;
 const jChips = s => ['absent', 'late', 'leave', 'off'].map(t => `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
 const jFriends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
-const jMas = (i, cls) => { const f = jFriends(); return f.length ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
+const jMas = (i, cls) => { const f = jFriends(); return f.length && stkKeep(i) ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
 const jNav = () => `<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>${jFmt(dk(new Date(JS.y, JS.m, 1)), { month: 'long', year: 'numeric' })}</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`;
 const jpBody = () => $('#jpBody');
 
@@ -4924,7 +4948,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   const rpc = (name, args = {}) => cloudRpc(name, { p_token: cloudToken, ...args });
   const q = s => document.querySelector(s);
   const friends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
-  const stk = (i, cls = '') => { const f = friends(); return f.length ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
+  const stk = (i, cls = '') => { const f = friends(); return f.length && stkKeep(i) ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
 
   const layer = document.createElement('div');
   layer.id = 'chatLayer';
@@ -4961,7 +4985,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     [elRooms, elRoom].forEach((el, i) => {
       el.style.setProperty('--cf1', JSON.stringify(f[(i * 2) % n] || ''));
       el.style.setProperty('--cf2', JSON.stringify(f[(i * 2 + 1) % n] || ''));
-      const sk = el.querySelector('.chp-stk'); if (sk) sk.textContent = f[(i + 3) % n] || '';
+      const sk = el.querySelector('.chp-stk'); if (sk) sk.textContent = stkKeep(i) ? (f[(i + 3) % n] || '') : '';
     });
   }
 
@@ -5022,7 +5046,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     box.innerHTML = hero + [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'th')).map(([branch, rows], gi) => {
       rows.sort((a, b) => (b.unread > 0) - (a.unread > 0) || (b.last_at || 0) - (a.last_at || 0) || a.user_name.localeCompare(b.user_name, 'th'));
       const un = rows.reduce((n, r) => n + (r.unread || 0), 0);
-      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}${f.length ? `<span class="cr-stk" aria-hidden="true">${f[gi % f.length]}</span>` : ''}</div>` + (rows.length ? rows.map(r => `
+      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}${f.length && stkKeep(gi) ? `<span class="cr-stk" aria-hidden="true">${f[gi % f.length]}</span>` : ''}</div>` + (rows.length ? rows.map(r => `
         <button type="button" class="cr-row ${r.active === false ? 'cr-off' : ''}" data-room="${esc(r.room_key)}" data-name="${esc(r.user_name)}" data-branch="${esc(r.branch_name || '')}">
           <span class="cr-av">${esc(String(r.user_name).trim().charAt(0).toUpperCase() || '?')}</span>
           <span class="cr-mid"><b>${esc(r.user_name)}${r.active === false ? ' (ปิดใช้งาน)' : ''}</b><small>${r.last_at ? esc(preview(r)) : 'ยังไม่เคยสนทนา · แตะเพื่อเริ่มคุย'}</small></span>
