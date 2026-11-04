@@ -1463,7 +1463,6 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .btn.chat-btn .chat-dot{position:absolute;top:4px;right:4px}
 .chat-rooms-btn{position:relative;gap:6px}
 .chat-rooms-btn .chat-dot{position:absolute;top:3px;right:3px}
-.user-card-actions .chat-btn{border-color:color-mix(in srgb,var(--acc) 45%,var(--line))}
 
 .chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
 .chp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
@@ -1523,6 +1522,33 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .chp-zoom img{max-width:100%;max-height:100%;border-radius:8px}
 @media(min-width:1100px){.chp{inset:12px 12px 12px auto;width:min(460px,92vw);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.22)}}
 @media(prefers-reduced-motion:reduce){.chp{transition:none!important}.chat-dot.show{animation:none}}
+
+/* เว้นระยะระหว่างปุ่มในเมนูด้านข้าง */
+#sdItems{display:flex;flex-direction:column;gap:10px}
+
+/* ===== แชท: สติ๊กเกอร์การ์ตูนตามธีม + จุดแจ้งเตือนกลม ===== */
+.chp{overflow:hidden}
+.chp::before,.chp::after{position:absolute;z-index:0;pointer-events:none;font-size:92px;line-height:1;opacity:.07}
+.chp::before{content:var(--cf1,"");right:-12px;bottom:96px;rotate:-12deg}
+.chp::after{content:var(--cf2,"");left:-14px;top:34%;rotate:10deg}
+.chp>*{position:relative;z-index:1}
+.chp-stk{flex:none;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--theme-border-strong,var(--line));border-radius:50%;background:var(--theme-soft);font-size:18px;line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
+.chp-stk:empty{display:none}
+.cr-hero{position:relative;display:grid;gap:2px;margin:2px 0 6px;padding:12px 56px 12px 14px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--acc) 11%,var(--card-bg))}
+.cr-hero b{font-size:14.5px}
+.cr-hero small{color:var(--mute);font-size:12px}
+.cr-hero .card-mascot{width:34px;height:34px;top:50%;right:12px;bottom:auto;margin-top:-17px;font-size:22px}
+.cr-stk{margin-left:auto;font-size:17px;line-height:1}
+.cr-branch i+.cr-stk{margin-left:8px}
+.cr-none{margin-bottom:6px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;color:var(--mute);font-size:12px;line-height:1.5}
+.cb-empty{display:grid;justify-items:center;gap:6px;margin:auto;padding:26px 12px;color:var(--mute);font-size:13px;text-align:center}
+.cb-empty b{color:var(--ink);font-size:14px}
+.cb-empty .big{font-size:48px;line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.chp-stk,.cb-empty .big{animation:none}}
+#nav .chat-dot.nav,#dtabs .chat-dot.nav{width:9px!important;height:9px!important;min-width:9px;min-height:9px;max-width:9px;max-height:9px;aspect-ratio:1/1;padding:0;border:0;box-sizing:border-box;border-radius:50%!important;line-height:0;font-size:0;transform:none}
+#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{display:block;animation:chatRingPulse 1.8s ease-out infinite}
+@keyframes chatRingPulse{0%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 2px rgba(239,68,68,.55)}70%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}}
+@media(prefers-reduced-motion:reduce){#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{animation:none}}
 </style>
 </head>
 <body data-theme="teal">
@@ -4711,12 +4737,14 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   const missing = e => /Could not find the function|schema cache|chat_/i.test(String(e?.message || ''));
   const rpc = (name, args = {}) => cloudRpc(name, { p_token: cloudToken, ...args });
   const q = s => document.querySelector(s);
+  const friends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
+  const stk = (i, cls = '') => { const f = friends(); return f.length ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
 
   const layer = document.createElement('div');
   layer.id = 'chatLayer';
   layer.innerHTML = `
   <div class="chp" id="chatRooms" aria-hidden="true">
-    <div class="chp-head"><button type="button" class="cp-btn" id="crBack" aria-label="กลับ">${BACK}</button><h2>💬 ห้องแชท</h2></div>
+    <div class="chp-head"><button type="button" class="cp-btn" id="crBack" aria-label="กลับ">${BACK}</button><h2>💬 ห้องแชท</h2><span class="chp-stk" aria-hidden="true"></span></div>
     <p class="chp-note">${NOTE}</p>
     <div class="chp-search"><input id="crSearch" type="search" placeholder="ค้นหาชื่อผู้ใช้หรือสาขา" autocomplete="off"></div>
     <div class="chp-list" id="crList"></div>
@@ -4725,6 +4753,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     <div class="chp-head">
       <button type="button" class="cp-btn" id="chBack" aria-label="กลับ">${BACK}</button>
       <div class="chp-title"><b id="chTitle">แชท</b><small id="chSub"></small></div>
+      <span class="chp-stk" aria-hidden="true"></span>
       <button type="button" class="cp-btn" id="chDel" aria-label="ลบห้องแชทนี้" title="ลบห้องแชทนี้" hidden>🗑️</button>
     </div>
     <p class="chp-note">${NOTE}</p>
@@ -4741,6 +4770,14 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   </div>`;
   document.body.appendChild(layer);
   const elRooms = q('#chatRooms'), elRoom = q('#chatRoom'), elMsgs = q('#chMsgs'), elText = q('#chText');
+  function paintChat() {
+    const f = friends(), n = f.length || 1;
+    [elRooms, elRoom].forEach((el, i) => {
+      el.style.setProperty('--cf1', JSON.stringify(f[(i * 2) % n] || ''));
+      el.style.setProperty('--cf2', JSON.stringify(f[(i * 2 + 1) % n] || ''));
+      const sk = el.querySelector('.chp-stk'); if (sk) sk.textContent = f[(i + 3) % n] || '';
+    });
+  }
 
   /* ---------- จุดแดง ---------- */
   function updateDots() {
@@ -4790,19 +4827,21 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   function renderRooms() {
     const term = q('#crSearch').value.trim().toLowerCase();
     const list = roomData.filter(r => !term || `${r.user_name} ${r.branch_name}`.toLowerCase().includes(term));
-    const box = q('#crList');
-    if (!list.length) { box.innerHTML = `<div class="cr-empty">${roomData.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อผู้ใช้ในระบบแชท<br>รายชื่อจะปรากฏเมื่อมีผู้ใช้เข้าสู่ระบบ'}</div>`; return; }
-    const groups = new Map();
+    const box = q('#crList'), groups = new Map();
     list.forEach(r => { const k = r.branch_name || '-'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
-    box.innerHTML = [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'th')).map(([branch, rows]) => {
+    if (!term) branches.forEach(b => { if (!groups.has(b.name)) groups.set(b.name, []); });
+    if (!groups.size) { box.innerHTML = `<div class="cr-empty">${roomData.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อผู้ใช้ในระบบแชท<br>รายชื่อจะปรากฏเมื่อมีผู้ใช้เข้าสู่ระบบ'}</div>`; return; }
+    const f = friends();
+    const hero = `<div class="cr-hero has-card-mascot"><b>💬 ห้องแชททุกสาขา</b><small>แตะชื่อเพื่อเริ่มคุย ไม่ต้องสลับสาขา</small>${stk(0, 'mascot-top-right')}</div>`;
+    box.innerHTML = hero + [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'th')).map(([branch, rows], gi) => {
       rows.sort((a, b) => (b.unread > 0) - (a.unread > 0) || (b.last_at || 0) - (a.last_at || 0) || a.user_name.localeCompare(b.user_name, 'th'));
       const un = rows.reduce((n, r) => n + (r.unread || 0), 0);
-      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}</div>` + rows.map(r => `
+      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}${f.length ? `<span class="cr-stk" aria-hidden="true">${f[gi % f.length]}</span>` : ''}</div>` + (rows.length ? rows.map(r => `
         <button type="button" class="cr-row ${r.active === false ? 'cr-off' : ''}" data-room="${esc(r.room_key)}" data-name="${esc(r.user_name)}" data-branch="${esc(r.branch_name || '')}">
           <span class="cr-av">${esc(String(r.user_name).trim().charAt(0).toUpperCase() || '?')}</span>
           <span class="cr-mid"><b>${esc(r.user_name)}${r.active === false ? ' (ปิดใช้งาน)' : ''}</b><small>${r.last_at ? esc(preview(r)) : 'ยังไม่เคยสนทนา · แตะเพื่อเริ่มคุย'}</small></span>
           <span class="cr-end">${r.last_at ? `<span>${esc(dayLabel(r.last_at) === 'วันนี้' ? fmtTime(r.last_at) : dayLabel(r.last_at))}</span>` : ''}${r.unread ? `<span class="cr-badge">${r.unread}</span>` : ''}</span>
-        </button>`).join('');
+        </button>`).join('') : '<div class="cr-none">ยังไม่มีผู้ใช้ของสาขานี้ในแชท · ผู้ใช้ต้องเข้าสู่ระบบก่อนจึงจะปรากฏ</div>');
     }).join('');
   }
   async function loadRooms() {
@@ -4815,7 +4854,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   function openRooms() {
     if (!isAdminMe()) return;
     window.jMenuClose && window.jMenuClose();
-    elRooms.classList.add('open'); elRooms.setAttribute('aria-hidden', 'false');
+    paintChat(); elRooms.classList.add('open'); elRooms.setAttribute('aria-hidden', 'false');
     q('#crList').innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
     loadRooms(); clearInterval(CH.roomsTimer);
     CH.roomsTimer = setInterval(() => { if (document.visibilityState === 'visible') { loadRooms(); pollUnread(); } }, 6000);
@@ -4857,7 +4896,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
       if (dk !== prevDay) { html += `<div class="cb-day">${esc(dayLabel(m.ts))}</div>`; prevDay = dk; }
       html += bubble(m, side, m.id === lastMine);
     });
-    if (!CH.msgs.length) html = '<div class="cr-empty">ยังไม่มีข้อความ ลองพิมพ์ทักทายได้เลย 👋</div>';
+    if (!CH.msgs.length) { const f = friends(); html = `<div class="cb-empty">${f.length ? `<span class="big">${f[0]}</span>` : ''}<b>ยังไม่มีข้อความ</b><span>ลองพิมพ์ทักทายได้เลย 👋</span></div>`; }
     elMsgs.innerHTML = html;
     elMsgs.querySelectorAll('img[data-img]').forEach(img => {
       if (img.getAttribute('src')) return;
@@ -4898,7 +4937,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     q('#chDel').hidden = !CH.admin;
     elText.value = ''; clearPending(); syncComposer(); autoGrow();
     elMsgs.innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
-    elRoom.classList.add('open'); elRoom.setAttribute('aria-hidden', 'false');
+    paintChat(); elRoom.classList.add('open'); elRoom.setAttribute('aria-hidden', 'false');
     pull(true); clearInterval(CH.timer);
     CH.timer = setInterval(() => { if (document.visibilityState === 'visible') pull(false); }, 3000);
   }
