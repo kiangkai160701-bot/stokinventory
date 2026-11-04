@@ -1557,6 +1557,27 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 
 /* Stock list: skip layout+paint of rows that are off-screen (mobile layout only) */
 @media(max-width:1099px){#list .row{content-visibility:auto;contain-intrinsic-size:auto 84px}}
+
+/* FAB สดใสตามธีม */
+#app .btn.fab,.fab{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 58%,#fff) 0%,var(--acc) 100%)!important;border:1.5px solid color-mix(in srgb,#fff 55%,transparent)!important;box-shadow:0 8px 20px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.55)!important;text-shadow:0 1px 2px color-mix(in srgb,var(--acc-hover) 55%,transparent)}
+/* dropdown ตั้งค่า: สไลด์ช้าและนุ่ม */
+.disclosure-panel{transition:grid-template-rows .6s cubic-bezier(.25,.8,.25,1)!important}
+.disclosure-inner{transition:opacity .45s ease,transform .6s cubic-bezier(.25,.8,.25,1),padding .6s cubic-bezier(.25,.8,.25,1)!important}
+.disclosure-chevron{transition:transform .5s cubic-bezier(.25,.8,.25,1)!important}
+/* เมนูด้านข้าง: สไลด์ช้านุ่ม */
+.sd-dock{transition:transform .6s cubic-bezier(.22,.8,.22,1),top .25s ease!important;will-change:transform}
+.sd-scrim{transition:opacity .6s ease!important}
+.sd-tab svg{transition:transform .6s cubic-bezier(.22,.8,.22,1)!important}
+/* โหลดเพิ่มหน้าสต็อก */
+.list-more{padding:14px;text-align:center;color:var(--mute);font-size:12px}
+/* ปฏิทินจ๊อบ: แสดงชื่อในช่อง */
+.jp-d{min-height:68px!important;justify-content:flex-start!important;padding-top:6px!important}
+.jp-nm{display:flex;flex-direction:column;align-items:stretch;gap:2px;width:100%;padding:0 2px}
+.jp-nm em{display:block;font-style:normal;font-size:9px;line-height:1.35;font-weight:700;text-align:center;overflow:hidden;white-space:nowrap;border-radius:5px;padding:0 1px;color:var(--ink);background:color-mix(in srgb,var(--c) 62%,var(--card-bg))}
+.jp-nm em.t-off{--c:var(--j-off)}.jp-nm em.t-leave{--c:var(--j-leave)}.jp-nm em.t-late{--c:var(--j-late)}.jp-nm em.t-absent{--c:var(--j-absent)}
+.jp-nm em.more{background:transparent;color:var(--mute)}
+.jp-d.fut .jp-nm em{background:transparent;border:1px dashed var(--c)}
+.jp-who2{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
 </style>
 </head>
 <body data-theme="teal">
@@ -2864,9 +2885,10 @@ function quickBar() {
     return `<button type="button" class="qb-chip ${st}" data-quick="${esc(p.id)}"${st === 'out' ? ' disabled' : ''}><b>${esc(p.name)}</b><small>${st === 'out' ? 'หมดสต็อก' : `เหลือ ${num(p.qty)} ${esc(p.unit)}`}</small></button>`;
   }).join('')}</div></div>`;
 }
-function rows(withMascots = false) {
-const list = filtered();
-if (!list.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
+let stockTotal = 0, stockShown = 0, stockObs = null;
+function rows(withMascots = false, from = 0, to = 60) {
+const all = filtered(), list = all.slice(from, to); stockTotal = all.length; if (from === 0) stockShown = list.length;
+if (!all.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
 const mascotOn = withMascots && !THEMES[currentTheme]?.formal;
 const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
 return list.map((p, index) => {
@@ -2881,13 +2903,27 @@ return `<article class="row ${state}" data-id="${esc(p.id)}">
    </article>`;
 }).join('');
 }
+function setupStockMore() {
+  const list = $('#list'); if (stockObs) { stockObs.disconnect(); stockObs = null; }
+  if (!list || stockShown >= stockTotal) return;
+  const more = document.createElement('div'); more.className = 'list-more'; more.textContent = `กำลังโหลดเพิ่ม… (${stockShown}/${stockTotal})`; list.appendChild(more);
+  if (!('IntersectionObserver' in window)) { more.remove(); list.insertAdjacentHTML('beforeend', rows(true, stockShown, stockTotal)); stockShown = stockTotal; return; }
+  stockObs = new IntersectionObserver(es => {
+    if (!es.some(e => e.isIntersecting)) return;
+    stockObs.disconnect(); more.remove();
+    const from = stockShown; list.insertAdjacentHTML('beforeend', rows(true, from, from + 50)); stockShown = Math.min(from + 50, stockTotal);
+    setupStockMore();
+  }, { rootMargin: '500px 0px' });
+  stockObs.observe(more);
+}
 function bindStock() {
 let searchTimer = 0, lastCost = 0;
+setupStockMore();
 const refreshList = () => {
   clearTimeout(searchTimer); searchTimer = 0;
   const list = $('#list'); if (!list) return;
   const t0 = performance.now();
-  list.innerHTML = rows(true);   // mascots are part of the markup now: no second pass over every row
+  list.innerHTML = rows(true); setupStockMore();   // mascots are part of the markup now: no second pass over every row
   lastCost = performance.now() - t0;
 };
 // Typing / holding backspace: wait a short moment (longer on slower phones) so only the last state is drawn.
@@ -3426,7 +3462,7 @@ function toggleDisclosure(button) {
   const open = button.getAttribute('aria-expanded') !== 'true';
   const afterMascots = () => { clearTimeout(window.__mascotTimer); window.__mascotTimer = setTimeout(updatePageMascots, 480); };
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (!card || !inner || reduce || typeof card.animate !== 'function' || card.__discBusy) { discSetOpen(button, panel, open); afterMascots(); return; }
+  if (true) { discSetOpen(button, panel, open); afterMascots(); return; }
   card.__discBusy = true;
   const followers = discFollowers(card);
   const glide = (delta, done) => {
@@ -4633,7 +4669,11 @@ function jRender() {
     if (single) {
       const e = info.closed ? null : jEff(k, names[0]);
       inner = info.closed ? '<span class="jp-tag t-closed">ปิด</span>' : e ? `<span class="jp-tag t-${e.t}">${JT[e.t].l}</span>` : (ph !== 'fut' && k >= start) ? '<span class="jp-tag t-ok">✓</span>' : '';
-    } else inner = `<i class="dots">${JORDER.filter(x => info[x]).slice(0, 3).map(x => `<i class="t-${x}"></i>`).join('')}</i>`;
+    } else if (info.closed) inner = '<span class="jp-tag t-closed">ปิด</span>';
+    else {
+      const sh = n => Array.from(n).slice(0, 3).join(''), rs = info.rows;
+      inner = `<span class="jp-nm">${rs.slice(0, 3).map(({ n, e }) => `<em class="t-${e.t}">${esc(sh(n))}</em>`).join('')}${rs.length > 3 ? `<em class="more">+${rs.length - 3}</em>` : ''}</span>`;
+    }
     html += `<button type="button" class="jp-d ${ph === 'fut' ? 'fut' : ph}${ph === 'past' && k < start ? ' pre' : ''}${k === JS.sel ? ' sel' : ''}${info.closed ? ' closed' : ''}" data-d="${k}"><b>${d}</b>${inner}</button>`;
   }
   html += `</div><div class="jp-legend"><span><i style="--c:var(--j-leave)"></i>ปกติ ✓</span><span><i style="--c:var(--j-off)"></i>หยุด</span><span><i style="--c:var(--j-leave)"></i>ลา</span><span><i style="--c:var(--j-late)"></i>สาย</span><span><i style="--c:var(--j-absent)"></i>ขาด</span><span><i class="dash"></i>แผนล่วงหน้า</span></div>${jMas(1, 'mascot-tl')}</div>`;
@@ -4648,7 +4688,7 @@ function jRender() {
     if (off > J.max) html += `<div class="jp-warn">⚠️ วันนี้มีคนหยุด/ลา/ขาด ${off} คน เกินที่ตั้งไว้ (${J.max} คน)</div>`;
     html += info.rows.map(({ n, e }) => `<button type="button" class="jp-row" data-edit="${esc(n)}"><span class="jp-av">${esc([...n][0] || '?')}</span><span class="jp-info"><b>${esc(n)}</b>${e.n || e.rec ? `<small>${esc(e.n || 'หยุดประจำทุกสัปดาห์')}</small>` : ''}</span>${jPill(e)}</button>`).join('');
     if (pre && !info.rows.length) html += '<div class="jp-ok">— ยังไม่เริ่มบันทึกในวันนี้</div>';
-    else if (info.normal.length) html += `<div class="jp-ok">${ph === 'fut' ? '🗓️ ตามปกติ' : '✅ ปกติ'} ${info.normal.length} คน: ${info.normal.map(esc).join(', ')}</div>`;
+    else if (info.normal.length) html += `<div class="jp-ok">${ph === 'fut' ? '🗓️ มาทำงานตามปกติ' : '✅ มาทำงาน'} ${info.normal.length} คน</div><div class="jp-who2">${info.normal.map(n => `<span class="jp-chip t-ok">${esc(n)}</span>`).join('')}</div>`;
     else if (!info.rows.length) html += '<div class="jp-ok">ยังไม่ได้เลือกพนักงาน</div>';
   } else {
     const e = jEff(JS.sel, me.name);
@@ -4724,21 +4764,32 @@ function jSwap() {
   const names = jStaff(); if (names.length < 2) return toast('ต้องมีพนักงานอย่างน้อย 2 คน', 1);
   const wd = pk(JS.sel).getDay(), a0 = names.find(n => (J.rec[n] || []).includes(wd)) || names[0], b0 = names.find(n => n !== a0);
   const opts = sel => names.map(n => `<option value="${esc(n)}"${n === sel ? ' selected' : ''}>${esc(n)}</option>`).join('');
-  openModal(`<h3>🔄 สลับวันหยุด</h3><p class="settings-hint">คนที่ขอสลับจะทำงานในวันนั้น และอีกคนมาหยุดแทน</p><form id="swapForm">
-<label class="fld"><span>คนที่ขอสลับ (ปกติหยุดวันนี้)</span><select class="in" name="a">${opts(a0)}</select></label>
-<label class="fld"><span>วันที่ที่ขอสลับ</span><input class="in" type="date" name="d" value="${JS.sel}" required></label>
-<label class="fld"><span>คนที่หยุดแทน</span><select class="in" name="b">${opts(b0)}</select></label>
-<label class="fld"><span>วันที่คนหยุดแทนต้องมาทำงานชดเชย (ไม่บังคับ)</span><input class="in" type="date" name="e"></label>
+  openModal(`<h3>🔄 สลับวันหยุด</h3><p class="settings-hint">เลือก 2 คน กับสัปดาห์ที่ต้องการ ระบบจะสลับวันหยุดประจำของทั้งคู่ให้เองอัตโนมัติ ไม่ต้องกดทีละวัน</p><form id="swapForm">
+<label class="fld"><span>คนที่ 1</span><select class="in" name="a">${opts(a0)}</select></label>
+<label class="fld"><span>คนที่ 2</span><select class="in" name="b">${opts(b0)}</select></label>
+<label class="fld"><span>สัปดาห์ที่สลับ (เลือกวันไหนก็ได้ในสัปดาห์นั้น)</span><input class="in" type="date" name="d" value="${JS.sel}" required></label>
+<div class="jp-card jp-ok" id="swapPrev" style="margin:6px 0"></div>
 <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สลับ</button></div></form>`);
+  const f = $('#swapForm').elements;
+  const plan = () => {
+    const a = f.a.value, b = f.b.value, d = f.d.value; if (!d || a === b) return [];
+    const ra = (J.rec[a] || []).filter(x => !(J.rec[b] || []).includes(x)), rb = (J.rec[b] || []).filter(x => !(J.rec[a] || []).includes(x));
+    const wk = jWeek(d), out = [];
+    for (let i = 0; i < Math.min(ra.length, rb.length); i++) out.push({ ka: dk(jAdd(wk, ra[i])), kb: dk(jAdd(wk, rb[i])), da: ra[i], db: rb[i] });
+    return out;
+  };
+  const prev = () => {
+    const a = f.a.value, b = f.b.value, p = plan(), box = $('#swapPrev');
+    box.innerHTML = a === b ? 'เลือกพนักงานคนละคน' : p.length ? p.map(x => `• ${esc(a)} ทำงาน${jFmt(x.ka, { weekday: 'long', day: 'numeric', month: 'short' })} (แทนวันหยุดเดิม) และหยุด${jFmt(x.kb, { weekday: 'long', day: 'numeric', month: 'short' })}<br>• ${esc(b)} ทำงาน${jFmt(x.kb, { weekday: 'long', day: 'numeric', month: 'short' })} และหยุด${jFmt(x.ka, { weekday: 'long', day: 'numeric', month: 'short' })}`).join('<br>') : 'สองคนนี้ไม่มีวันหยุดประจำที่ต่างกัน ตั้งที่ "🔁 วันหยุดประจำ" ก่อน หรือแก้รายวันที่ปฏิทิน';
+  };
+  ['a', 'b', 'd'].forEach(n => f[n].onchange = prev); prev();
   $('#swapForm').onsubmit = e => {
-    e.preventDefault(); const f = e.target.elements, a = f.a.value, b = f.b.value, d = f.d.value, x = f.e.value;
-    if (a === b) return toast('เลือกพนักงานคนละคน', 1);
-    if (!d) return toast('เลือกวันที่', 1);
+    e.preventDefault(); const a = f.a.value, b = f.b.value, p = plan();
+    if (!p.length) return toast('ไม่มีวันหยุดประจำที่สลับได้', 1);
     const meta = { by: me.name, ts: Date.now() }, put = (k, n, t, other) => { J.ev[k] ||= {}; J.ev[k][n] = { t, n: `สลับกับ ${other}`, ...meta }; };
-    put(d, a, 'work', b); put(d, b, 'off', a);
-    if (x) { put(x, b, 'work', a); put(x, a, 'off', b); }
-    const dd = pk(d); JS.y = dd.getFullYear(); JS.m = dd.getMonth(); JS.sel = d;
-    saveJ(); closeModal(); jRender(); toast('สลับวันหยุดแล้ว');
+    p.forEach(x => { put(x.ka, a, 'work', b); put(x.ka, b, 'off', a); put(x.kb, b, 'work', a); put(x.kb, a, 'off', b); });
+    const dd = pk(p[0].ka); JS.y = dd.getFullYear(); JS.m = dd.getMonth(); JS.sel = p[0].ka;
+    saveJ(); closeModal(); jRender(); toast('สลับวันหยุดให้ทั้งคู่แล้ว');
   };
 }
 
