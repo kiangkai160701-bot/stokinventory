@@ -4783,7 +4783,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
       <button type="button" class="cp-btn" id="chBack" aria-label="กลับ">${BACK}</button>
       <div class="chp-title"><b id="chTitle">แชท</b><small id="chSub"></small></div>
       <span class="chp-stk" aria-hidden="true"></span>
-      <button type="button" class="cp-btn" id="chDel" aria-label="ลบห้องแชทนี้" title="ลบห้องแชทนี้" hidden>🗑️</button>
+      <button type="button" class="cp-btn" id="chDel" aria-label="ล้างข้อความในแชทนี้" title="ล้างข้อความในแชทนี้" hidden>🗑️</button>
     </div>
     <p class="chp-note">${NOTE}</p>
     <div class="chp-msgs" id="chMsgs"></div>
@@ -5083,14 +5083,22 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     const b = e.target.closest('[data-room]'); if (!b) return;
     openRoom({ room: b.dataset.room, name: b.dataset.name, branch: b.dataset.branch });
   };
-  q('#chDel').onclick = async () => {
+  q('#chDel').onclick = () => {
     if (!CH.admin || !CH.room) return;
-    if (!window.confirm(`ลบห้องแชทของ ${q('#chTitle').textContent} ทั้งหมดหรือไม่? ข้อความทั้งหมดในห้องนี้จะถูกลบถาวร`)) return;
-    try {
-      const r = await rpc('chat_delete_room', { p_room: CH.room });
-      if (!r?.ok) return toast(r?.error || 'ลบไม่สำเร็จ', 1);
-      toast('ลบห้องแชทแล้ว'); closeRoom(); pollUnread();
-    } catch (e) { toast(errText(e, 'ลบไม่สำเร็จ'), 1); }
+    const room = CH.room, nm = q('#chTitle').textContent;
+    openModal(`<h3>🧹 ล้างแชทกับ ${esc(nm)}?</h3><p class="settings-hint">ข้อความ รูปภาพ และไฟล์เสียงทั้งหมดในห้องนี้จะถูกลบถาวร กู้คืนไม่ได้<br>ห้องแชทและรายชื่อยังอยู่ ส่งข้อความต่อได้ตามปกติ</p><div class="acts"><button type="button" class="btn sec" id="chClrNo">ยกเลิก</button><button type="button" class="btn" id="chClrYes" style="background:#ef4444;border-color:#ef4444;color:#fff">ล้างทั้งหมด</button></div>`);
+    $('#chClrNo').onclick = () => closeModal();
+    $('#chClrYes').onclick = async e => {
+      const btn = e.currentTarget; btn.disabled = true;
+      try {
+        const r = await rpc('chat_delete_room', { p_room: room });
+        if (!r?.ok) { btn.disabled = false; return toast(r?.error || 'ล้างแชทไม่สำเร็จ', 1); }
+        closeModal(); stopAudio();
+        mediaCache.forEach(u => { try { URL.revokeObjectURL(u); } catch {} }); mediaCache.clear(); mediaLoading.clear();
+        if (CH.room === room) { CH.msgs = []; CH.lastId = 0; CH.readUpto = 0; renderMsgs(true); }
+        toast('ล้างแชทแล้ว'); pollUnread(); if (elRooms.classList.contains('open')) loadRooms();
+      } catch (err) { btn.disabled = false; toast(errText(err, 'ล้างแชทไม่สำเร็จ'), 1); }
+    };
   };
   elText.addEventListener('input', () => { autoGrow(); syncComposer(); });
   elText.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !IS_MOBILE_BROWSER) { e.preventDefault(); sendComposer(); } });
@@ -5113,11 +5121,18 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     if (img && img.src) { const z = document.createElement('div'); z.className = 'chp-zoom'; z.innerHTML = `<img src="${img.src}" alt="">`; z.onclick = () => z.remove(); document.body.appendChild(z); return; }
     const pb = e.target.closest('[data-aud]'); if (pb) playAudio(pb);
   });
+  /* ปุ่มแชทในหน้าผู้ใช้งาน: ใช้ห้อง (room_key) เดียวกับรายชื่อห้องแชท จะได้เป็นห้องเดียวกันเสมอ */
+  async function openUserRoom(name) {
+    const same = r => String(r.user_name).toLowerCase() === String(name).toLowerCase() && (!r.branch_name || r.branch_name === currentBranch?.name);
+    let hit = roomData.find(same);
+    if (!hit) { try { const r = await rpc('chat_rooms'); if (r?.ok) { roomData = r.rooms || []; hit = roomData.find(same); } } catch {} }
+    openRoom({ room: hit ? hit.room_key : '@' + name, name, branch: hit?.branch_name || currentBranch?.name || '' });
+  }
   document.addEventListener('click', e => {
     const b = e.target.closest('[data-chat-open]');
     if (b) {
       e.preventDefault(); e.stopPropagation();
-      if (isAdminMe()) openRoom({ room: '@' + b.dataset.chatUser, name: b.dataset.chatUser, branch: currentBranch?.name || '' });
+      if (isAdminMe()) openUserRoom(b.dataset.chatUser);
       else openRoom({});
       return;
     }
