@@ -1554,6 +1554,9 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{animation:none}}
 
 .ann-item-btns{display:flex;gap:6px;margin-left:auto}
+
+/* Stock list: skip layout+paint of rows that are off-screen (mobile layout only) */
+@media(max-width:1099px){#list .row{content-visibility:auto;contain-intrinsic-size:auto 84px}}
 </style>
 </head>
 <body data-theme="teal">
@@ -1781,6 +1784,7 @@ let uiTextScale = TEXT_SCALE_PRESETS.reduce((closest, value) => Math.abs(value -
 const textScaleBaseInline = new WeakMap();
 const textScaleTracked = new Set();
 function applyTextScale(root = document.querySelector('#app')) {
+tsQueue.length = 0;
 if (!root) return;
 root.classList.add('font-scale-instant');
 if (uiTextScale === 100) {
@@ -1849,6 +1853,59 @@ function applyTextScaleNew(root) {
     b.setAttribute('aria-pressed', String(sel)); b.classList.toggle('active', sel);
   });
 }
+/* Batch version: the old code ran one forced-layout cycle per added node (200 list rows => 200 reflows per keystroke).
+   Same result: every element's size is read first, then all written, then one reflow. */
+let tsQueue = [], tsQueueRaf = 0;
+function tsApplyGroups(groups) {
+  const els = groups.flat().filter(el => el.isConnected && !textScaleTracked.has(el));
+  if (!els.length) return;
+  // Only the touched elements get "transition:none" for a moment (instead of switching the whole #app).
+  const saved = els.map(el => [el.style.getPropertyValue('transition'), el.style.getPropertyPriority('transition')]);
+  els.forEach(el => el.style.setProperty('transition', 'none', 'important'));
+  const sizes = els.map(el => {
+    if (!textScaleBaseInline.has(el)) textScaleBaseInline.set(el, el.style.fontSize);
+    textScaleTracked.add(el);
+    return Number.parseFloat(getComputedStyle(el).fontSize) || 14;
+  });
+  els.forEach((el, i) => { el.style.fontSize = `${(sizes[i] * uiTextScale / 100).toFixed(2)}px`; });
+  void getComputedStyle(els[els.length - 1]).fontSize;   // flush style once while transitions are off
+  els.forEach((el, i) => { const [v, pr] = saved[i]; if (v) el.style.setProperty('transition', v, pr); else el.style.removeProperty('transition'); });
+}
+function tsPumpQueue() {
+  tsQueueRaf = 0;
+  let budget = 0; const group = [];
+  while (tsQueue.length && budget < 120) { const g = tsQueue.shift(); group.push(g); budget += g.length; }
+  tsApplyGroups(group);
+  if (tsQueue.length) tsQueueRaf = requestAnimationFrame(tsPumpQueue);
+}
+/* Batch version of applyTextScaleNew. Old behaviour: one forced reflow per added node (200 list rows => 200 reflows per keystroke).
+   Now: sizes of whole groups of rows are read first, then written, then ONE style flush; long lists are done a few rows per frame
+   (top rows first). Each row is always handled as a whole so every element still gets exactly the same size as before. */
+function applyTextScaleBatch(nodes) {
+  nodes = nodes.filter(n => n && n.isConnected);
+  if (!nodes.length) return;
+  if (uiTextScale === 100) { applyTextScale(); return; }
+  for (const n of nodes) for (let a = n.parentElement; a; a = a.parentElement) { if (textScaleTracked.has(a)) { applyTextScale(); return; } }
+  for (const el of textScaleTracked) if (!el.isConnected) textScaleTracked.delete(el);
+  const roots = nodes.filter(n => !nodes.some(o => o !== n && o.contains(n)));
+  const seen = new Set();
+  const wanted = el => {
+    if (seen.has(el)) return false; seen.add(el);
+    if (textScaleTracked.has(el) || el.closest('svg,script,style,[aria-hidden="true"]')) return false;
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName)) return true;
+    for (const c of el.childNodes) if (c.nodeType === 3 && c.textContent.trim()) return true;
+    return false;
+  };
+  const groups = roots.map(root => { const arr = []; if (wanted(root)) arr.push(root); for (const el of root.querySelectorAll('*')) if (wanted(el)) arr.push(el); return arr; }).filter(g => g.length);
+  let budget = 0; const now = [];
+  for (const g of groups) { if (budget < 120) { now.push(g); budget += g.length; } else tsQueue.push(g); }
+  tsApplyGroups(now);
+  if (tsQueue.length && !tsQueueRaf) tsQueueRaf = requestAnimationFrame(tsPumpQueue);
+  document.querySelectorAll('[data-text-scale]').forEach(b => {
+    const sel = Number(b.dataset.textScale) === uiTextScale;
+    b.setAttribute('aria-pressed', String(sel)); b.classList.toggle('active', sel);
+  });
+}
 function watchTextScale() {
   const appRoot = document.querySelector('#app');
   if (!appRoot || textScaleObserver) return;
@@ -1859,7 +1916,7 @@ function watchTextScale() {
     }
     if (tsPending.size && !tsRaf) tsRaf = requestAnimationFrame(() => {
       tsRaf = 0; const nodes = [...tsPending]; tsPending.clear();
-      nodes.forEach(n => applyTextScaleNew(n));
+      applyTextScaleBatch(nodes);
     });
   });
   textScaleObserver.observe(appRoot, { childList: true, subtree: true });
@@ -2807,24 +2864,36 @@ function quickBar() {
     return `<button type="button" class="qb-chip ${st}" data-quick="${esc(p.id)}"${st === 'out' ? ' disabled' : ''}><b>${esc(p.name)}</b><small>${st === 'out' ? 'หมดสต็อก' : `เหลือ ${num(p.qty)} ${esc(p.unit)}`}</small></button>`;
   }).join('')}</div></div>`;
 }
-function rows() {
+function rows(withMascots = false) {
 const list = filtered();
 if (!list.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
-return list.map(p => {
+const mascotOn = withMascots && !THEMES[currentTheme]?.formal;
+const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
+return list.map((p, index) => {
 const state = status(p);
 const level = Math.max(1, Math.min(5, Math.ceil((p.qty / Math.max(p.min * 3, 1)) * 5)));
 const dots = Array.from({ length: 5 }, (_, i) => `<i class="stock-dot${i < level ? ' on' : ''}" aria-hidden="true"></i>`).join('');
 return `<article class="row ${state}" data-id="${esc(p.id)}">
     <button type="button" class="drag-handle" data-drag-handle ${can.edit() ? '' : 'disabled'} aria-label="กดค้างแล้วลากเพื่อจัดลำดับ ${esc(p.name)}" title="กดค้างแล้วลากเพื่อจัดลำดับ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h.01M16 5h.01M8 12h.01M16 12h.01M8 19h.01M16 19h.01" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"/></svg></button>
-    <div class="c-name"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small></div>
+    <div class="c-name${mascotOn ? ' has-card-mascot' : ''}"><b>${esc(p.name)}</b><small>${esc(p.cat)}</small>${mascotOn ? `<span class="card-mascot mascot-stock" aria-hidden="true">${friends[index % friends.length]}</span>` : ''}</div>
     <div class="c-qty"><b>${num(p.qty)}</b> <small>${esc(p.unit)}</small><span class="stock-dots ${state}" role="img" aria-label="${STX[state]} · ${p.qty} ${esc(p.unit)}">${dots}</span><span class="pill p-${state}">${STX[state]}</span></div>
     <div class="c-loc"><span aria-hidden="true">📍</span><span class="supplier-label">ซัพพลายเออร์</span><span>${esc(p.loc || 'ไม่ระบุ')}</span></div>
    </article>`;
 }).join('');
 }
 function bindStock() {
-const refreshList = () => { $('#list').innerHTML = rows(); updateStockRowMascots(); };
-$('#q').oninput = e => { F.q = e.target.value; refreshList(); };
+let searchTimer = 0, lastCost = 0;
+const refreshList = () => {
+  clearTimeout(searchTimer); searchTimer = 0;
+  const list = $('#list'); if (!list) return;
+  const t0 = performance.now();
+  list.innerHTML = rows(true);   // mascots are part of the markup now: no second pass over every row
+  lastCost = performance.now() - t0;
+};
+// Typing / holding backspace: wait a short moment (longer on slower phones) so only the last state is drawn.
+$('#q').oninput = e => { F.q = e.target.value; clearTimeout(searchTimer); searchTimer = setTimeout(refreshList, Math.min(320, Math.max(90, lastCost * 1.5))); };
+$('#q').onkeydown = e => { if (e.key === 'Enter' && searchTimer) refreshList(); };
+$('#q').onblur = () => { if (searchTimer) refreshList(); };
 $('#fc').onchange = e => { F.cat = e.target.value; refreshList(); };
 $('#fo').onchange = e => { F.sort = e.target.value; refreshList(); };
 const applyStockFilter = card => {
