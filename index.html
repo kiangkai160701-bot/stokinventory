@@ -1546,10 +1546,14 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .cb-empty .big{font-size:48px;line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
 @media(prefers-reduced-motion:reduce){.chp-stk,.cb-empty .big{animation:none}}
 .chp-comp textarea,.chp-search input{font-size:16px!important}
+.chp-comp textarea{overflow-y:hidden;scrollbar-width:none;line-height:1.3}
+.chp-comp textarea::-webkit-scrollbar{display:none}
 #nav .chat-dot.nav,#dtabs .chat-dot.nav{width:9px!important;height:9px!important;min-width:9px;min-height:9px;max-width:9px;max-height:9px;aspect-ratio:1/1;padding:0;border:0;box-sizing:border-box;border-radius:50%!important;line-height:0;font-size:0;transform:none}
 #nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{display:block;animation:chatRingPulse 1.8s ease-out infinite}
 @keyframes chatRingPulse{0%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 2px rgba(239,68,68,.55)}70%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}}
 @media(prefers-reduced-motion:reduce){#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{animation:none}}
+
+.ann-item-btns{display:flex;gap:6px;margin-left:auto}
 </style>
 </head>
 <body data-theme="teal">
@@ -2255,7 +2259,7 @@ async function annReloadList() {
     if (!r?.ok) { box.innerHTML = `<small class="ann-empty">${esc(r?.error || 'โหลดรายการไม่สำเร็จ')}</small>`; return; }
     const items = r.items || []; annState.items = items;
     if ($('#announceCount')) $('#announceCount').textContent = items.length ? `${items.length} รายการ` : '';
-    box.innerHTML = items.length ? items.map(a => `<div class="ann-item"><div class="ann-item-text">${esc(a.message)}</div><small>📍 ${esc(annBranchNames(a.branch_ids))}</small><div class="ann-item-foot"><small>⏳ ${annRemain(a.remaining_seconds)}</small><button type="button" class="btn sm sec ann-cancel" data-ann-cancel="${esc(a.id)}">ยกเลิกการแสดง</button></div></div>`).join('') : '<small class="ann-empty">ยังไม่มีประกาศที่กำลังแสดง</small>';
+    box.innerHTML = items.length ? items.map(a => `<div class="ann-item"><div class="ann-item-text">${esc(a.message)}</div><small>📍 ${esc(annBranchNames(a.branch_ids))}</small><div class="ann-item-foot"><small>⏳ ${annRemain(a.remaining_seconds)}</small><span class="ann-item-btns"><button type="button" class="btn sm sec ann-edit" data-ann-edit="${esc(a.id)}">✏️ แก้ไข</button><button type="button" class="btn sm sec ann-cancel" data-ann-cancel="${esc(a.id)}">ยกเลิกการแสดง</button></span></div></div>`).join('') : '<small class="ann-empty">ยังไม่มีประกาศที่กำลังแสดง</small>';
     annSyncBranchUI();
   } catch (error) {
     box.innerHTML = /Could not find the function|api_announcement|schema cache/i.test(String(error?.message || '')) ? '<small class="ann-empty">ยังไม่ได้ติดตั้งระบบประกาศบน Supabase กรุณารันไฟล์ supabase-announcement-migration.sql ก่อน</small>' : `<small class="ann-empty">${esc(error.message || 'โหลดรายการไม่สำเร็จ')}</small>`;
@@ -2324,6 +2328,30 @@ function bindAnnounceCard() {
     finally { btn.disabled = false; }
   };
   $('#annList').onclick = async e => {
+    const eb = e.target.closest('[data-ann-edit]');
+    if (eb) {
+      const old = (annState.items || []).find(a => String(a.id) === eb.dataset.annEdit); if (!old) return toast('ไม่พบประกาศนี้ ลองโหลดใหม่', 1);
+      openModal(`<h3>✏️ แก้ไขข้อความประกาศ</h3><form id="annEditForm"><label class="fld"><span>ข้อความประกาศ</span><textarea class="in" name="msg" rows="4" maxlength="200" required>${esc(old.message)}</textarea><small class="ann-counter" id="annEditCount">${[...old.message].length}/200</small></label><p class="settings-hint">แสดงที่เดิม: ${esc(annBranchNames(old.branch_ids))} · เวลาที่เหลือไม่เปลี่ยน</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
+      const f = $('#annEditForm'); f.elements.msg.oninput = () => { $('#annEditCount').textContent = `${[...f.elements.msg.value].length}/200`; };
+      f.onsubmit = async ev => {
+        ev.preventDefault(); const message = f.elements.msg.value.trim(), btn = ev.submitter;
+        if (!message) return toast('กรุณากรอกข้อความประกาศ', 1);
+        if (message === old.message) { closeModal(); return; }
+        if (btn) btn.disabled = true;
+        try {
+          const fresh = await cloudRpc('api_announcement_list', { p_token: cloudToken });
+          const cur = (fresh?.items || []).find(a => String(a.id) === String(old.id));
+          if (!cur) { if (btn) btn.disabled = false; closeModal(); annReloadList(); refreshAnnouncement(true); return toast('ประกาศนี้หมดเวลาหรือถูกยกเลิกไปแล้ว', 1); }
+          const args = { p_branch_ids: cur.branch_ids, p_minutes: Math.max(1, Math.ceil((Number(cur.remaining_seconds) || 60) / 60)) };
+          const del = await cloudRpc('api_announcement_cancel', { p_token: cloudToken, p_id: cur.id });
+          if (!del?.ok) { if (btn) btn.disabled = false; return toast(del?.error || 'แก้ไขประกาศไม่สำเร็จ', 1); }
+          const set = await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: message, ...args });
+          if (!set?.ok) { await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: cur.message, ...args }).catch(() => {}); if (btn) btn.disabled = false; return toast(set?.error || 'แก้ไขประกาศไม่สำเร็จ (คืนข้อความเดิมให้แล้ว)', 1); }
+          closeModal(); toast('แก้ไขประกาศแล้ว'); annReloadList(); refreshAnnouncement(true);
+        } catch (error) { if (btn) btn.disabled = false; toast(error.message || 'แก้ไขประกาศไม่สำเร็จ', 1); annReloadList(); refreshAnnouncement(true); }
+      };
+      return;
+    }
     const b = e.target.closest('[data-ann-cancel]'); if (!b) return;
     if (!b.classList.contains('armed')) { b.classList.add('armed'); b.textContent = 'แตะอีกครั้งเพื่อยืนยัน'; setTimeout(() => { if (b.isConnected) { b.classList.remove('armed'); b.textContent = 'ยกเลิกการแสดง'; } }, 3500); return; }
     b.disabled = true;
@@ -4954,7 +4982,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     const has = !!elText.value.trim() || !!CH.pending;
     q('#chSend').hidden = !has; q('#chMic').hidden = has; q('#chImg').hidden = !!CH.rec;
   }
-  function autoGrow() { elText.style.height = 'auto'; elText.style.height = Math.min(112, elText.scrollHeight) + 'px'; }
+  function autoGrow() { elText.style.height = 'auto'; const h = elText.scrollHeight; elText.style.height = Math.min(112, h) + 'px'; elText.style.overflowY = h > 112 ? 'auto' : 'hidden'; }
   function clearPending() { CH.pending = null; q('#chPrev').hidden = true; q('#chFile').value = ''; }
   async function send(args, localUrl) {
     if (CH.sending) return false;
