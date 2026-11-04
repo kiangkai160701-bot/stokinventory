@@ -1558,17 +1558,16 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 /* Stock list: skip layout+paint of rows that are off-screen (mobile layout only) */
 @media(max-width:1099px){#list .row{content-visibility:auto;contain-intrinsic-size:auto 84px}}
 
-/* FAB สดใสตามธีม */
-#app .btn.fab,.fab{background:linear-gradient(135deg,color-mix(in srgb,var(--acc) 58%,#fff) 0%,var(--acc) 100%)!important;border:1.5px solid color-mix(in srgb,#fff 55%,transparent)!important;box-shadow:0 8px 20px var(--acc-glow),inset 0 1px 0 rgba(255,255,255,.55)!important;text-shadow:0 1px 2px color-mix(in srgb,var(--acc-hover) 55%,transparent)}
-/* dropdown ตั้งค่า: สไลด์ช้าและนุ่ม */
+/* ปุ่ม + เพิ่มวัตถุดิบ: สีเรียบตามธีม ไม่ไล่เฉด ไม่มีเงา */
+#app .btn.fab,#app .fab,.btn.fab{background:var(--acc)!important;background-image:none!important;border:0!important;box-shadow:none!important;text-shadow:none!important;color:#fff}
+#app .btn.fab:active{transform:scale(.94)}
+/* dropdown ตั้งค่า / เมนูด้านข้าง: สไลด์ช้านุ่ม */
 .disclosure-panel{transition:grid-template-rows .6s cubic-bezier(.25,.8,.25,1)!important}
 .disclosure-inner{transition:opacity .45s ease,transform .6s cubic-bezier(.25,.8,.25,1),padding .6s cubic-bezier(.25,.8,.25,1)!important}
 .disclosure-chevron{transition:transform .5s cubic-bezier(.25,.8,.25,1)!important}
-/* เมนูด้านข้าง: สไลด์ช้านุ่ม */
 .sd-dock{transition:transform .6s cubic-bezier(.22,.8,.22,1),top .25s ease!important;will-change:transform}
 .sd-scrim{transition:opacity .6s ease!important}
 .sd-tab svg{transition:transform .6s cubic-bezier(.22,.8,.22,1)!important}
-/* โหลดเพิ่มหน้าสต็อก */
 .list-more{padding:14px;text-align:center;color:var(--mute);font-size:12px}
 /* ปฏิทินจ๊อบ: แสดงชื่อในช่อง */
 .jp-d{min-height:68px!important;justify-content:flex-start!important;padding-top:6px!important}
@@ -1578,6 +1577,17 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-nm em.more{background:transparent;color:var(--mute)}
 .jp-d.fut .jp-nm em{background:transparent;border:1px dashed var(--c)}
 .jp-who2{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
+/* ป้ายจำนวนรายการ (หน้าประวัติ): เล็ก อยู่แถวหัวข้อมุมขวาของการ์ดฟิลเตอร์ */
+.history-filter.range-filter:not(.dashboard-range) .hist-count{position:static;order:99;margin-left:auto;display:inline-flex;align-items:baseline;gap:3px;padding:3px 10px;border:1px solid color-mix(in srgb,var(--acc) 50%,transparent);border-radius:10px;background:var(--theme-wash,var(--card-bg));color:var(--acc-hover,var(--ink));font-size:11px;font-weight:600;line-height:1.5;white-space:nowrap}
+.hist-count b{font-size:12.5px;font-weight:800;font-variant-numeric:tabular-nums}
+@media(max-width:680px){
+  .history-filter.range-filter:not(.dashboard-range){display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 10px;align-items:end}
+  .history-filter.range-filter:not(.dashboard-range)>.hf-title{grid-column:1;grid-row:1;align-self:center}
+  .history-filter.range-filter:not(.dashboard-range) .hist-count{grid-column:2;grid-row:1;justify-self:end;align-self:center;order:0;margin:0}
+  .history-filter.range-filter:not(.dashboard-range)>.range-field{grid-column:auto;min-width:0;width:100%}
+  .history-filter.range-filter:not(.dashboard-range)>.range-field input,.history-filter.range-filter:not(.dashboard-range)>.range-field select{width:100%;min-width:0}
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}
+}
 </style>
 </head>
 <body data-theme="teal">
@@ -3344,7 +3354,9 @@ const movementChartCard = `<section class="dash-chart dc-card">
     </div>` : '<small class="dash-empty-note">ยังไม่มีข้อมูลในช่วงนี้</small>'}
     <div class="dc-legend"><span><i style="--c:var(--dc-ok)"></i>รับเข้า</span><span><i style="--c:var(--dc-bad)"></i>เบิกจ่าย</span><small>แตะ/วางเมาส์บนแท่งเพื่อดูรายละเอียด</small></div>
   </section>`;
-const movementRows = (rows,empty) => rows.length ? rows.map((row,i)=>`<div class="dash-rank-row${i>=4?' rank-extra':''}"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`).join('') : `<small class="dash-empty-note">${empty}</small>`;
+const rankRowHtml = (row,i)=>`<div class="dash-rank-row${i>=4?' rank-extra':''}"><b>${esc(row.name)}</b><span>${num(row.qty)} ${esc(row.unit)} <small>· ${row.count} ครั้ง</small></span></div>`;
+window.__rankRow = rankRowHtml;
+const movementRows = (rows,empty,key) => { if (key) (window.__rankData ||= {})[key] = rows; return rows.length ? rows.slice(0,30).map(rankRowHtml).join('') : `<small class="dash-empty-note">${empty}</small>`; };
 const inlineHistoryType = isWideDesktop() ? new URLSearchParams(location.search).get('inlineHistoryType') || '' : '';
 const inlineHistoryLabels = { in:'รับเข้า', out:'เบิกจ่าย', adjust:'ปรับยอด' };
 const inlineHistorySource = inlineHistoryType ? L.filter(row => row.type === inlineHistoryType) : L;
@@ -3379,8 +3391,8 @@ return `<div class="sect"><h2>${isWideDesktop()?'ภาพรวมสาขา'
   </div>
   <div class="dash-grid">
     <div class="dash-card"><h3>⚠️ วัตถุดิบที่ควรจัดการ</h3><div class="dash-rank-list">${needsAttention.map(p=>`<div class="dash-rank-row"><b>${esc(p.name)}</b><span class="dash-status ${status(p)}">${num(p.qty)} ${esc(p.unit)} · ${STX[status(p)]}</span></div>`).join('')||'<small class="dash-empty-note">วัตถุดิบทุกชนิดอยู่ในระดับปกติ</small>'}</div></div>
-    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้')}</div></div>
-    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>📦 รายการที่เบิกจ่ายมาก</h3><small>${outRankRange.logs.filter(x=>x.type==='out').length} รายการ</small></div>${rankFilter('out',outRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topOut,'ไม่มีรายการเบิกจ่ายในช่วงนี้','out')}</div></div>
+    <div class="dash-card dash-rank-card"><div class="dash-rank-heading"><h3>🚚 รายการรับเข้ามาก</h3><small>${inRankRange.logs.filter(x=>x.type==='in').length} รายการ</small></div>${rankFilter('in',inRankRange)}<div class="dash-rank-list dash-rank-scroll">${movementRows(topIn,'ไม่มีรายการรับเข้าในช่วงนี้','in')}</div></div>
     <div class="dash-card"><h3>🍱 ภาพรวมหมวดหมู่</h3><div class="dash-rank-list">${categoryRows.map(row=>`<div class="dash-rank-row"><b>${esc(row.name)}</b><span>${row.count} รายการ</span></div>`).join('')||'<small class="dash-empty-note">ยังไม่มีหมวดหมู่</small>'}</div></div>
     <div class="dash-card desktop-recent-history">${isWideDesktop()?`<div class="desktop-history-heading"><h3>🕘 ประวัติล่าสุด${inlineHistoryType && inlineHistoryLabels[inlineHistoryType] ? ` · ${inlineHistoryLabels[inlineHistoryType]}` : ''}</h3>${inlineHistoryType ? '<button type="button" class="desktop-history-clear" data-clear-inline-history>ล้าง</button>' : ''}</div>`:'<h3>🍣 รายการเคลื่อนไหวล่าสุดในช่วงนี้</h3>'}<div class="recent-movements">${latestHistoryRows || (isWideDesktop() ? '<small class="dash-empty-note">ยังไม่มีประวัติการทำรายการ</small>' : '<small class="dash-empty-note">ไม่มีรายการในช่วงวันที่เลือก</small>')}</div></div>
   </div>`;
@@ -4272,7 +4284,7 @@ const rowHtml = x => {
 };
 histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
 return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-`<div class="history-filter range-filter"><label>📅 ช่วงวันที่</label><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
+`<div class="history-filter range-filter"><label class="hf-title">📅 ช่วงวันที่</label><span class="hist-count" id="historyCount" aria-live="polite"><b>${l.length}</b> รายการ</span><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
 (l.length ? `<div class="history-list">${l.slice(0, HIST_INITIAL_PAGE).map(rowHtml).join('')}</div>${histMoreHtml(l.length, Math.min(HIST_INITIAL_PAGE, l.length))}` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
 }
 document.addEventListener('change', e => {
@@ -4770,17 +4782,17 @@ function jSwap() {
 <label class="fld"><span>สัปดาห์ที่สลับ (เลือกวันไหนก็ได้ในสัปดาห์นั้น)</span><input class="in" type="date" name="d" value="${JS.sel}" required></label>
 <div class="jp-card jp-ok" id="swapPrev" style="margin:6px 0"></div>
 <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">สลับ</button></div></form>`);
-  const f = $('#swapForm').elements;
+  const f = $('#swapForm').elements, fd = k => jFmt(k, { weekday: 'long', day: 'numeric', month: 'short' });
   const plan = () => {
     const a = f.a.value, b = f.b.value, d = f.d.value; if (!d || a === b) return [];
     const ra = (J.rec[a] || []).filter(x => !(J.rec[b] || []).includes(x)), rb = (J.rec[b] || []).filter(x => !(J.rec[a] || []).includes(x));
     const wk = jWeek(d), out = [];
-    for (let i = 0; i < Math.min(ra.length, rb.length); i++) out.push({ ka: dk(jAdd(wk, ra[i])), kb: dk(jAdd(wk, rb[i])), da: ra[i], db: rb[i] });
+    for (let i = 0; i < Math.min(ra.length, rb.length); i++) out.push({ ka: dk(jAdd(wk, ra[i])), kb: dk(jAdd(wk, rb[i])) });
     return out;
   };
   const prev = () => {
     const a = f.a.value, b = f.b.value, p = plan(), box = $('#swapPrev');
-    box.innerHTML = a === b ? 'เลือกพนักงานคนละคน' : p.length ? p.map(x => `• ${esc(a)} ทำงาน${jFmt(x.ka, { weekday: 'long', day: 'numeric', month: 'short' })} (แทนวันหยุดเดิม) และหยุด${jFmt(x.kb, { weekday: 'long', day: 'numeric', month: 'short' })}<br>• ${esc(b)} ทำงาน${jFmt(x.kb, { weekday: 'long', day: 'numeric', month: 'short' })} และหยุด${jFmt(x.ka, { weekday: 'long', day: 'numeric', month: 'short' })}`).join('<br>') : 'สองคนนี้ไม่มีวันหยุดประจำที่ต่างกัน ตั้งที่ "🔁 วันหยุดประจำ" ก่อน หรือแก้รายวันที่ปฏิทิน';
+    box.innerHTML = a === b ? 'เลือกพนักงานคนละคน' : p.length ? p.map(x => `• ${esc(a)} ทำงาน${fd(x.ka)} และหยุด${fd(x.kb)}<br>• ${esc(b)} ทำงาน${fd(x.kb)} และหยุด${fd(x.ka)}`).join('<br>') : 'สองคนนี้ไม่มีวันหยุดประจำที่ต่างกัน ตั้งที่ "🔁 วันหยุดประจำ" ก่อน หรือแก้รายวันที่ปฏิทิน';
   };
   ['a', 'b', 'd'].forEach(n => f[n].onchange = prev); prev();
   $('#swapForm').onsubmit = e => {
@@ -4839,6 +4851,17 @@ function jSettings() {
 }
 
 // ---------- เมนูด้านข้าง + หน้าจอ ----------
+// โหลดเพิ่มอัตโนมัติ: รายการเบิกจ่ายมาก / รับเข้ามาก (เริ่ม 30 แล้วเพิ่มทีละ 20 เมื่อเลื่อนถึงท้าย)
+(function () {
+  const more = el => {
+    const key = (el.closest('.dash-rank-card')?.querySelector('h3')?.textContent || '').includes('เบิกจ่าย') ? 'out' : 'in', rows = window.__rankData?.[key];
+    if (!rows || !window.__rankRow) return; const have = el.querySelectorAll('.dash-rank-row').length;
+    if (have >= rows.length) return;
+    el.insertAdjacentHTML('beforeend', rows.slice(have, have + 20).map((r, j) => window.__rankRow(r, have + j)).join(''));
+  };
+  document.addEventListener('scroll', e => { const el = e.target; if (el && el.classList && el.classList.contains('dash-rank-scroll') && el.scrollTop + el.clientHeight >= el.scrollHeight - 60) more(el); }, { passive: true, capture: true });
+  window.addEventListener('scroll', () => document.querySelectorAll('.dash-rank-scroll').forEach(el => { if (el.scrollHeight <= el.clientHeight + 2 && el.getBoundingClientRect().bottom < innerHeight + 200) more(el); }), { passive: true });
+})();
 const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
 (function setupSideMenu() {
   const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
