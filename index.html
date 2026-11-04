@@ -2194,7 +2194,7 @@ if (result.branch && (result.branch.id !== currentBranch.id || result.branch.nam
 if (result.version !== syncVersion) {
 applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
 me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-build(); showSyncUpdateStatus(); if (logNeedsPrune) save();
+build(true); showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
 } catch {} finally { cloudRefreshBusy = false; }
 }
@@ -2399,11 +2399,12 @@ const items = [
 ];
 return isWideDesktop() ? items.filter(([key]) => !['dashboard', 'log'].includes(key)) : items;
 }
-function build() {
+function build(keepScroll = false) {
 const nav = $('#nav');
-nav.innerHTML = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span>${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
-$('#dtabs').innerHTML = tabs().map(t => `<button data-t="${t[0]}">${t[1]}${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
-render();
+const navHtml = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span>${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
+const dtabsHtml = tabs().map(t => `<button data-t="${t[0]}">${t[1]}${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
+if (!(keepScroll && nav.__html === navHtml && $('#dtabs').__html === dtabsHtml && nav.querySelector('.nav-pill'))) { nav.innerHTML = navHtml; $('#dtabs').innerHTML = dtabsHtml; nav.__html = navHtml; $('#dtabs').__html = dtabsHtml; }
+render(false, keepScroll);
 placeNavPill(true);
 if (!navPillObserver && 'ResizeObserver' in window) {
 navPillObserver = new ResizeObserver(() => placeNavPill(true));
@@ -2673,21 +2674,29 @@ const animate = deferredRender;
 deferredRender = null;
 render(animate);
 }
-function render(animatePage = false) {
+let renderCache = { tab: '', wide: null, html: '' };
+function render(animatePage = false, keepScroll = false) {
 if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
 if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
 const main = $('#main');
+const makeHtml = () => tab === 'stock' ? (isWideDesktop() ? desktopStockDashboardView() : stockView()) : tab === 'dashboard' ? dashboardView() : tab === 'log' ? logView() : tab === 'users' ? usersView() : tab === 'settings' ? settingsView() : '';
+let preHtml = null;
+const scrollEls = [document.scrollingElement, document.documentElement, document.body, document.querySelector('#app'), main];
+const keepPos = keepScroll ? scrollEls.map(el => (el ? el.scrollTop : 0)) : [];
+if (keepScroll) {
+  // Background sync: if nothing visible changed, leave the page exactly as it is.
+  preHtml = makeHtml();
+  if (renderCache.tab === tab && renderCache.wide === isWideDesktop() && renderCache.html === preHtml && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
+}
 const desktopPanelScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? null : null;
 const desktopHistoryScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? null : null;
 if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; main.style.willChange = ''; }
 if (textScaleObserver) textScaleObserver.disconnect();
 syncNav();
 const paintPage = () => {
-if (tab === 'stock') main.innerHTML = isWideDesktop() ? desktopStockDashboardView() : stockView();
-else if (tab === 'dashboard') main.innerHTML = dashboardView();
-else if (tab === 'log') main.innerHTML = logView();
-else if (tab === 'users') main.innerHTML = usersView();
-else if (tab === 'settings') main.innerHTML = settingsView();
+const html = preHtml !== null ? preHtml : makeHtml();
+main.innerHTML = html;
+renderCache = { tab, wide: isWideDesktop(), html };
 if (isWideDesktop()) updatePageMascots();
 else if (animatePage) { clearTimeout(mascotTimer); mascotTimer = setTimeout(() => { if (main.isConnected) updatePageMascots(); }, 360); }
 else requestAnimationFrame(updatePageMascots);
@@ -2705,9 +2714,14 @@ paintPage();
 if (desktopPanelScroll !== null) main.querySelector('.desktop-dashboard-panel').scrollTop = desktopPanelScroll;
 if (desktopHistoryScroll !== null) main.querySelector('.desktop-history-panel>.history-list').scrollTop = desktopHistoryScroll;
 finishRender();
-if (!(animatePage && !isWideDesktop())) resetScrollTopMobile();
-requestAnimationFrame(resetScrollTopMobile);
-if (!animatePage) window.scrollTo(0, 0);
+if (keepScroll) {
+  const back = () => scrollEls.forEach((el, i) => { if (el && Math.abs(el.scrollTop - keepPos[i]) > 1) el.scrollTop = keepPos[i]; });
+  back(); requestAnimationFrame(back); setTimeout(back, 380);
+} else {
+  if (!(animatePage && !isWideDesktop())) resetScrollTopMobile();
+  requestAnimationFrame(resetScrollTopMobile);
+}
+if (!animatePage) { if (!keepScroll) window.scrollTo(0, 0); }
 else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
 const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 22);
 main.style.willChange = 'transform, opacity';
