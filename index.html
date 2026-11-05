@@ -3473,48 +3473,148 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
     ${can.reset() || can.permissions() ? '</div>' : ''}
   </div>`;
 }
-/* ---------- Smooth dropdowns: the card changes size once, everything else glides with transform/opacity (compositor, no per-frame layout) ---------- */
-const DISC_EASE = 'cubic-bezier(.32,.72,0,1)';
+/* ---------- Transform-first settings disclosures (FLIP layout + compositor motion) ---------- */
+const DISCLOSURE_MOTION_MS = 600;
+const DISCLOSURE_EASING = 'cubic-bezier(.22,.8,.22,1)';
 function discSetOpen(button, panel, open) {
   button.setAttribute('aria-expanded', String(open));
   panel.setAttribute('aria-hidden', String(!open));
   panel.inert = !open;
   panel.classList.toggle('open', open);
 }
-function discFollowers(card) {
-  const list = [], root = $('#main');
-  for (let n = card; n && n !== root; n = n.parentElement) for (let x = n.nextElementSibling; x; x = x.nextElementSibling) list.push(x);
-  return list;
+function discRestoreClosing(panel) {
+  if (!panel) return;
+  clearTimeout(panel.__discCloseTimer);
+  const inner = panel.querySelector('.disclosure-inner');
+  const card = panel.closest('.disclosure-card');
+  if (inner) {
+    inner.getAnimations?.().forEach(animation => animation.cancel());
+    if (panel.__discInnerStyle == null) inner.removeAttribute('style');
+    else inner.setAttribute('style', panel.__discInnerStyle);
+  }
+  if (card) {
+    if (panel.__discCardStyle == null) card.removeAttribute('style');
+    else card.setAttribute('style', panel.__discCardStyle);
+  }
+  panel.classList.remove('disc-closing');
+  delete panel.__discInnerStyle;
+  delete panel.__discCardStyle;
+  delete panel.__discCloseTimer;
+}
+function discFlowItems(grid, card) {
+  if (!grid) return [];
+  const items = new Set();
+  grid.querySelectorAll(':scope > .dash-card, :scope > .settings-bottom-row > .dash-card').forEach(el => {
+    if (el !== card && el.getClientRects().length) items.add(el);
+  });
+  const gridBottom = grid.getBoundingClientRect().bottom;
+  [...grid.parentElement.children].forEach(el => {
+    if (el === grid || el.contains(grid) || !el.getClientRects().length) return;
+    if (el.getBoundingClientRect().top >= gridBottom - 2) items.add(el);
+  });
+  return [...items];
+}
+function discCaptureRects(elements) {
+  const rects = new Map();
+  elements.forEach(el => {
+    el.__discFlipAnimation?.cancel();
+    delete el.__discFlipAnimation;
+    const rect = el.getBoundingClientRect();
+    rects.set(el, { left: rect.left, top: rect.top });
+  });
+  return rects;
+}
+function discAnimateFlow(elements, before) {
+  if (!before || !elements.length) return;
+  const supportsTranslate = !!(window.CSS && CSS.supports && CSS.supports('translate', '0px 0px'));
+  elements.forEach(el => {
+    const oldRect = before.get(el);
+    if (!oldRect) return;
+    const rect = el.getBoundingClientRect();
+    const dx = oldRect.left - rect.left;
+    const dy = oldRect.top - rect.top;
+    if (Math.abs(dx) < .5 && Math.abs(dy) < .5) return;
+    try {
+      const frames = supportsTranslate
+        ? [{ translate: `${dx}px ${dy}px` }, { translate: '0px 0px' }]
+        : [{ transform: `translate3d(${dx}px,${dy}px,0)` }, { transform: 'translate3d(0,0,0)' }];
+      const animation = el.animate(frames, { duration: DISCLOSURE_MOTION_MS, easing: DISCLOSURE_EASING, fill: 'none' });
+      el.__discFlipAnimation = animation;
+      animation.onfinish = () => {
+        if (el.__discFlipAnimation === animation) delete el.__discFlipAnimation;
+      };
+      animation.oncancel = () => {
+        if (el.__discFlipAnimation === animation) delete el.__discFlipAnimation;
+      };
+    } catch (_) { /* Keep the layout change functional on browsers without WAAPI support. */ }
+  });
 }
 function toggleDisclosure(button) {
-  const panel = document.getElementById(button.getAttribute('aria-controls')); if (!panel) return;
-  const card = button.closest('.disclosure-card'), inner = panel.querySelector('.disclosure-inner');
+  const panel = document.getElementById(button.getAttribute('aria-controls'));
+  if (!panel) return;
   const open = button.getAttribute('aria-expanded') !== 'true';
-  const afterMascots = () => { clearTimeout(window.__mascotTimer); window.__mascotTimer = setTimeout(updatePageMascots, 480); };
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (true) { discSetOpen(button, panel, open); afterMascots(); return; }
-  card.__discBusy = true;
-  const followers = discFollowers(card);
-  const glide = (delta, done) => {
-    if (!delta) { done && done(); return; }
-    let finished = 0;
-    followers.forEach(el => { const a = el.animate([{ transform: `translate3d(0,${-delta}px,0)` }, { transform: 'translate3d(0,0,0)' }], { duration: 440, easing: DISC_EASE }); a.onfinish = a.oncancel = () => { if (++finished === followers.length) done && done(); }; });
-    if (!followers.length) done && done();
-  };
-  const heightNow = () => card.getBoundingClientRect().height;
-  panel.classList.add('disc-instant');
-  if (open) {
-    const h0 = heightNow(); discSetOpen(button, panel, true); const delta = heightNow() - h0;
-    inner.animate([{ opacity: 0, transform: 'translate3d(0,-12px,0)' }, { opacity: 1, transform: 'translate3d(0,0,0)' }], { duration: 400, easing: DISC_EASE });
-    glide(delta, () => { card.__discBusy = false; afterMascots(); });
-  } else {
-    const fade = inner.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 130, easing: 'ease-out', fill: 'forwards' });
-    fade.onfinish = () => {
-      const h0 = heightNow(); discSetOpen(button, panel, false); fade.cancel(); const delta = heightNow() - h0;
-      glide(delta, () => { card.__discBusy = false; afterMascots(); });
-    };
+  const inner = panel.querySelector('.disclosure-inner');
+  const card = panel.closest('.disclosure-card');
+  const grid = card?.closest('.settings-grid');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (!inner || !card || reduceMotion) {
+    discRestoreClosing(panel);
+    discSetOpen(button, panel, open);
+    if (typeof updatePageMascots === 'function') updatePageMascots();
+    return;
   }
+
+  // If the same panel is tapped during its closing glide, settle it first so the
+  // next toggle starts from a clean, measurable state.
+  if (panel.classList.contains('disc-closing')) discRestoreClosing(panel);
+
+  const flow = discFlowItems(grid, card);
+  const before = discCaptureRects(flow);
+  clearTimeout(window.__mascotTimer);
+
+  if (open) {
+    discSetOpen(button, panel, true);
+    const after = discFlowItems(grid, card);
+    discAnimateFlow(after, before);
+    window.__mascotTimer = setTimeout(() => {
+      if (typeof updatePageMascots === 'function') updatePageMascots();
+    }, DISCLOSURE_MOTION_MS + 40);
+    return;
+  }
+
+  // Keep the real content in the DOM (including live form values), but lift it
+  // out of flow for the closing glide. The card and following cards can then
+  // settle using transforms instead of animating layout on every frame.
+  const innerRect = inner.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  panel.__discInnerStyle = inner.getAttribute('style');
+  panel.__discCardStyle = card.getAttribute('style');
+  card.style.position = 'relative';
+  card.style.overflow = 'visible';
+  card.style.contain = 'none';
+  card.style.zIndex = '20';
+  inner.style.position = 'absolute';
+  inner.style.top = `${innerRect.top - cardRect.top}px`;
+  inner.style.left = '0';
+  inner.style.right = '0';
+  inner.style.width = '100%';
+  inner.style.height = `${innerRect.height}px`;
+  inner.style.zIndex = '2';
+  inner.style.pointerEvents = 'none';
+  panel.classList.add('disc-closing');
+  discSetOpen(button, panel, false);
+  discAnimateFlow(discFlowItems(grid, card), before);
+
+  const finish = () => discRestoreClosing(panel);
+  inner.addEventListener('transitionend', event => {
+    if (event.target === inner && event.propertyName === 'transform') finish();
+  });
+  panel.__discCloseTimer = setTimeout(finish, DISCLOSURE_MOTION_MS + 100);
+  window.__mascotTimer = setTimeout(() => {
+    if (typeof updatePageMascots === 'function') updatePageMascots();
+  }, DISCLOSURE_MOTION_MS + 40);
 }
+
 function bindSettings() {
 clearInterval(storageUsageTimer); storageUsageTimer = null;
 if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
@@ -5354,5 +5454,187 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   }
 })();
 </script>
+
+
+<!-- Performance tuning: native high-refresh-rate scrolling and off-screen rendering -->
+<style id="smooth-scroll-performance">
+/*
+ * Keep the document on the browser's native scroll pipeline.
+ * Do not animate scrollTop with JavaScript: the browser can use the
+ * device's available refresh rate (90/120/144Hz when supported).
+ */
+html {
+  scroll-behavior: auto !important;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+html, body {
+  overscroll-behavior-y: contain;
+}
+body {
+  -webkit-overflow-scrolling: touch;
+}
+#app main {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Keep momentum scrolling enabled in independently scrollable panels. */
+.sheet,
+.ov-product .sheet,
+.desktop-history-panel > .history-list,
+.dash-rank-scroll,
+.ih-list,
+#themePicker,
+.jp-body,
+.chp-list,
+.chp-msgs,
+.iw-manage,
+.iw-history .ih-list {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/*
+ * Skip layout/paint work for off-screen rows. The intrinsic size estimate
+ * prevents large layout jumps while the browser brings rows into view.
+ */
+.list > .row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 64px;
+}
+.history-list > .history-item,
+.desktop-history-panel .history-item {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 76px;
+}
+.dash-rank-scroll > .dash-rank-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 40px;
+}
+
+/* Avoid expensive hover movement on touch devices while preserving desktop hover. */
+@media (hover: none), (pointer: coarse) {
+  .row:hover,
+  .st[data-stock-filter]:hover,
+  .filter-stat:hover,
+  .icon-tool:hover,
+  .theme-opt:hover {
+    transform: none;
+  }
+}
+
+/* Restrict animated transitions to properties that do not trigger layout. */
+@media (hover: none), (pointer: coarse) {
+  .row,
+  .st[data-stock-filter],
+  .filter-stat,
+  .icon-tool,
+  .theme-opt,
+  .nav button,
+  .dtabs button,
+  .me-btn {
+    transition-property: background-color, color, border-color, box-shadow, opacity !important;
+  }
+}
+
+/* Keep accessibility preference authoritative. */
+@media (prefers-reduced-motion: reduce) {
+  html, body, #app main,
+  .sheet, .ov, .row, .history-item,
+  .nav button, .dtabs button {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
+</style>
+
+
+<style id="smooth-settings-dropdown-v2">
+/* Smooth, interruptible settings dropdowns: native grid interpolation, no JS layout loop. */
+.disclosure-card{contain:layout paint;}
+.disclosure-panel{
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows 460ms cubic-bezier(.22,.72,.18,1) !important;
+  min-height:0;
+}
+.disclosure-panel.open{grid-template-rows:1fr;}
+.disclosure-inner{
+  min-height:0;
+  overflow:hidden;
+  opacity:0;
+  transform:translate3d(0,-5px,0);
+  padding-top:0 !important;
+  padding-bottom:0 !important;
+  transition:opacity 220ms ease, transform 360ms cubic-bezier(.22,.72,.18,1), padding 360ms cubic-bezier(.22,.72,.18,1) !important;
+  backface-visibility:hidden;
+}
+.disclosure-panel.open .disclosure-inner{
+  opacity:1;
+  transform:translate3d(0,0,0);
+  padding-top:2px !important;
+  padding-bottom:14px !important;
+}
+.disclosure-chevron::after{transition:transform 360ms cubic-bezier(.22,.72,.18,1) !important;}
+.disclosure-summary:focus-visible{outline-offset:-3px;}
+@media(prefers-reduced-motion:reduce){
+  .disclosure-panel,.disclosure-inner,.disclosure-chevron,.disclosure-chevron::after{transition-duration:.01ms !important;}
+}
+</style>
+
+<style id="smooth-settings-dropdown-transform-v3">
+/* Settings accordion: change layout once, then animate only transforms/opacity. */
+@media (max-width:1099px) {
+  .disclosure-card { position:relative; }
+  .disclosure-panel {
+    display:block !important;
+    grid-template-rows:none !important;
+    height:0 !important;
+    min-height:0 !important;
+    overflow:hidden !important;
+    transition:none !important;
+  }
+  .disclosure-panel.open {
+    height:auto !important;
+    overflow:visible !important;
+  }
+  .disclosure-panel.disc-closing {
+    height:0 !important;
+    overflow:visible !important;
+  }
+  .disclosure-panel > .disclosure-inner {
+    clip-path:inset(0 0 100% 0);
+    opacity:0;
+    transform:translate3d(0,-8px,0);
+    transition:clip-path 600ms cubic-bezier(.22,.8,.22,1),
+               opacity 420ms ease,
+               transform 600ms cubic-bezier(.22,.8,.22,1) !important;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+  }
+  .disclosure-panel.open > .disclosure-inner {
+    clip-path:inset(0 0 0 0);
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+  .disclosure-panel.disc-closing > .disclosure-inner {
+    clip-path:inset(0 0 100% 0);
+    opacity:0;
+    transform:translate3d(0,-8px,0);
+  }
+  .disclosure-chevron {
+    transition:transform 600ms cubic-bezier(.22,.8,.22,1) !important;
+  }
+}
+@media (prefers-reduced-motion:reduce) {
+  .disclosure-panel,.disclosure-inner,.disclosure-chevron {
+    transition-duration:.01ms !important;
+  }
+}
+</style>
+
 </body>
 </html>
