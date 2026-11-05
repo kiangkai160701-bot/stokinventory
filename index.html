@@ -2911,7 +2911,7 @@ function quickBar() {
   }).join('')}</div></div>`;
 }
 let stockTotal = 0, stockShown = 0, stockObs = null;
-function rows(withMascots = false, from = 0, to = 60) {
+function rows(withMascots = false, from = 0, to = (IS_MOBILE_BROWSER ? 36 : 60)) {
 const all = filtered(), list = all.slice(from, to); stockTotal = all.length; if (from === 0) stockShown = list.length;
 if (!all.length) return `<div class="empty"><b>ไม่พบวัตถุดิบ</b>${P.length ? 'ลองเปลี่ยนตัวกรองค้นหา' : 'กดปุ่มเพิ่มวัตถุดิบเพื่อเริ่มใช้งาน'}</div>`;
 const mascotOn = withMascots && !THEMES[currentTheme]?.formal;
@@ -2929,26 +2929,55 @@ return `<article class="row ${state}" data-id="${esc(p.id)}">
    </article>`;
 }).join('');
 }
+let stockAppendBusy = false, stockAppendToken = 0;
 function setupStockMore() {
   const list = $('#list'); if (stockObs) { stockObs.disconnect(); stockObs = null; }
   if (!list || stockShown >= stockTotal) return;
-  const more = document.createElement('div'); more.className = 'list-more'; more.textContent = `กำลังโหลดเพิ่ม… (${stockShown}/${stockTotal})`; list.appendChild(more);
-  if (!('IntersectionObserver' in window)) { more.remove(); list.insertAdjacentHTML('beforeend', rows(true, stockShown, stockTotal)); stockShown = stockTotal; return; }
+  const more = document.createElement('div'); more.className = 'list-more'; more.textContent = `เลื่อนเพื่อโหลดเพิ่ม… (${stockShown}/${stockTotal})`; list.appendChild(more);
+  const fallback = !('IntersectionObserver' in window);
+  const appendNext = runToken => {
+    if (runToken !== stockAppendToken) return;
+    if (!list.isConnected || !more.isConnected) { stockAppendBusy = false; return; }
+    const from = stockShown;
+    const batch = IS_MOBILE_BROWSER ? 18 : 50;
+    const to = Math.min(from + batch, stockTotal);
+    if (to > from) {
+      list.insertBefore(document.createRange().createContextualFragment(rows(true, from, to)), more);
+      stockShown = to;
+    }
+    if (fallback && stockShown < stockTotal) {
+      more.textContent = `กำลังโหลดเพิ่ม… (${stockShown}/${stockTotal})`;
+      requestAnimationFrame(() => appendNext(runToken));
+      return;
+    }
+    more.remove(); stockAppendBusy = false;
+    if (stockShown < stockTotal) setupStockMore();
+  };
+  const startAppend = () => {
+    if (stockAppendBusy) return;
+    stockAppendBusy = true;
+    const runToken = ++stockAppendToken;
+    if (stockObs) { stockObs.disconnect(); stockObs = null; }
+    more.textContent = `กำลังโหลดเพิ่ม… (${stockShown}/${stockTotal})`;
+    appendNext(runToken);
+  };
+  if (fallback) { startAppend(); return; }
   stockObs = new IntersectionObserver(es => {
-    if (!es.some(e => e.isIntersecting)) return;
-    stockObs.disconnect(); more.remove();
-    const from = stockShown; list.insertAdjacentHTML('beforeend', rows(true, from, from + 50)); stockShown = Math.min(from + 50, stockTotal);
-    setupStockMore();
-  }, { rootMargin: '500px 0px' });
+    if (es.some(e => e.isIntersecting)) startAppend();
+  }, { rootMargin: '320px 0px' });
   stockObs.observe(more);
 }
+
 function bindStock() {
 let searchTimer = 0, lastCost = 0;
+stockAppendToken++; stockAppendBusy = false;
 setupStockMore();
 const refreshList = () => {
   clearTimeout(searchTimer); searchTimer = 0;
   const list = $('#list'); if (!list) return;
   const t0 = performance.now();
+  stockAppendToken++; stockAppendBusy = false;
+  if (stockObs) { stockObs.disconnect(); stockObs = null; }
   list.innerHTML = rows(true); setupStockMore();   // mascots are part of the markup now: no second pass over every row
   lastCost = performance.now() - t0;
 };
@@ -4335,8 +4364,8 @@ toast('เพิ่มวัตถุดิบแล้ว');
 save(); closeModal(); render();
 };
 }
-const HIST_INITIAL_PAGE = 80;
-const HIST_LOAD_BATCH = 100;
+const HIST_INITIAL_PAGE = IS_MOBILE_BROWSER ? 40 : 80;
+const HIST_LOAD_BATCH = IS_MOBILE_BROWSER ? 30 : 100;
 let histState = null;
 function histMoreHtml(total, shown) {
   if (total <= shown) return '';
@@ -4354,15 +4383,25 @@ function histLoadMore() {
 let histScrollBusy = false;
 function nearBottom(el) { if (!el) return false; const r = el.getBoundingClientRect(); return r.top < innerHeight + 500 && r.bottom > 0; }
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('#historyMore')) histLoadMore(); });
-document.addEventListener('scroll', () => {
+document.addEventListener('scroll', e => {
+  const target = e.target;
+  const pageScroll = target === document || target === document.documentElement || target === document.body;
+  const historyInnerScroll = target && target.id === 'ihList';
+  if (!pageScroll && !historyInnerScroll) return;
   if (histScrollBusy) return;
   histScrollBusy = true;
   requestAnimationFrame(() => {
     histScrollBusy = false;
-    const m = document.getElementById('historyMore'); if (m && nearBottom(m)) histLoadMore();
-    const ih = document.getElementById('ihMore'); if (ih && nearBottom(ih)) ih.click();
+    if (pageScroll) {
+      const m = document.getElementById('historyMore');
+      if (m && nearBottom(m)) histLoadMore();
+    }
+    if (pageScroll || historyInnerScroll) {
+      const ih = document.getElementById('ihMore');
+      if (ih && (pageScroll ? nearBottom(ih) : target.scrollTop + target.clientHeight >= target.scrollHeight - 260)) ih.click();
+    }
   });
-}, true);
+}, { capture: true, passive: true });
 let historyQuickKey = null;
 let historyCardFilter = null;
 function logView() {
@@ -4708,9 +4747,12 @@ const pos=()=>Math.max(window.scrollY||0,document.documentElement.scrollTop||0,d
 let ticking=false;
 const update=()=>{ticking=false;btn.classList.toggle('show',(tab==='log'||tab==='dashboard'||tab==='stock')&&!isWideDesktop()&&pos()>300);};
 const queue=()=>{if(!ticking){ticking=true;requestAnimationFrame(update);}};
-document.addEventListener('scroll',queue,{passive:true,capture:true});
-document.addEventListener('scroll',()=>{window.__lastScrollTs=Date.now();},{passive:true,capture:true});
-window.addEventListener('resize',queue);
+document.addEventListener('scroll',e=>{
+  window.__lastScrollTs=Date.now();
+  const target=e.target;
+  if(target===document || target===document.documentElement || target===document.body) queue();
+},{passive:true,capture:true});
+window.addEventListener('resize',queue,{passive:true});
 const main=document.querySelector('#main');
 if(main)new MutationObserver(queue).observe(main,{childList:true});
 btn.addEventListener('click',()=>{
@@ -4983,8 +5025,23 @@ function jSettings() {
     if (have >= rows.length) return;
     el.insertAdjacentHTML('beforeend', rows.slice(have, have + 20).map((r, j) => window.__rankRow(r, have + j)).join(''));
   };
-  document.addEventListener('scroll', e => { const el = e.target; if (el && el.classList && el.classList.contains('dash-rank-scroll') && el.scrollTop + el.clientHeight >= el.scrollHeight - 60) more(el); }, { passive: true, capture: true });
-  window.addEventListener('scroll', () => document.querySelectorAll('.dash-rank-scroll').forEach(el => { if (el.scrollHeight <= el.clientHeight + 2 && el.getBoundingClientRect().bottom < innerHeight + 200) more(el); }), { passive: true });
+  document.addEventListener('scroll', e => {
+    const el = e.target;
+    if (el && el.classList && el.classList.contains('dash-rank-scroll') && el.scrollTop + el.clientHeight >= el.scrollHeight - 60) more(el);
+  }, { passive: true, capture: true });
+  let rankViewportRaf = 0;
+  window.addEventListener('scroll', () => {
+    if (rankViewportRaf) return;
+    rankViewportRaf = requestAnimationFrame(() => {
+      rankViewportRaf = 0;
+      document.querySelectorAll('.dash-rank-scroll').forEach(el => {
+        if (el.scrollHeight <= el.clientHeight + 2) {
+          const rect = el.getBoundingClientRect();
+          if (rect.bottom > -40 && rect.top < innerHeight + 200) more(el);
+        }
+      });
+    });
+  }, { passive: true });
 })();
 const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
 (function setupSideMenu() {
@@ -5633,6 +5690,39 @@ body {
   .disclosure-panel,.disclosure-inner,.disclosure-chevron {
     transition-duration:.01ms !important;
   }
+}
+</style>
+
+
+<style id="mobile-scroll-performance-v4">
+/* Mobile: preserve native document scrolling; avoid promoting the whole long page. */
+@media (max-width:1099px) and (hover:none) and (pointer:coarse) {
+  html, body { overscroll-behavior-y:auto !important; }
+  #main { backface-visibility:visible !important; -webkit-backface-visibility:visible !important; }
+  #app main { touch-action:pan-y pinch-zoom; }
+  .dash-rank-scroll { scroll-snap-type:none !important; }
+  /* Large repeated rows should not animate paint-heavy shadows while scrolling. */
+  .list > .row, .history-list > .history-item,
+  .dash-card, .st, .card, .history-item, .empty, .permission-user {
+    transition-property:background-color,color,border-color,opacity !important;
+    transition-duration:.12s !important;
+  }
+  /* Decorative perpetual motion is paused on touch devices; indicators remain visible. */
+  #app::before, #app::after, .card-mascot, .ih-stk,
+  .chp-stk, .cb-empty .big, .chat-dot.show,
+  #nav .chat-dot.nav.show, #dtabs .chat-dot.nav.show,
+  .bm-online.is-live::before, .chp-rec i {
+    animation:none !important;
+  }
+  #app::before, #app::after, .card-mascot, .ih-stk,
+  .chp-stk { filter:none !important; }
+}
+/* More realistic fallback dimensions reduce scroll-position corrections as rows enter view. */
+@media (max-width:1099px) {
+  .list > .row { contain-intrinsic-size:auto 72px; }
+  .history-list > .history-item { contain-intrinsic-size:auto 88px; }
+  .ih-list > .ih-item { contain-intrinsic-size:auto 86px; }
+  .dash-rank-scroll > .dash-rank-row { contain-intrinsic-size:auto 42px; }
 }
 </style>
 
