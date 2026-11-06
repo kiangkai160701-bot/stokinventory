@@ -2123,7 +2123,7 @@ return { id, name, mascot, friends, colors: {
 ].forEach(spec => { THEMES[spec[0]] = createExtraTheme(spec); });
 const THEME_CARD_FRIENDS = {
 sakura:['🌸','🎎','🪭','🎐'], matcha:['🍵','🐸','🥬','🫛'], ocean:['🐬','🦈','🐳','🦑'], lavender:['🦄','🪽','🧚','🦋'], peach:['🍑','🐥','🦆','🍊'], lemon:['🍋','🐝','🍍','🥭'], mint:['🦭','🧊','🐧','🐠'], grape:['🍇','🫐','🍷','🧃'], coral:['🦀','🪸','🐢','🐙'], ramune:['🫧','🥤','🐡','🦐'], taro:['🍠','🐼','🍮','🧸'], nori:['🌿','🥑','🪴','🌱'], midnight:['🐈‍⬛','🌙','⭐','🌌'], cosmos:['🚀','🪐','👾','🛰️'], kawaii:['🐱','🐰','🦝','🐹'], cyber:['🤖','🦾','💾','📡'],
-cream:['🐄','🧈','🥛','🥐'], sky:['☁️','🌈','🌤️','🪁'], rose:['🌹','💌','💐','🎀'], blueberry:['🪺','🦉','🧿','🦤'], melon:['🍈','🥒','🐊','🦎'], strawberry:['🍓','🍰','🍬','🍡'], vanilla:['🍦','🍨','🥄','🧇'], plum:['🍏','🦚','🦜','🪶'], pistachio:['🥜','🌰','🌻','🐿️'], cocoa:['🍫','☕','🫘','🐻'], apricot:['🦒','🦓','🐆','🦩'], hydrangea:['💠','🪻','🪷','🦢'], peachtea:['🧋','🫖','🍶','🍸'], oceanfoam:['🌊','🐚','🛟','⛵'], sunset:['🌅','🏜️','🌄','🌇'], polar:['❄️','🐻‍❄️','🛷','🧣'], honey:['🐜','🪲','🕸️','🐌'], lilac:['🦇','🪄','🧙','👻'], sakuradusk:['🌃','🌠','🛸','🗼'], seaglass:['🪼','🪿','🦞','🧜‍♀️'], berrycream:['🧁','🍧','🍩','🥧']
+cream:['🐄','🧈','🥛','🥐'], sky:['☁️','🌈','🌤️','🪁'], rose:['🌹','💌','💐','🎀'], blueberry:['🪺','🦉','🧿','🦤'], melon:['🍈','🥒','🐊','🦎'], strawberry:['🍓','🍰','🍬','🍡'], vanilla:['🍦','🍨','🥄','🧇'], plum:['🍏','🦚','🦜','🪶'], pistachio:['🥜','🌰','🌻','🐿️'], cocoa:['🍫','☕','🫘','🐻'], apricot:['🦒','🦓','🐆','🦩'], hydrangea:['💠','🪻','🪷','🦢'], peachtea:['🧋','🫖','🍶','🍸'], oceanfoam:['🌊','🐚','🛟','⛵'], sunset:['🌅','🏜️','🌄','🌇'], polar:['❄️','🐻‍❄️','🛷','🧣'], honey:['🐜','🪲','🕸️','🐌'], lilac:['🦇','🪄','🧙','👻'], sakuradusk:['🌃','🌠','🛸','🗼'], seaglass:['🪼','🪿','🦞','🧜‍♀️'], berrycream:['🧁','🍧','🍩','🥧'], panda:['🐼','🎋','🐼','🌿','🐼','🪴','🐼','🍃']
 };
 Object.entries(THEME_CARD_FRIENDS).forEach(([id, friends]) => {
 const theme = THEMES[id]; if (!theme) return;
@@ -2139,6 +2139,22 @@ const colors = {'--bg-app':C.bg,'--card-bg':C.card,'--ink':C.ink,'--mute':C.mute
 if (dark) { colors['--warn']=C.warn; colors['--warn-bg']=f(40,30,17); }
 return { id, name, mascot:friends[0], friends, dark:!!dark, colors };
 }
+/* Panda Grove: a soft bamboo garden palette with playful panda mascots. */
+THEMES.panda = {
+  ...createHueTheme(['panda','แพนด้าป่าไผ่',['🐼','🎋','🐼','🌿'],142,38]),
+  mascot:'🐼', friends:['🐼','🎋','🐼','🌿','🐼'],
+  colors:{
+    '--bg-app':'#f3f8ee','--card-bg':'#fffefa','--ink':'#35463b','--mute':'#788878','--line':'#dce8d5',
+    '--acc':'#6f9a70','--acc-hover':'#527c55','--acc-light':'#eaf3e5','--acc-glow':'rgba(111,154,112,.22)',
+    '--theme-soft':'#eaf3e5','--theme-chip':'#d6e8cf','--theme-input':'#fcfff9',
+    '--theme-wash':'rgba(184,216,169,.34)','--theme-wash-2':'rgba(247,232,196,.34)',
+    '--theme-story-1':'#dcebd2','--theme-story-2':'#f5f0dc','--theme-story-3':'#e8f0e3',
+    '--theme-top-bg':'rgba(250,255,247,.96)','--theme-nav-bg':'rgba(250,255,248,.97)',
+    '--theme-shadow':'rgba(65,95,61,.14)','--theme-border-strong':'#c5d9bb','--theme-warn-ink':'#8c672e',
+    '--theme-mascot-a':'"🐼  🎋  🐼"','--theme-mascot-b':'"🎋  🐼  🌿"',
+    '--bad':'#c56f78','--bad-bg':'#fff0f2','--ok':'#5d9873','--ok-bg':'#eaf5e9'
+  }
+};
 const NEW_LIGHT_THEMES = [["koala","โคอาล่า",["🐨","🍀","🌳","🎋"],150,30],["fox","จิ้งจอก",["🦊","🍂","🍁","🍘"],22,78],["piglet","หมูน้อย",["🐷","🥓","🍖","🌷"],340,70],["tigercub","เสือน้อย",["🐯","🥕","🎾","🔔"],36,82],["lioncub","สิงโตน้อย",["🦁","👑","🌞","🌼"],48,80],["monkey","ลิงน้อย",["🐵","🍌","🥥","🌴"],28,42],["puppy","ลูกหมา",["🐶","🦴","🐾","🪀"],205,60],["chick","ลูกเจี๊ยบ",["🐣","🥚","🍳","🥞"],56,85],["hedgehog","เม่นน้อย",["🦔","🍄","🍎","🍐"],8,55],["sloth","สลอธ",["🦥","🥝","🌲","🫒"],95,35],["otter","นากน้อย",["🦦","🦪","🪨","💧"],188,55],["lamb","ลูกแกะ",["🐑","🧶","🧵","🪡"],270,40],["llama","ลามะ",["🦙","🌵","🏔️","🪅"],168,55],["elephant","ช้างน้อย",["🐘","🎈","🎪","🍿"],222,38],["ladybug","เต่าทอง",["🐞","🌺","🍒","🍅"],355,72],["mouse","หนูน้อย",["🐭","🧀","🍪","🥨"],300,30],["deer","กวางน้อย",["🦌","🎄","⛄","🌟"],135,40],["pony","ม้าโพนี่",["🐴","🎠","🏇","🎡"],315,60],["kangaroo","จิงโจ้",["🦘","🥊","🪃","🏉"],75,45],["hippo","ฮิปโป",["🦛","🛁","🧼","🪣"],255,45]];
 const NEW_DARK_THEMES = [["wolfnight","หมาป่ายามค่ำ",["🐺","🌕","🔮","✨"],225,60],["skunkdark","สกั๊งค์มืด",["🦨","🎩","🖤","🌫️"],320,55],["badgerdusk","แบดเจอร์ราตรี",["🦡","🕯️","📖","📜"],28,55],["trexnight","ไดโนราตรี",["🦖","🌋","🔥","💥"],140,45],["alien","เอเลี่ยนอวกาศ",["👽","🔭","☄️","🧪"],165,65],["pumpkin","ฟักทองฮาโลวีน",["🎃","🕷️","🍭","🥮"],25,85],["ninja","นินจาเงา",["🥷","🎴","🏯","🌀"],350,65],["genie","จินนี่ราตรี",["🧞","🪔","💎","🏺"],270,55],["beaver","บีเวอร์ไนท์",["🦫","🪵","🌉","💦"],195,50],["dragongold","มังกรทอง",["🐉","🏮","🀄","💫"],45,70]];
 NEW_LIGHT_THEMES.forEach(s => { THEMES[s[0]] = createHueTheme(s); });
@@ -6154,5 +6170,49 @@ body {
 }
 </style>
 
+
+<style id="panda-grove-theme-art">
+/* Panda Grove: extra bamboo-garden atmosphere and cheerful panda stickers. */
+body[data-theme="panda"] #app{
+  background:
+    radial-gradient(ellipse at 4% 8%,rgba(180,211,161,.28),transparent 32%),
+    radial-gradient(ellipse at 96% 18%,rgba(246,226,177,.30),transparent 30%),
+    radial-gradient(ellipse at 90% 94%,rgba(193,218,181,.25),transparent 34%),
+    var(--bg-app)!important;
+}
+body[data-theme="panda"] #app::before{
+  content:"🐼  🎋  🐼"!important;right:10px;top:86px;font-size:clamp(27px,5vw,46px);letter-spacing:3px;
+  opacity:.16!important;filter:none!important;transform:rotate(7deg);
+}
+body[data-theme="panda"] #app::after{
+  content:"🎋  🐼  🌿"!important;left:8px;bottom:104px;font-size:clamp(25px,4.5vw,40px);letter-spacing:2px;
+  opacity:.15!important;filter:none!important;transform:rotate(-8deg);
+}
+body[data-theme="panda"] .top{background:rgba(250,255,247,.94)!important;border-color:#dce8d5!important}
+body[data-theme="panda"] .brand-badge,
+body[data-theme="panda"] .lg-icon,
+body[data-theme="panda"] .boot-mascot{
+  background:linear-gradient(145deg,#e1efd8,#fff1d4)!important;color:#527c55!important;border:1px solid #cfe0c5!important;
+}
+body[data-theme="panda"] .login-story{
+  background:radial-gradient(circle at 85% 18%,rgba(255,255,255,.38) 0 7%,transparent 7.5%),
+    linear-gradient(145deg,#dcebd2 0%,#edf1dc 52%,#f7ead1 100%)!important;
+}
+body[data-theme="panda"] .story-copy h2,body[data-theme="panda"] .story-brand,
+body[data-theme="panda"] .story-copy p,body[data-theme="panda"] .eyebrow{color:#405b45!important}
+body[data-theme="panda"] .story-brand-sub{color:#718873!important}
+body[data-theme="panda"] .card-mascot{
+  width:29px;height:29px;border-radius:12px;background:linear-gradient(145deg,#fffefa,#eaf3e5)!important;
+  border:1px solid #d5e4cc!important;opacity:.96!important;font-size:19px;
+  box-shadow:0 3px 9px rgba(65,95,61,.13)!important;filter:none!important;
+}
+body[data-theme="panda"] .theme-opt.active{outline-color:#6f9a70!important}
+body[data-theme="panda"] .jp-card,body[data-theme="panda"] .dash-card,body[data-theme="panda"] .card{border-color:#dce8d5}
+body[data-theme="panda"] .btn:not(.sec),body[data-theme="panda"] .fab{box-shadow:0 5px 13px rgba(92,135,87,.18)}
+@media(max-width:680px){
+  body[data-theme="panda"] #app::before{top:78px;right:4px;font-size:27px}
+  body[data-theme="panda"] #app::after{bottom:100px;left:4px;font-size:25px}
+}
+</style>
 </body>
 </html>
