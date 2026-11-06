@@ -814,7 +814,7 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 .hist-more{display:flex;flex-direction:column;gap:6px;align-items:stretch;margin:14px 0 24px}.hist-more small{text-align:center;color:var(--mute);font-size:12px}.hist-more .ih-more{width:100%}
 @media(max-width:1099px){.history-item,.ih-item{content-visibility:auto;contain-intrinsic-size:auto 92px}}
 
-.backup-admin-card{grid-column:1/-1}.backup-admin-card h3{margin:0 0 8px}.backup-admin-summary{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash);margin:12px 0}.backup-admin-summary small,.backup-version-info small{color:var(--mute);font-size:12px}.backup-admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.backup-admin-list{display:grid;gap:8px}.backup-version-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px}.backup-version-info{display:grid;gap:4px;min-width:0}.backup-version-info b{font-size:13px}.backup-version-info small{overflow-wrap:anywhere}@media(max-width:420px){.backup-version-row{align-items:flex-start;flex-direction:column}.backup-version-row .btn{width:100%}}
+.backup-admin-card{grid-column:1/-1}.backup-admin-card .disclosure-inner{display:grid;gap:10px}.backup-admin-summary{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash)}.backup-admin-summary small,.backup-version-info small{color:var(--mute);font-size:12px}.backup-admin-actions{display:flex;gap:8px;flex-wrap:wrap}.backup-admin-list{display:grid;gap:9px}.backup-version-row{display:grid;gap:9px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}.backup-version-info{display:grid;gap:4px;min-width:0}.backup-version-info b{font-size:13px}.backup-version-info small{overflow-wrap:anywhere}.backup-branch-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}.backup-branch-actions .btn{width:100%;white-space:normal;padding:8px 6px;min-height:40px;font-size:11px}.backup-version-tools{display:flex;gap:8px;flex-wrap:wrap}.backup-version-tools .btn{min-width:110px}@media(max-width:420px){.backup-branch-actions{grid-template-columns:1fr}.backup-version-tools .btn{width:100%}}
 </style>
 <style id="smooth-motion">
 html{-webkit-text-size-adjust:100%}
@@ -3543,7 +3543,8 @@ const items = Array.isArray(result.items) ? result.items : [];
 list.innerHTML = items.length ? items.map(item => {
 const bytes = Number(item.size_bytes) || 0;
 const size = bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(bytes / 1024)) + ' KB';
-return '<div class="backup-version-row"><div class="backup-version-info"><b>' + esc(formatBackupDate(item.saved_at)) + '</b><small>' + esc(backupReasonText(item.reason)) + ' · ' + (Number(item.branch_count) || 0) + '/3 สาขา · ' + size + '</small></div><button type="button" class="btn sm sec" data-admin-restore="' + esc(item.id) + '">กู้คืนเวอร์ชันนี้</button></div>';
+const branchButtons = (Array.isArray(result.branches) ? result.branches : []).map(branch => '<button type="button" class="btn sm sec" data-admin-restore-branch="' + esc(item.id) + '" data-branch-id="' + esc(branch.id) + '" data-branch-name="' + esc(branch.name) + '">กู้คืน ' + esc(branch.name) + '</button>').join('');
+return '<div class="backup-version-row"><div class="backup-version-info"><b>' + esc(formatBackupDate(item.saved_at)) + '</b><small>' + esc(backupReasonText(item.reason)) + ' · ' + (Number(item.branch_count) || 0) + '/3 สาขา · ' + size + '</small></div><div class="backup-branch-actions">' + branchButtons + '</div><div class="backup-version-tools"><button type="button" class="btn sm sec" data-admin-download="' + esc(item.id) + '">⬇ ดาวน์โหลดไฟล์ Backup</button></div></div>';
 }).join('') : '<small class="dash-empty-note">ยังไม่มี Backup ในช่วง 12 ชั่วโมงล่าสุด</small>';
 } catch (error) {
 status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
@@ -3568,16 +3569,43 @@ button.disabled = false;
 button.textContent = oldText;
 }
 }
-async function restoreAdminBackup(backupId, button) {
+async function downloadAdminBackup(backupId, button) {
 if (!isBackupOwner() || !cloudToken || !backupId || !button) return;
-if (!confirm('ยืนยันกู้คืน Backup เวอร์ชันนี้ใช่ไหม? ข้อมูลปัจจุบันของทั้ง 3 สาขาจะถูกแทนที่ และระบบจะสร้าง Backup ปัจจุบันเก็บไว้ก่อนกู้คืน')) return;
+button.disabled = true;
+const oldText = button.textContent;
+button.textContent = 'กำลังเตรียมไฟล์…';
+try {
+const result = await cloudRpc('api_inventory_backup_export', { p_token: cloudToken, p_backup_id: backupId });
+if (!result?.ok || !result.backup?.data) throw new Error(result?.error || 'ดาวน์โหลด Backup ไม่สำเร็จ');
+const payload = JSON.stringify(result.backup, null, 2);
+const blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
+const url = URL.createObjectURL(blob);
+const stamp = String(result.backup.saved_at || new Date().toISOString()).replace(/[:.]/g, '-');
+const link = document.createElement('a');
+link.href = url;
+link.download = 'stokinventory-backup-' + stamp + '.json';
+document.body.appendChild(link);
+link.click();
+link.remove();
+setTimeout(() => URL.revokeObjectURL(url), 1500);
+toast('เตรียมไฟล์ Backup สำหรับบันทึกลงอุปกรณ์แล้ว');
+} catch (error) {
+toast(error.message || 'ดาวน์โหลด Backup ไม่สำเร็จ', 1);
+} finally {
+button.disabled = false;
+button.textContent = oldText;
+}
+}
+async function restoreAdminBackup(backupId, branchId, branchName, button) {
+if (!isBackupOwner() || !cloudToken || !backupId || !branchId || !button) return;
+if (!confirm('ยืนยันกู้คืนข้อมูลของ ' + branchName + ' จาก Backup เวอร์ชันนี้ใช่ไหม? ระบบจะเปลี่ยนเฉพาะสาขานี้เท่านั้น สาขาอื่นจะไม่ถูกแก้ไข และจะสร้าง Backup ปัจจุบันครบทุกสาขาเก็บไว้ก่อนกู้คืน')) return;
 button.disabled = true;
 try {
 await syncQueue;
-const result = await cloudRpc('api_inventory_backup_restore', { p_token: cloudToken, p_backup_id: backupId });
+const result = await cloudRpc('api_inventory_backup_restore_branch', { p_token: cloudToken, p_backup_id: backupId, p_branch_id: branchId });
 if (!result?.ok) throw new Error(result?.error || 'กู้คืนข้อมูลไม่สำเร็จ');
-toast('กู้คืนข้อมูลครบทั้ง 3 สาขาแล้ว กรุณาโหลดข้อมูลใหม่');
-await refreshCloudState();
+toast('กู้คืน ' + (result.branch_name || branchName) + ' สำเร็จ สาขาอื่นไม่เปลี่ยนแปลง');
+if (String(currentBranch?.id) === String(branchId)) await refreshCloudState();
 await refreshAdminBackups();
 } catch (error) {
 toast(error.message || 'กู้คืนข้อมูลไม่สำเร็จ', 1);
@@ -3617,12 +3645,14 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="sticker-level-box runner-toggle-box"><div class="runner-toggle-row"><div><b>🏃 ตัวการ์ตูนวิ่งบนแถบเมนูล่าง</b><p class="settings-hint">ตัวการ์ตูนจิ๋วตามธีมที่เลือกวิ่งไปกลับบนขอบบนของแถบเมนูด้านล่าง ปิดได้ถ้าอยากให้เครื่องลื่นขึ้น</p></div><button type="button" class="runner-switch ${uiTopRunners?'on':''}" id="topRunnerSwitch" role="switch" aria-checked="${uiTopRunners}" aria-label="เปิดปิดตัวการ์ตูนวิ่งบนแถบเมนู"></button></div></div>
       <div class="sticker-level-box"><b>🧸 จำนวนสติ๊กเกอร์การ์ตูน</b><p class="settings-hint">ลดจำนวนสติ๊กเกอร์ถ้าเครื่องกระตุกหรือช้า ค่าเริ่มต้น 100% ระบบจำค่านี้ไว้ในอุปกรณ์นี้</p><div class="text-scale-presets sticker-level-presets" id="stickerLevelPresets" role="group" aria-label="จำนวนสติ๊กเกอร์">${STK_LEVELS.map(v => `<button type="button" class="btn sm sec text-scale-option" data-sticker-level="${v}" aria-pressed="${uiStickerLevel===v}">${v}%</button>`).join('')}</div></div>
     </div></div></div>
-    ${canManageBackup ? `<div class="dash-card backup-admin-card" id="backupAdminCard">
-      <h3>🗂️ Backup ข้อมูล (ทุกสาขา)</h3>
-      <p class="settings-hint">สำรองข้อมูลครบทั้ง 3 สาขาอัตโนมัติทุก 1 ชั่วโมง เก็บย้อนหลัง 12 ชั่วโมง เฉพาะบัญชี kiangkai เท่านั้น</p>
-      <div class="backup-admin-summary"><b id="adminBackupStatus" role="status" aria-live="polite">กำลังโหลดสถานะ Backup…</b><small id="adminBackupBranches">ตรวจสอบรายชื่อสาขา…</small></div>
-      <div class="backup-admin-actions"><button type="button" class="btn sm" id="adminBackupNow">สำรองข้อมูลตอนนี้</button><button type="button" class="btn sm sec" id="adminBackupRefresh">รีเฟรชรายการ</button></div>
-      <div class="backup-admin-list" id="adminBackupList"><small class="dash-empty-note">กำลังโหลดรายการสำรอง…</small></div>
+    ${canManageBackup ? `<div class="dash-card disclosure-card backup-admin-card" id="backupAdminCard">
+      <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="adminBackupDisclosurePanel"><span>🗂️ Backup ข้อมูล (ทุกสาขา)</span><span class="disclosure-chevron" aria-hidden="true"></span></button>
+      <div class="disclosure-panel" id="adminBackupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
+        <p class="settings-hint">สำรองข้อมูลครบทั้ง 3 สาขาอัตโนมัติทุก 1 ชั่วโมง เก็บย้อนหลัง 12 ชั่วโมง เฉพาะบัญชี kiangkai เท่านั้น</p>
+        <div class="backup-admin-summary"><b id="adminBackupStatus" role="status" aria-live="polite">กำลังโหลดสถานะ Backup…</b><small id="adminBackupBranches">ตรวจสอบรายชื่อสาขา…</small></div>
+        <div class="backup-admin-actions"><button type="button" class="btn sm" id="adminBackupNow">สำรองข้อมูลตอนนี้</button><button type="button" class="btn sm sec" id="adminBackupRefresh">รีเฟรชรายการ</button></div>
+        <div class="backup-admin-list" id="adminBackupList"><small class="dash-empty-note">กำลังโหลดรายการสำรอง…</small></div>
+      </div></div>
     </div>` : ''}
     <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
@@ -3819,8 +3849,10 @@ refreshAdminBackups();
 if ($('#adminBackupRefresh')) $('#adminBackupRefresh').onclick = refreshAdminBackups;
 if ($('#adminBackupNow')) $('#adminBackupNow').onclick = e => createAdminBackup(e.currentTarget);
 if ($('#adminBackupList')) $('#adminBackupList').onclick = e => {
-const button = e.target.closest('[data-admin-restore]');
-if (button) restoreAdminBackup(button.dataset.adminRestore, button);
+const restoreButton = e.target.closest('[data-admin-restore-branch]');
+const downloadButton = e.target.closest('[data-admin-download]');
+if (restoreButton) restoreAdminBackup(restoreButton.dataset.adminRestoreBranch, restoreButton.dataset.branchId, restoreButton.dataset.branchName, restoreButton);
+else if (downloadButton) downloadAdminBackup(downloadButton.dataset.adminDownload, downloadButton);
 };
 }
 if ($('#textScalePresets')) $('#textScalePresets').onclick = e => {
