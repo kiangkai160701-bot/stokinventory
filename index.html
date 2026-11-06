@@ -3573,7 +3573,6 @@ async function downloadAdminBackup(backupId, branchId, branchName, button) {
 if (!isBackupOwner() || !cloudToken || !backupId || !branchId || !button) return;
 button.disabled = true;
 const oldText = button.innerHTML;
-button.disabled = true;
 try {
 const result = await cloudRpc('api_inventory_backup_export', { p_token: cloudToken, p_backup_id: backupId });
 if (!result?.ok || !result.backup?.data) throw new Error(result?.error || 'ดาวน์โหลด Backup ไม่สำเร็จ');
