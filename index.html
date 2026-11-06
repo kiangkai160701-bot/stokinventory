@@ -1599,6 +1599,40 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .sticker-level-presets .text-scale-option{padding-left:0;padding-right:0}
 @media(prefers-reduced-motion:reduce){.jp,.jp.open,.chp,.chp.open{transition-duration:.01ms!important}}
 </style>
+<style id="topRunnerStyle">
+/* ตัวการ์ตูนตัวเล็กวิ่งบนขอบบนของแถบเมนูด้านล่าง (ไม่รับการกด ไม่ดันปุ่ม) */
+.top-runway{position:fixed;left:30px;right:30px;top:auto;bottom:calc(12px + 44px + env(safe-area-inset-bottom,0px));width:auto;height:20px;overflow:hidden;pointer-events:none!important;z-index:41;--rn-dist:0px;--rn-dur:12s;contain:layout paint style;will-change:transform;transform:translateZ(0)}
+.top-runway[hidden]{display:none}
+.top-runway *{pointer-events:none!important}
+.rn-train{position:absolute;left:0;bottom:0;display:block;height:17px;animation:rnRun var(--rn-dur) linear infinite;will-change:transform}
+.rn-flip{display:flex;gap:5px;height:17px;animation:rnFlip var(--rn-dur) linear infinite}
+.rn{--ph:calc(var(--i) * -.11s);position:relative;width:14px;height:17px;flex:0 0 14px}
+.rn-bob{position:absolute;inset:0;transform-origin:50% 100%;animation:rnBob .34s ease-in-out infinite;animation-delay:var(--ph)}
+.rn-face{position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:11px;line-height:1;font-family:var(--font),"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.rn-leg{position:absolute;left:50%;top:9.5px;width:2.5px;height:6px;margin-left:-1.25px;border-radius:2px;background:var(--acc-hover);transform-origin:50% 1px;animation:rnLeg .34s ease-in-out infinite alternate}
+.rn-leg b{position:absolute;left:-.5px;bottom:-1.2px;width:5px;height:2.4px;border-radius:2px 3px 1px 1px;background:var(--ink);opacity:.82}
+.rn-leg.l1{animation-delay:var(--ph)}
+.rn-leg.l2{animation-delay:calc(-.34s + var(--ph))}
+.rn-arm{position:absolute;top:6.5px;width:2px;height:4.5px;border-radius:2px;background:var(--acc);transform-origin:50% 1px;animation:rnArm .34s ease-in-out infinite alternate}
+.rn-arm.a1{left:0;animation-delay:calc(-.34s + var(--ph))}
+.rn-arm.a2{right:0;animation-delay:var(--ph)}
+.rn-dust{position:absolute;left:-1px;bottom:0;width:3px;height:3px;border-radius:50%;background:var(--theme-border-strong);opacity:0;animation:rnDust .34s ease-out infinite;animation-delay:var(--ph)}
+@keyframes rnRun{0%{transform:translateX(0)}50%{transform:translateX(var(--rn-dist))}100%{transform:translateX(0)}}
+@keyframes rnFlip{0%,49.99%{transform:scaleX(1)}50%,99.99%{transform:scaleX(-1)}100%{transform:scaleX(1)}}
+@keyframes rnBob{0%,100%{transform:translateY(0) rotate(5deg)}50%{transform:translateY(-1.5px) rotate(-1deg)}}
+@keyframes rnLeg{0%{transform:rotate(-52deg) scaleY(1)}50%{transform:rotate(0deg) scaleY(.8)}100%{transform:rotate(52deg) scaleY(1)}}
+@keyframes rnArm{0%{transform:rotate(-45deg)}100%{transform:rotate(45deg)}}
+@keyframes rnDust{0%{opacity:.55;transform:translateX(0) scale(.4)}100%{opacity:0;transform:translateX(-5px) scale(1.2)}}
+html.formal-theme .top-runway{display:none!important}
+.runner-toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.runner-toggle-row>div{min-width:0}
+.runner-toggle-row .settings-hint{margin:3px 0 0}
+.runner-switch{flex:0 0 auto;position:relative;width:48px;height:28px;padding:0;border:1px solid var(--line);border-radius:99px;background:var(--theme-soft);cursor:pointer;touch-action:manipulation;transition:background-color .25s ease,border-color .25s ease}
+.runner-switch::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--card-bg);box-shadow:0 2px 5px var(--theme-shadow);transition:transform .25s cubic-bezier(.2,.8,.25,1)}
+.runner-switch.on{background:var(--acc);border-color:var(--acc)}
+.runner-switch.on::after{transform:translateX(20px)}
+.runner-switch:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+</style>
 </head>
 <body data-theme="teal">
 <div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
@@ -1651,6 +1685,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
   <main id="main"></main>
   <!-- LUXURY MOBILE BOTTOM TAB BAR -->
   <nav class="nav" id="nav"></nav>
+  <div class="top-runway" id="topRunway" aria-hidden="true" hidden></div>
 </div>
 <div id="modal"></div>
 <div class="toast" id="toast"></div>
@@ -2105,6 +2140,43 @@ const merged = base.concat(extra);
 THEME_CARD_FRIENDS[id] = merged; t.friends = merged;
 });
 })();
+let uiTopRunners = store.get('inv_top_runners', true) !== false;
+const RUNNER_LANE_H = 20;
+function sizeTopRunners() {
+const lane = document.getElementById('topRunway'), nav = document.getElementById('nav'); if (!lane || !nav) return;
+const r = nav.getBoundingClientRect();
+if (!r.width || !r.height) { lane.style.visibility = 'hidden'; return; }
+lane.style.visibility = '';
+const inset = 16;
+lane.style.top = 'auto';
+lane.style.width = 'auto';
+lane.style.left = (14 + inset) + 'px';
+lane.style.right = (14 + inset) + 'px';
+lane.style.bottom = 'calc(12px + env(safe-area-inset-bottom,0px) + ' + Math.max(0, Math.round(nav.offsetHeight) - 1) + 'px)';
+const train = lane.querySelector('.rn-train'); if (!train) return;
+const dist = Math.max(0, lane.clientWidth - train.offsetWidth);
+lane.style.setProperty('--rn-dist', dist + 'px');
+lane.style.setProperty('--rn-dur', Math.min(34, Math.max(7, dist / 24)).toFixed(1) + 's');
+}
+function renderTopRunners() {
+const lane = document.getElementById('topRunway'); if (!lane) return;
+const theme = THEMES[currentTheme];
+const friends = ((theme && (THEME_CARD_FRIENDS[currentTheme] || theme.friends)) || []).filter(Boolean).slice(0, 3);
+const on = !!(uiTopRunners && theme && !theme.formal && friends.length);
+lane.hidden = !on;
+lane.innerHTML = on ? `<div class="rn-train"><div class="rn-flip">${friends.map((e, i) => `<span class="rn" style="--i:${i}"><span class="rn-bob"><i class="rn-arm a1"></i><i class="rn-arm a2"></i><i class="rn-leg l1"><b></b></i><i class="rn-leg l2"><b></b></i><span class="rn-face">${e}</span></span><i class="rn-dust"></i></span>`).join('')}</div></div>` : '';
+if (on) {
+sizeTopRunners();
+if (!window._rnBound) {
+window._rnBound = true;
+const nav = document.getElementById('nav');
+if ('ResizeObserver' in window && nav) new ResizeObserver(() => sizeTopRunners()).observe(nav);
+window.addEventListener('resize', sizeTopRunners, { passive: true });
+window.addEventListener('orientationchange', () => setTimeout(sizeTopRunners, 250), { passive: true });
+if (window.visualViewport) window.visualViewport.addEventListener('resize', sizeTopRunners, { passive: true });
+}
+}
+}
 let currentTheme = store.get('inv_theme', 'sakura');
 function applyTheme(id) {
 const aliases = { teal:'sakura', indigo:'lavender', emerald:'peach', ruby:'ocean' };
@@ -2117,6 +2189,7 @@ document.documentElement.classList.toggle('dark-theme', !!theme.dark);
 Object.entries(theme.colors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
 if (theme.friends.length) document.querySelectorAll('.sushi-friend').forEach((friend, index) => { const first = friend.childNodes[0]; if (first?.nodeType === Node.TEXT_NODE) first.nodeValue = theme.friends[index % theme.friends.length]; });
 document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.classList.contains('theme-emoji')) return; mark.textContent = theme.mascot; });
+try { renderTopRunners(); } catch {}
 }
 applyTheme(currentTheme);
 let me = null, tab = 'stock', pageDirection = 'next', F = { q: '', cat: '', sort: 'name' };
@@ -3469,6 +3542,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
       <div class="theme-carousel-footer"><small><span id="themePageNumber">1</span> / ${themePages.length}</small><div class="theme-page-dots" id="themePageDots" role="group" aria-label="หน้าธีม">${themePages.map((_,index) => `<button type="button" class="theme-page-dot ${index===0?'active':''}" data-theme-page-target="${index}" aria-label="ไปยังชุดธีมที่ ${index+1}" aria-current="${index===0?'true':'false'}"></button>`).join('')}</div></div>
 
+      <div class="sticker-level-box runner-toggle-box"><div class="runner-toggle-row"><div><b>🏃 ตัวการ์ตูนวิ่งบนแถบเมนูล่าง</b><p class="settings-hint">ตัวการ์ตูนจิ๋วตามธีมที่เลือกวิ่งไปกลับบนขอบบนของแถบเมนูด้านล่าง ปิดได้ถ้าอยากให้เครื่องลื่นขึ้น</p></div><button type="button" class="runner-switch ${uiTopRunners?'on':''}" id="topRunnerSwitch" role="switch" aria-checked="${uiTopRunners}" aria-label="เปิดปิดตัวการ์ตูนวิ่งบนแถบเมนู"></button></div></div>
       <div class="sticker-level-box"><b>🧸 จำนวนสติ๊กเกอร์การ์ตูน</b><p class="settings-hint">ลดจำนวนสติ๊กเกอร์ถ้าเครื่องกระตุกหรือช้า ค่าเริ่มต้น 100% ระบบจำค่านี้ไว้ในอุปกรณ์นี้</p><div class="text-scale-presets sticker-level-presets" id="stickerLevelPresets" role="group" aria-label="จำนวนสติ๊กเกอร์">${STK_LEVELS.map(v => `<button type="button" class="btn sm sec text-scale-option" data-sticker-level="${v}" aria-pressed="${uiStickerLevel===v}">${v}%</button>`).join('')}</div></div>
     </div></div></div>
     <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
@@ -3743,6 +3817,12 @@ updatePageMascots();
 store.set('inv_theme', currentTheme);
 document.querySelectorAll('.theme-opt').forEach(o => { const selected = o.dataset.th === currentTheme; o.classList.toggle('active', selected); o.setAttribute('aria-pressed', selected); });
 toast(`เปลี่ยนเป็นธีม${THEMES[currentTheme].name}แล้ว`);
+};
+$('#topRunnerSwitch').onclick = e => {
+uiTopRunners = !uiTopRunners; store.set('inv_top_runners', uiTopRunners);
+e.currentTarget.classList.toggle('on', uiTopRunners); e.currentTarget.setAttribute('aria-checked', uiTopRunners);
+renderTopRunners();
+toast(uiTopRunners ? 'เปิดตัวการ์ตูนวิ่งบนแถบเมนูแล้ว' : 'ปิดตัวการ์ตูนวิ่งบนแถบเมนูแล้ว');
 };
 const themePicker = $('#themePicker'), themePageDots = $('#themePageDots');
 const syncThemePageIndicator = () => {
