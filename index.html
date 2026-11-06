@@ -6110,6 +6110,48 @@ body {
   .ih-list > .ih-item { contain-intrinsic-size:auto 86px; }
   .dash-rank-scroll > .dash-rank-row { contain-intrinsic-size:auto 42px; }
 }
+
+/* Compact mobile job calendar: keep date and staff labels grouped at the top. */
+@media(max-width:680px){
+  .jp-grid{
+    align-content:start!important;
+    grid-auto-rows:min-content!important;
+    row-gap:7px!important;
+  }
+  .jp-d{
+    min-height:50px!important;
+    height:auto!important;
+    justify-content:flex-start!important;
+    align-items:center!important;
+    gap:2px!important;
+    padding:4px 1px 3px!important;
+    border-radius:10px!important;
+  }
+  .jp-d b{
+    display:block;
+    margin:0!important;
+    line-height:1.05!important;
+    font-size:14px!important;
+  }
+  .jp-nm{
+    width:100%!important;
+    padding:0 1px!important;
+    gap:2px!important;
+  }
+  .jp-nm em{
+    min-height:0!important;
+    padding:1px 2px!important;
+    font-size:8.5px!important;
+    line-height:1.15!important;
+    border-radius:5px!important;
+  }
+}
+@media(max-width:380px){
+  .jp-grid{column-gap:3px!important;row-gap:6px!important}
+  .jp-d{min-height:48px!important;padding:3px 0 2px!important}
+  .jp-d b{font-size:13px!important}
+  .jp-nm em{font-size:8px!important}
+}
 </style>
 
 </body>
