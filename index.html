@@ -1588,7 +1588,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-report-grid small{display:block;color:var(--mute);font-size:10px}.jp-report-grid b{display:block;margin-top:2px;font-size:20px;font-variant-numeric:tabular-nums}
 .jp-period-foot{margin-top:9px;color:var(--mute);font-size:10.5px;line-height:1.5}
 .jp-period-status{margin-top:10px;padding:9px 10px;border-radius:10px;background:var(--theme-wash);color:var(--ink);font-size:11px;line-height:1.5}
-.jp-period-action{width:100%;margin-top:8px}
+.jp-period-action{width:100%;margin-top:8px}.jp-period-action:disabled{opacity:.48;cursor:not-allowed;box-shadow:none}
 .jp-report-person{padding:11px 12px}
 .jp-report-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
 .jp-report-head b{min-width:0;overflow-wrap:anywhere;font-size:13.5px}
@@ -5014,7 +5014,7 @@ if(window.scrollY>0)window.scrollTo({top:0,behavior});
 queue();
 })();
 // ===== เมนูด้านข้าง + จ๊อบพนักงาน =====
-var JOBS_CLOUD = true; // ฐานข้อมูล (api_sync) รองรับฟิลด์ jobs แล้ว (ต้องรัน supabase-jobs-sync-migration.sql ก่อน)
+var JOBS_CLOUD = true; // ฐานข้อมูล api_sync รองรับฟิลด์ jobs และสรุปรอบวีคแล้ว
 var J = null;
 const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '📝' }, late: { l: 'สาย', e: '⏰' }, absent: { l: 'ขาด', e: '❌' } };
 const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -5137,6 +5137,7 @@ function jPeriodAction() {
   }
   if (range.endKey > jToday()) return toast('ยังปิดรอบไม่ได้ ต้องรอให้ครบวันที่ ' + jFmt(range.endKey, { day: 'numeric', month: 'long' }), 1);
   const names = jStaff(), staff = {}, days = {};
+  if (!names.length) return toast('ยังไม่ได้เลือกพนักงานในจ๊อบ', 1);
   names.forEach(name => { staff[name] = jRangeStat(name, range); });
   const day = pk(range.startKey), lastDay = pk(range.endKey);
   while (day <= lastDay) {
@@ -5179,10 +5180,10 @@ function jRender() {
       '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
       '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
       '<div class="jp-report-grid"><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ปกติ</small><b>' + total.normal + '</b></div></div>' +
-      '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '</div>' +
+      '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '<br>ปกติ = ไม่มีการบันทึกสถานะลา สาย หรือขาด · ไม่นับวันหยุดร้านและวันหยุดประจำ</div>' +
       (saved && saved.closedAt ? '<div class="jp-period-status">🔒 ปิดรอบแล้ว · ผู้ตรวจสอบ ' + esc(saved.closedBy || '-') + ' · ' + esc(new Date(saved.closedAt).toLocaleString('th-TH')) + '</div>' :
         '<div class="jp-period-status">รอบนี้ยังเปิดอยู่ · ตัวเลขคำนวณจากข้อมูลล่าสุด</div>') +
-      '<button type="button" class="jp-btn jp-period-action" data-period-action>' + (saved && saved.closedAt ? 'เปิดรอบอีกครั้ง' : range.endKey <= jToday() ? '🔒 ปิดรอบวีคและบันทึกผล' : 'รอให้ครบช่วงก่อนปิดรอบ') + '</button>' +
+      '<button type="button" class="jp-btn jp-period-action" data-period-action' + (!(saved && saved.closedAt) && range.endKey > jToday() ? ' disabled aria-disabled="true"' : '') + '>' + (saved && saved.closedAt ? 'เปิดรอบอีกครั้ง' : range.endKey <= jToday() ? '🔒 ปิดรอบวีคและบันทึกผล' : 'รอให้ครบช่วงก่อนปิดรอบ') + '</button>' +
       '</div>';
     if (!all.length) html += '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
     else html += all.map((n, i) => {
