@@ -3579,7 +3579,17 @@ if (!result?.ok || !result.backup?.data) throw new Error(result?.error || 'ด�
 const backup = result.backup;
 const branch = (Array.isArray(backup.data.branches) ? backup.data.branches : []).find(item => String(item.id) === String(branchId));
 if (!branch) throw new Error('Backup เวอร์ชันนี้ไม่มีข้อมูลของสาขา ' + branchName);
-const branchBackup = { ...backup, branch_count: 1, branch_name: branch.name || branchName, data: { ...backup.data, branches: [branch] } };
+const branchData = branch.data && typeof branch.data === 'object' ? branch.data : {};
+// ใช้โครงสร้าง JSON เดียวกับปุ่ม "สำรองข้อมูล" เพื่อให้ปุ่ม "นำเข้าข้อมูล" อ่านได้โดยตรง
+const branchBackup = {
+  branch: { id: branch.id, name: branch.name || branchName },
+  users: Array.isArray(branchData.users) ? branchData.users : [],
+  products: Array.isArray(branchData.products) ? branchData.products : [],
+  log: Array.isArray(branchData.log) ? branchData.log : [],
+  roles: branchData.roles && typeof branchData.roles === 'object' ? branchData.roles : {},
+  categories: Array.isArray(branchData.categories) ? branchData.categories : [],
+  units: Array.isArray(branchData.units) ? branchData.units : []
+};
 const payload = JSON.stringify(branchBackup, null, 2);
 const blob = new Blob([payload], { type: 'application/json;charset=utf-8' });
 const url = URL.createObjectURL(blob);
