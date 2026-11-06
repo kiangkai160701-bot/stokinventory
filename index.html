@@ -1577,6 +1577,28 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-nm em{display:block;font-style:normal;font-size:9px;line-height:1.35;font-weight:700;text-align:center;overflow:hidden;white-space:nowrap;border-radius:5px;padding:0 1px;color:var(--ink);background:color-mix(in srgb,var(--c) 62%,var(--card-bg))}
 .jp-nm em.t-off{--c:var(--j-off)}.jp-nm em.t-leave{--c:var(--j-leave)}.jp-nm em.t-late{--c:var(--j-late)}.jp-nm em.t-absent{--c:var(--j-absent)}
 .jp-nm em.more{background:transparent;color:var(--mute)}
+/* รายงานสรุปการตัดวีค */
+.jp-period-tabs,.jp-team-modes{display:flex;gap:6px;margin:8px 0 12px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
+.jp-period-tabs button,.jp-team-modes button{flex:1;min-width:0;min-height:36px;padding:5px 6px;border:0;border-radius:9px;background:transparent;color:var(--mute);font:inherit;font-size:12px;font-weight:800}
+.jp-period-tabs button.on,.jp-team-modes button.on{background:var(--acc);color:#fff}
+.jp-period-range{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 1px 10px}
+.jp-period-range b{font-size:14px}.jp-period-range span{color:var(--mute);font-size:11px;text-align:right}
+.jp-report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.jp-report-grid>div{min-width:0;padding:9px 5px;border:1px solid var(--line);border-radius:11px;background:var(--card-bg);text-align:center}
+.jp-report-grid small{display:block;color:var(--mute);font-size:10px}.jp-report-grid b{display:block;margin-top:2px;font-size:20px;font-variant-numeric:tabular-nums}
+.jp-period-foot{margin-top:9px;color:var(--mute);font-size:10.5px;line-height:1.5}
+.jp-period-status{margin-top:10px;padding:9px 10px;border-radius:10px;background:var(--theme-wash);color:var(--ink);font-size:11px;line-height:1.5}
+.jp-period-action{width:100%;margin-top:8px}
+.jp-report-person{padding:11px 12px}
+.jp-report-head{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+.jp-report-head b{min-width:0;overflow-wrap:anywhere;font-size:13.5px}
+.jp-report-head small{flex:none;color:var(--mute);font-size:10.5px;text-align:right}
+@media(max-width:420px){.jp-report-grid{gap:5px}.jp-report-grid>div{padding:8px 2px}.jp-report-grid b{font-size:18px}.jp-period-tabs button,.jp-team-modes button{font-size:11px;padding:4px 3px}.jp-period-range span{font-size:10px}}
+/* ชื่อพนักงานในปฏิทินแสดงเต็มและตัดบรรทัดได้ */
+.jp-nm{align-items:stretch;gap:2px;padding:0 1px}
+.jp-nm em{font-size:8.5px;line-height:1.2;white-space:normal;overflow:visible;overflow-wrap:anywhere;word-break:normal;padding:1px 2px}
+.jp-d{min-height:78px!important;height:auto}
+@media(max-width:420px){.jp-d{min-height:84px!important}.jp-nm em{font-size:8px}}
 .jp-d.fut .jp-nm em{background:transparent;border:1px dashed var(--c)}
 .jp-who2{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 2px}
 /* ป้ายจำนวนรายการ (หน้าประวัติ): เล็ก อยู่แถวหัวข้อมุมขวาของการ์ดฟิลเตอร์ */
@@ -4998,7 +5020,7 @@ const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '�
 const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const JORDER = ['absent', 'late', 'leave', 'off'];
 const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
-const jDef = () => ({ v: 2, ev: {}, rec: {}, closed: {}, max: 2, start: '', staff: null });
+const jDef = () => ({ v: 2, ev: {}, rec: {}, closed: {}, periods: {}, max: 2, start: '', staff: null });
 const p2 = n => String(n).padStart(2, '0');
 const dk = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 const pk = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -5013,7 +5035,7 @@ function saveJ() { store.set(jKey(), J); if (JOBS_CLOUD) save(); }
 // พนักงานที่อยู่ในจ๊อบ: หัวหน้าติ๊กเลือกเอง (ถ้ายังไม่เลือก ใช้บัญชีที่ไม่ใช่เจ้าของ/ผู้ดูแล/หัวหน้างาน)
 const jCand = () => U.filter(u => u.active !== false && String(u.name).toLowerCase() !== 'kiangkai');
 const jStaff = () => Array.isArray(J.staff) ? jCand().filter(u => J.staff.includes(u.name)).map(u => u.name) : jCand().filter(u => !fullAccessUser(u) && u.role !== 'supervisor').map(u => u.name);
-const JS = (() => { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth(), sel: dk(t), view: 'cal', who: 'all' }; })();
+const JS = (() => { const t = new Date(); return { y: t.getFullYear(), m: t.getMonth(), sel: dk(t), view: 'cal', who: 'all', periodWeek: 'w1', teamMode: 'month', teamWeek: 'w1' }; })();
 const jNames = () => jMgr() ? (JS.who !== 'all' && jStaff().includes(JS.who) ? [JS.who] : jStaff()) : (jStaff().includes(me.name) ? [me.name] : []);
 const jFmt = (k, o) => pk(k).toLocaleDateString('th-TH', o);
 function jEff(k, name) {
@@ -5037,6 +5059,91 @@ function jStat(name, y, m) {
   }
   return s;
 }
+function jCutRange(y, m, week) {
+  const start = week === 'w1' ? new Date(y, m, 11) : new Date(y, m - 1, 26);
+  const end = week === 'w1' ? new Date(y, m, 25) : new Date(y, m, 10);
+  return { key: y + '-' + p2(m + 1) + '-' + week, startKey: dk(start), endKey: dk(end), week: week };
+}
+function jPeriodForDate(k) {
+  const d = pk(k), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
+  if (day >= 11 && day <= 25) return y + '-' + p2(m + 1) + '-w1';
+  if (day >= 26) { const next = new Date(y, m + 1, 1); return next.getFullYear() + '-' + p2(next.getMonth() + 1) + '-w2'; }
+  return y + '-' + p2(m + 1) + '-w2';
+}
+function jPeriodClosed(k) {
+  return !!(J && J.periods && J.periods[jPeriodForDate(k)] && J.periods[jPeriodForDate(k)].closedAt);
+}
+function jRangeStat(name, range) {
+  const s = { off: 0, leave: 0, late: 0, absent: 0, min: 0, normal: 0, pending: 0, scheduled: 0, worked: 0 };
+  const d = pk(range.startKey), end = pk(range.endKey), today = jToday();
+  while (d <= end) {
+    const k = dk(d);
+    if ((!J.start || k >= J.start) && !J.closed[k]) {
+      const e = jEff(k, name);
+      if (e && e.t === 'off') s.off++;
+      else {
+        s.scheduled++;
+        if (e && e.t === 'leave') s.leave++;
+        else if (e && e.t === 'absent') s.absent++;
+        else if (e && e.t === 'late') { s.late++; s.min += Number(e.m) || 0; s.worked++; }
+        else if (k <= today) { s.normal++; s.worked++; }
+        else s.pending++;
+      }
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return s;
+}
+function jPeriodStat(name, range) {
+  const saved = J.periods && J.periods[range.key];
+  return saved && saved.snapshot && saved.snapshot.staff && saved.snapshot.staff[name]
+    ? saved.snapshot.staff[name] : jRangeStat(name, range);
+}
+function jPeriodTotals(names, range) {
+  const total = { off: 0, leave: 0, late: 0, absent: 0, min: 0, normal: 0, pending: 0, scheduled: 0, worked: 0 };
+  names.forEach(name => {
+    const st = jPeriodStat(name, range);
+    Object.keys(total).forEach(key => { total[key] += Number(st[key]) || 0; });
+  });
+  return total;
+}
+function jRangeChips(st) {
+  return '<span class="jp-chip t-absent">ขาด ' + st.absent + '</span>' +
+    '<span class="jp-chip t-leave">ลา ' + st.leave + '</span>' +
+    '<span class="jp-chip t-late">สาย ' + st.late + (st.min ? ' (' + st.min + ' น.)' : '') + '</span>' +
+    '<span class="jp-chip t-ok">ปกติ ' + st.normal + '</span>' +
+    '<span class="jp-chip t-off">หยุด ' + st.off + '</span>' +
+    (st.pending ? '<span class="jp-chip">รอข้อมูล ' + st.pending + '</span>' : '');
+}
+function jPeriodAction() {
+  if (!jMgr()) return;
+  const range = jCutRange(JS.y, JS.m, JS.periodWeek), saved = J.periods && J.periods[range.key];
+  const label = range.week === 'w1' ? 'วีค 1' : 'วีค 2';
+  const dates = jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' +
+    jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
+  if (saved && saved.closedAt) {
+    openModal('<h3>เปิดรอบ ' + label + ' อีกครั้งหรือไม่?</h3><p class="settings-hint">รอบ ' + dates + ' จะกลับมาแก้ไขรายการได้ และรายงานจะคำนวณจากข้อมูลล่าสุดอีกครั้ง</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn" id="jpPeriodConfirm">เปิดรอบอีกครั้ง</button></div>');
+    $('#jpPeriodConfirm').onclick = () => {
+      delete J.periods[range.key];
+      saveJ(); closeModal(); jRender(); toast('เปิดรอบให้แก้ไขแล้ว');
+    };
+    return;
+  }
+  if (range.endKey > jToday()) return toast('ยังปิดรอบไม่ได้ ต้องรอให้ครบวันที่ ' + jFmt(range.endKey, { day: 'numeric', month: 'long' }), 1);
+  const names = jStaff(), staff = {};
+  names.forEach(name => { staff[name] = jRangeStat(name, range); });
+  const total = jPeriodTotals(names, range);
+  openModal('<h3>ยืนยันปิดรอบ ' + label + '</h3><p class="settings-hint">ช่วงวันที่ ' + dates + '<br>ขาด ' + total.absent + ' · ลา ' + total.leave + ' · สาย ' + total.late + '<br><br>ระบบจะบันทึกตัวเลขสรุป ณ เวลานี้ไว้เป็นหลักฐานการตรวจสอบ เมื่อปิดแล้วจะไม่สามารถแก้ไขสถานะรายวันในช่วงนี้ได้จนกว่าจะเปิดรอบอีกครั้ง</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn" id="jpPeriodConfirm">ยืนยันปิดรอบ</button></div>');
+  $('#jpPeriodConfirm').onclick = () => {
+    J.periods = J.periods || {};
+    J.periods[range.key] = {
+      closedAt: new Date().toISOString(), closedBy: me.name,
+      start: range.startKey, end: range.endKey,
+      snapshot: { staff: staff, totals: total }
+    };
+    saveJ(); closeModal(); jRender(); toast('ปิดรอบและบันทึกสรุปแล้ว');
+  };
+}
 const jPill = e => `<span class="jp-pill t-${e.t}">${JT[e.t].e} ${JT[e.t].l}${e.t === 'late' && e.m ? ` ${e.m} นาที` : ''}</span>`;
 const jChips = s => ['absent', 'late', 'leave', 'off'].map(t => `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
 const jFriends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
@@ -5050,12 +5157,44 @@ function jRender() {
   const mgr = jMgr(), todayK = jToday(), start = J.start || todayK, inList = jStaff().includes(me.name);
   const names = jNames(), single = names.length === 1;
   let html = '';
-  if (mgr) html += `<div class="jp-seg"><button type="button" data-view="cal" class="${JS.view === 'cal' ? 'on' : ''}">📅 ปฏิทิน</button><button type="button" data-view="team" class="${JS.view === 'team' ? 'on' : ''}">👥 สรุปทีม</button></div>`;
+  if (mgr) html += `<div class="jp-seg"><button type="button" data-view="cal" class="${JS.view === 'cal' ? 'on' : ''}">📅 ปฏิทิน</button><button type="button" data-view="period" class="${JS.view === 'period' ? 'on' : ''}">🧾 สรุปการตัดวีค</button><button type="button" data-view="team" class="${JS.view === 'team' ? 'on' : ''}">👥 สรุปทีม</button></div>`;
   if (!mgr && !inList) { jpBody().innerHTML = '<div class="jp-card jp-ok">คุณยังไม่ได้ถูกเลือกให้อยู่ในรายการจ๊อบพนักงาน กรุณาแจ้งหัวหน้างาน</div>'; $('#jpAdd').style.display = 'none'; return; }
+  if (JS.view === 'period' && mgr) {
+    const all = jStaff(), range = jCutRange(JS.y, JS.m, JS.periodWeek), saved = J.periods && J.periods[range.key];
+    const total = jPeriodTotals(all, range), label = JS.periodWeek === 'w1' ? 'วีค 1' : 'วีค 2';
+    const dates = jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
+    html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jNav() + '</div>' +
+      '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
+      '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
+      '<div class="jp-report-grid"><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ปกติ</small><b>' + total.normal + '</b></div></div>' +
+      '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '</div>' +
+      (saved && saved.closedAt ? '<div class="jp-period-status">🔒 ปิดรอบแล้ว · ผู้ตรวจสอบ ' + esc(saved.closedBy || '-') + ' · ' + esc(new Date(saved.closedAt).toLocaleString('th-TH')) + '</div>' :
+        '<div class="jp-period-status">รอบนี้ยังเปิดอยู่ · ตัวเลขคำนวณจากข้อมูลล่าสุด</div>') +
+      '<button type="button" class="jp-btn jp-period-action" data-period-action>' + (saved && saved.closedAt ? 'เปิดรอบอีกครั้ง' : range.endKey <= jToday() ? '🔒 ปิดรอบวีคและบันทึกผล' : 'รอให้ครบช่วงก่อนปิดรอบ') + '</button>' +
+      '</div>';
+    if (!all.length) html += '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+    else html += all.map((n, i) => {
+      const st = jPeriodStat(n, range);
+      return '<div class="jp-card jp-report-person"><div class="jp-report-head"><b>' + esc(n) + '</b><small>วันทำงานตามตาราง ' + st.scheduled + ' วัน</small></div><div class="jp-stat">' + jRangeChips(st) + '</div></div>';
+    }).join('');
+    jpBody().innerHTML = html; $('#jpAdd').style.display = 'none'; return;
+  }
   if (JS.view === 'team' && mgr) {
     const all = jStaff();
-    html += `<div class="jp-month">${jNav()}</div><p class="jp-ok" style="margin:-2px 2px 10px">รวมวันที่วางแผนไว้ล่วงหน้าของเดือนนี้ด้วย</p>`;
-    html += all.length ? all.map((n, i) => `<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none"><span class="jp-av">${esc([...n][0] || '?')}</span><div class="jp-info"><b>${esc(n)}</b></div></div><div class="jp-stat">${jChips(jStat(n, JS.y, JS.m))}</div>${jMas(i, 'mascot-top-right')}</div>`).join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+    html += '<div class="jp-month">' + jNav() + '</div>';
+    html += '<div class="jp-team-modes"><button type="button" data-team-mode="month" class="' + (JS.teamMode === 'month' ? 'on' : '') + '">สรุปรายเดือน</button><button type="button" data-team-mode="week" class="' + (JS.teamMode === 'week' ? 'on' : '') + '">สรุปรายวีค</button></div>';
+    if (JS.teamMode === 'week') {
+      const range = jCutRange(JS.y, JS.m, JS.teamWeek), saved = J.periods && J.periods[range.key];
+      html += '<div class="jp-period-tabs"><button type="button" data-team-week="w1" class="' + (JS.teamWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-team-week="w2" class="' + (JS.teamWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>';
+      html += '<p class="jp-ok" style="margin:0 2px 10px">' + jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' }) + (saved && saved.closedAt ? ' · ใช้ผลสรุปที่ปิดรอบไว้' : ' · คำนวณจากข้อมูลล่าสุด') + '</p>';
+      html += all.length ? all.map((n, i) => {
+        const st = jPeriodStat(n, range);
+        return '<div class="jp-card jp-team has-card-mascot"><div class="jp-report-head"><b>' + esc(n) + '</b><small>วันทำงาน ' + st.scheduled + ' วัน</small></div><div class="jp-stat">' + jRangeChips(st) + '</div>' + jMas(i, 'mascot-top-right') + '</div>';
+      }).join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+    } else {
+      html += '<p class="jp-ok" style="margin:-2px 2px 10px">รวมวันที่วางแผนไว้ล่วงหน้าของเดือนนี้ด้วย</p>';
+      html += all.length ? all.map((n, i) => '<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none"><span class="jp-av">' + esc([...n][0] || '?') + '</span><div class="jp-info"><b>' + esc(n) + '</b></div></div><div class="jp-stat">' + jChips(jStat(n, JS.y, JS.m)) + '</div>' + jMas(i, 'mascot-top-right') + '</div>').join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+    }
     jpBody().innerHTML = html; $('#jpAdd').style.display = 'none'; return;
   }
   // แถบวันนี้
@@ -5076,8 +5215,8 @@ function jRender() {
       inner = info.closed ? '<span class="jp-tag t-closed">ปิด</span>' : e ? `<span class="jp-tag t-${e.t}">${JT[e.t].l}</span>` : (ph !== 'fut' && k >= start) ? '<span class="jp-tag t-ok">✓</span>' : '';
     } else if (info.closed) inner = '<span class="jp-tag t-closed">ปิด</span>';
     else {
-      const sh = n => Array.from(n).slice(0, 3).join(''), rs = info.rows;
-      inner = `<span class="jp-nm">${rs.slice(0, 3).map(({ n, e }) => `<em class="t-${e.t}">${esc(sh(n))}</em>`).join('')}${rs.length > 3 ? `<em class="more">+${rs.length - 3}</em>` : ''}</span>`;
+      const rs = info.rows;
+      inner = `<span class="jp-nm">${rs.slice(0, 3).map(({ n, e }) => `<em class="t-${e.t}" title="${esc(n)}">${esc(n)}</em>`).join('')}${rs.length > 3 ? `<em class="more">+${rs.length - 3}</em>` : ''}</span>`;
     }
     html += `<button type="button" class="jp-d ${ph === 'fut' ? 'fut' : ph}${ph === 'past' && k < start ? ' pre' : ''}${k === JS.sel ? ' sel' : ''}${info.closed ? ' closed' : ''}" data-d="${k}"><b>${d}</b>${inner}</button>`;
   }
@@ -5108,6 +5247,7 @@ function jRender() {
 function jForm(ed) {
   if (!jMgr()) return;
   const names = jStaff(); if (!names.length) return toast('ยังไม่ได้เลือกพนักงาน', 1);
+  if (ed && jPeriodClosed(ed.k)) return toast('รอบวีคนี้ปิดแล้ว ต้องเปิดรอบอีกครั้งก่อนแก้ไข', 1);
   const cur = ed ? jEff(ed.k, ed.n) : null, t0 = cur?.t || 'off', who0 = ed?.n || (JS.who !== 'all' ? JS.who : names[0]);
   openModal(`<h3>${ed ? '✏️ แก้ไขรายการ' : '➕ แจ้งสถานะพนักงาน'}</h3><form id="jobForm">
 <label class="fld"><span>พนักงาน</span><select class="in" name="who">${names.map(n => `<option value="${esc(n)}"${n === who0 ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></label>
@@ -5138,6 +5278,7 @@ function jForm(ed) {
     e.preventDefault();
     const who = el.who.value, t = el.t.value, k = el.date.value, note = el.note.value.trim(), mins = Number(el.min.value) || 0;
     if (!k) return toast('เลือกวันที่', 1);
+    if (jPeriodClosed(k)) return toast('รอบวีคนี้ปิดแล้ว ต้องเปิดรอบอีกครั้งก่อนแก้ไข', 1);
     if (t === 'late' && mins < 1) return toast('กรอกจำนวนนาทีที่สาย', 1);
     if (ed && (ed.n !== who || ed.k !== k) && J.ev[ed.k]?.[ed.n]) { delete J.ev[ed.k][ed.n]; if (!Object.keys(J.ev[ed.k]).length) delete J.ev[ed.k]; }
     J.ev[k] ||= {};
@@ -5191,6 +5332,7 @@ function jSwap() {
   $('#swapForm').onsubmit = e => {
     e.preventDefault(); const a = f.a.value, b = f.b.value, p = plan();
     if (!p.length) return toast('ไม่มีวันหยุดประจำที่สลับได้', 1);
+    if (p.some(x => jPeriodClosed(x.ka) || jPeriodClosed(x.kb))) return toast('มีวันที่อยู่ในรอบที่ปิดแล้ว กรุณาเปิดรอบก่อนสลับวันหยุด', 1);
     const meta = { by: me.name, ts: Date.now() }, put = (k, n, t, other) => { J.ev[k] ||= {}; J.ev[k][n] = { t, n: `สลับกับ ${other}`, ...meta }; };
     p.forEach(x => { put(x.ka, a, 'work', b); put(x.ka, b, 'off', a); put(x.kb, b, 'work', a); put(x.kb, a, 'off', b); });
     const dd = pk(p[0].ka); JS.y = dd.getFullYear(); JS.m = dd.getMonth(); JS.sel = p[0].ka;
@@ -5221,7 +5363,7 @@ function jCopy() {
     e.preventDefault();
     const snap = JSON.stringify(J.ev), replace = e.target.elements.mode.value === 'replace';
     for (let i = 0; i < 7; i++) {
-      const from = dk(jAdd(s0, i)), to = dk(jAdd(t0, i)); if (J.closed[to]) continue;
+      const from = dk(jAdd(s0, i)), to = dk(jAdd(t0, i)); if (J.closed[to] || jPeriodClosed(to)) continue;
       if (replace) delete J.ev[to];
       const src = J.ev[from]; if (!src) continue;
       J.ev[to] ||= {};
@@ -5305,6 +5447,9 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     const t = e.target; let b;
     if ((b = t.closest('[data-view]'))) { JS.view = b.dataset.view; jRender(); }
     else if ((b = t.closest('[data-who]'))) { JS.who = b.dataset.who; jRender(); }
+    else if ((b = t.closest('[data-period-week]'))) { JS.periodWeek = b.dataset.periodWeek; jRender(); }
+    else if ((b = t.closest('[data-team-mode]'))) { JS.teamMode = b.dataset.teamMode; jRender(); }
+    else if ((b = t.closest('[data-team-week]'))) { JS.teamWeek = b.dataset.teamWeek; jRender(); }
     else if ((b = t.closest('[data-mon]'))) { const d = new Date(JS.y, JS.m + Number(b.dataset.mon), 1); JS.y = d.getFullYear(); JS.m = d.getMonth(); if (JS.view === 'cal') JS.sel = dk(d); jRender(); }
     else if ((b = t.closest('[data-d]'))) { JS.sel = b.dataset.d; jRender(); }
     else if ((b = t.closest('[data-edit]'))) jForm({ n: b.dataset.edit, k: JS.sel });
@@ -5312,6 +5457,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     else if (t.closest('#jpSwap')) jSwap();
     else if (t.closest('#jpWeekly')) jWeekly();
     else if (t.closest('#jpPick')) jPick();
+    else if (t.closest('[data-period-action]')) jPeriodAction();
     else if (t.closest('#jpClose')) { if (J.closed[JS.sel]) delete J.closed[JS.sel]; else J.closed[JS.sel] = true; saveJ(); jRender(); }
   };
   const main = $('#main');
