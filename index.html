@@ -4037,7 +4037,7 @@ parsed = firstSheet ? XLSX.utils.sheet_to_json(firstSheet, { defval: '', raw: fa
 } else throw new Error('ชนิดไฟล์นี้ยังไม่รองรับ เลือก JSON, CSV หรือ Excel (.xlsx/.xls)');
 if (parsed && Array.isArray(parsed.products) && Array.isArray(parsed.users)) {
 if (parsed.branch?.id && String(parsed.branch.id) !== String(currentBranch.id)) throw new Error(`ไฟล์นี้เป็นข้อมูลของสาขา${parsed.branch.name || ''} ไม่สามารถนำเข้าในสาขา${currentBranch.name}ได้`);
-if (!confirm('ไฟล์ JSON นี้เป็นข้อมูลสำรองทั้งระบบ เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ปัจจุบันจะถูกแทนที่ ต้องการดำเนินการต่อหรือไม่?')) return;
+if (!confirm(`ไฟล์ JSON นี้เป็นข้อมูลสำรองของสาขา ${parsed.branch?.name || currentBranch.name} เมื่อนำเข้า รายการวัตถุดิบ ประวัติ และบัญชีผู้ใช้ของสาขานี้จะถูกแทนที่ด้วยข้อมูลในไฟล์ สาขาอื่นจะไม่เปลี่ยนแปลง ต้องการดำเนินการต่อหรือไม่?`)) return;
 const previousProductCount = P.length;
 const restoredUsers = normalizeRemovedViewerAccounts(parsed.users.map(user => ({ ...user })));
 const restoredProducts = parsed.products.map(product => { const copy = { ...product }; delete copy.cost; delete copy.price; return copy; });
