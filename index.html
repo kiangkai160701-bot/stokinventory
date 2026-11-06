@@ -3574,11 +3574,10 @@ if (!cloudToken || !backupId || !branchId || !button) return;
 button.disabled = true;
 const oldText = button.innerHTML;
 try {
-const result = await cloudRpc('api_inventory_backup_export', { p_token: cloudToken, p_backup_id: backupId });
-if (!result?.ok || !result.backup?.data) throw new Error(result?.error || 'ดาวน์โหลด Backup ไม่สำเร็จ');
+const result = await cloudRpc('api_inventory_backup_export_branch', { p_token: cloudToken, p_backup_id: backupId, p_branch_id: branchId });
+if (!result?.ok || !result.backup?.branch) throw new Error(result?.error || 'ดาวน์โหลด Backup ไม่สำเร็จ');
 const backup = result.backup;
-const branch = (Array.isArray(backup.data.branches) ? backup.data.branches : []).find(item => String(item.id) === String(branchId));
-if (!branch) throw new Error('Backup เวอร์ชันนี้ไม่มีข้อมูลของสาขา ' + branchName);
+const branch = backup.branch;
 const branchData = branch.data && typeof branch.data === 'object' ? branch.data : {};
 // ใช้โครงสร้าง JSON เดียวกับปุ่ม "สำรองข้อมูล" เพื่อให้ปุ่ม "นำเข้าข้อมูล" อ่านได้โดยตรง
 const branchBackup = {
