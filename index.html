@@ -1314,7 +1314,7 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .jp-today{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12px}
 .jp-today b{margin-right:2px;color:var(--mute);font-weight:800}
 .jp-chip{padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:color-mix(in srgb,var(--c,var(--mute)) 18%,var(--card-bg));color:var(--ink)}
-.jp-chip.t-off,.jp-pill.t-off,.jp-tag.t-off{--c:var(--j-off)}.jp-chip.t-leave,.jp-pill.t-leave,.jp-tag.t-leave{--c:var(--j-leave)}.jp-chip.t-late,.jp-pill.t-late,.jp-tag.t-late{--c:var(--j-late)}.jp-chip.t-absent,.jp-pill.t-absent,.jp-tag.t-absent{--c:var(--j-absent)}.jp-chip.t-ok,.jp-tag.t-ok{--c:var(--j-leave)}.jp-tag.t-closed{--c:var(--j-closed)}
+.jp-chip.t-ok{--c:var(--j-leave)}.jp-chip.t-off,.jp-pill.t-off,.jp-tag.t-off{--c:var(--j-off)}.jp-chip.t-leave,.jp-pill.t-leave,.jp-tag.t-leave{--c:var(--j-leave)}.jp-chip.t-late,.jp-pill.t-late,.jp-tag.t-late{--c:var(--j-late)}.jp-chip.t-absent,.jp-pill.t-absent,.jp-tag.t-absent{--c:var(--j-absent)}.jp-chip.t-ok,.jp-tag.t-ok{--c:var(--j-leave)}.jp-tag.t-closed{--c:var(--j-closed)}
 .jp-month{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 .jp-month b{flex:1;text-align:center;font-size:15px}
 .jp-wd,.jp-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
@@ -5039,6 +5039,8 @@ const JS = (() => { const t = new Date(); return { y: t.getFullYear(), m: t.getM
 const jNames = () => jMgr() ? (JS.who !== 'all' && jStaff().includes(JS.who) ? [JS.who] : jStaff()) : (jStaff().includes(me.name) ? [me.name] : []);
 const jFmt = (k, o) => pk(k).toLocaleDateString('th-TH', o);
 function jEff(k, name) {
+  const frozen = J.periods && J.periods[jPeriodForDate(k)] && J.periods[jPeriodForDate(k)].snapshot;
+  if (frozen && frozen.days && Object.prototype.hasOwnProperty.call(frozen.days, k)) return frozen.days[k][name] || null;
   const e = J.ev[k]?.[name];
   if (e) return e.t === 'work' ? null : e;
   if ((J.rec[name] || []).includes(pk(k).getDay()) && (!J.start || k >= J.start)) return { t: 'off', rec: true };
@@ -5130,8 +5132,14 @@ function jPeriodAction() {
     return;
   }
   if (range.endKey > jToday()) return toast('ยังปิดรอบไม่ได้ ต้องรอให้ครบวันที่ ' + jFmt(range.endKey, { day: 'numeric', month: 'long' }), 1);
-  const names = jStaff(), staff = {};
+  const names = jStaff(), staff = {}, days = {};
   names.forEach(name => { staff[name] = jRangeStat(name, range); });
+  const day = pk(range.startKey), lastDay = pk(range.endKey);
+  while (day <= lastDay) {
+    const k = dk(day); days[k] = {};
+    if (!J.closed[k]) names.forEach(name => { const entry = jEff(k, name); if (entry) days[k][name] = entry; });
+    day.setDate(day.getDate() + 1);
+  }
   const total = jPeriodTotals(names, range);
   openModal('<h3>ยืนยันปิดรอบ ' + label + '</h3><p class="settings-hint">ช่วงวันที่ ' + dates + '<br>ขาด ' + total.absent + ' · ลา ' + total.leave + ' · สาย ' + total.late + '<br><br>ระบบจะบันทึกตัวเลขสรุป ณ เวลานี้ไว้เป็นหลักฐานการตรวจสอบ เมื่อปิดแล้วจะไม่สามารถแก้ไขสถานะรายวันในช่วงนี้ได้จนกว่าจะเปิดรอบอีกครั้ง</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button type="button" class="btn" id="jpPeriodConfirm">ยืนยันปิดรอบ</button></div>');
   $('#jpPeriodConfirm').onclick = () => {
@@ -5139,7 +5147,7 @@ function jPeriodAction() {
     J.periods[range.key] = {
       closedAt: new Date().toISOString(), closedBy: me.name,
       start: range.startKey, end: range.endKey,
-      snapshot: { staff: staff, totals: total }
+      snapshot: { staff: staff, totals: total, days: days }
     };
     saveJ(); closeModal(); jRender(); toast('ปิดรอบและบันทึกสรุปแล้ว');
   };
@@ -5458,7 +5466,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     else if (t.closest('#jpWeekly')) jWeekly();
     else if (t.closest('#jpPick')) jPick();
     else if (t.closest('[data-period-action]')) jPeriodAction();
-    else if (t.closest('#jpClose')) { if (J.closed[JS.sel]) delete J.closed[JS.sel]; else J.closed[JS.sel] = true; saveJ(); jRender(); }
+    else if (t.closest('#jpClose')) { if (jPeriodClosed(JS.sel)) return toast('รอบวีคนี้ปิดแล้ว ต้องเปิดรอบก่อนเปลี่ยนวันหยุดร้าน', 1); if (J.closed[JS.sel]) delete J.closed[JS.sel]; else J.closed[JS.sel] = true; saveJ(); jRender(); }
   };
   const main = $('#main');
   new MutationObserver(refresh).observe($('#app'), { attributes: true, attributeFilter: ['class'] });
