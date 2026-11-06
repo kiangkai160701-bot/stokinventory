@@ -3562,6 +3562,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div></div></div>
+    ${String(me?.name || '').trim().toLowerCase() === 'kiangkai' ? `<div class="dash-card disclosure-card backup-card" id="globalBackupCard"><div class="disclosure-summary" style="cursor:default"><span>🛡️ สำรองข้อมูลทุกสาขา</span><span class="pill">เฉพาะ kiangkai</span></div><div class="disclosure-inner" style="padding:12px 14px"><p class="settings-hint">สำรองข้อมูลทั้ง 3 สาขาเป็นชุดเดียวกันอัตโนมัติทุก 1 ชั่วโมง เก็บย้อนหลัง 12 ชั่วโมง</p><div style="display:flex;gap:8px;flex-wrap:wrap;margin:10px 0"><button type="button" class="btn sm sec" id="globalBackupRefresh">↻ ตรวจสอบสถานะ</button><button type="button" class="btn sm" id="globalBackupCreate">＋ สำรองตอนนี้</button></div><div id="globalBackupStatus" class="settings-hint" role="status" aria-live="polite">กำลังตรวจสอบระบบสำรองข้อมูล…</div><div id="globalBackupList" style="display:grid;gap:8px;margin-top:10px"><small style="color:var(--mute)">กำลังโหลดรายการสำรอง…</small></div></div></div>` : ''}
     ${can.reset() || can.permissions() ? '<div class="settings-bottom-row">' : ''}
     ${can.reset() ? `<div class="dash-card disclosure-card reset-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
@@ -3735,6 +3736,58 @@ refreshStorageUsage();
 storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
 }
 if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
+  const backupStatus = $('#globalBackupStatus'), backupList = $('#globalBackupList');
+  const backupAllowed = String(me?.name || '').trim().toLowerCase() === 'kiangkai';
+  const loadGlobalBackups = async () => {
+    if (!backupAllowed || !backupStatus || !backupList) return;
+    backupStatus.textContent = 'กำลังตรวจสอบสถานะระบบสำรองข้อมูล…';
+    backupList.innerHTML = '<small style="color:var(--mute)">กำลังโหลดรายการสำรอง…</small>';
+    try {
+      const result = await cloudRpc('api_inventory_backup_list', { p_token: cloudToken });
+      if (!result?.ok) throw new Error(result?.error || 'ตรวจสอบข้อมูลสำรองไม่สำเร็จ');
+      const latest = result.latest_at ? new Date(result.latest_at).toLocaleString('th-TH', { dateStyle:'medium', timeStyle:'short' }) : 'ยังไม่มี';
+      backupStatus.textContent = \`สถานะ: ทำงานอัตโนมัติทุก \${result.interval_minutes} นาที · เก็บย้อนหลัง \${result.retention_hours} ชั่วโมง · สำรองล่าสุด: \${latest}\`;
+      const items = Array.isArray(result.items) ? result.items : [];
+      backupList.innerHTML = items.length ? items.map(item => {
+        const when = new Date(item.saved_at).toLocaleString('th-TH', { dateStyle:'medium', timeStyle:'short' });
+        const size = item.size_bytes >= 1048576 ? (item.size_bytes/1048576).toFixed(2)+' MB' : (item.size_bytes/1024).toFixed(1)+' KB';
+        const reason = item.reason === 'scheduled' ? 'อัตโนมัติ' : item.reason === 'manual' ? 'สำรองด้วยตนเอง' : item.reason === 'before-restore' ? 'ก่อนกู้คืน' : item.reason === 'initial' ? 'จุดเริ่มต้น' : item.reason;
+        return \`<div style="padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash)"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap"><b>\${esc(when)}</b><span class="pill">\${esc(reason)}</span></div><small style="display:block;color:var(--mute);margin:4px 0 8px">\${Number(item.branch_count)} สาขา · \${esc(size)}</small><button type="button" class="btn sm sec" data-global-backup-restore="\${esc(item.id)}">กู้คืนชุดนี้</button></div>\`;
+      }).join('') : '<small style="color:var(--mute)">ยังไม่มีรายการสำรองในช่วง 12 ชั่วโมง</small>';
+    } catch (error) {
+      backupStatus.textContent = 'ตรวจสอบไม่สำเร็จ: ' + (error.message || 'เชื่อมต่อไม่ได้');
+      backupList.innerHTML = '<small style="color:var(--bad)">ไม่สามารถโหลดรายการสำรองได้</small>';
+    }
+  };
+  if (backupAllowed) loadGlobalBackups();
+  if ($('#globalBackupRefresh')) $('#globalBackupRefresh').onclick = loadGlobalBackups;
+  if ($('#globalBackupCreate')) $('#globalBackupCreate').onclick = async e => {
+    const button = e.currentTarget; button.disabled = true;
+    try {
+      const result = await cloudRpc('api_inventory_backup_create', { p_token: cloudToken });
+      if (!result?.ok) throw new Error(result?.error || 'สำรองข้อมูลไม่สำเร็จ');
+      toast('สำรองข้อมูลทั้ง 3 สาขาเรียบร้อยแล้ว');
+      await loadGlobalBackups();
+    } catch (error) { toast(error.message || 'สำรองข้อมูลไม่สำเร็จ', 1); }
+    finally { if (button.isConnected) button.disabled = false; }
+  };
+  if (backupList) backupList.onclick = async e => {
+    const button = e.target.closest('[data-global-backup-restore]'); if (!button) return;
+    const id = button.dataset.globalBackupRestore;
+    if (!confirm('ยืนยันกู้คืนข้อมูลสำรองชุดนี้ให้ครบทั้ง 3 สาขา? ระบบจะสร้างจุดสำรองข้อมูลปัจจุบันก่อนกู้คืนอัตโนมัติ')) return;
+    button.disabled = true;
+    try {
+      await syncQueue;
+      const result = await cloudRpc('api_inventory_backup_restore', { p_token: cloudToken, p_backup_id: id });
+      if (!result?.ok) throw new Error(result?.error || 'กู้คืนข้อมูลไม่สำเร็จ');
+      const refreshed = await cloudRpc('api_get_state', { p_token: cloudToken });
+      if (!refreshed?.ok) throw new Error(refreshed?.error || 'กู้คืนแล้ว แต่โหลดข้อมูลสาขาปัจจุบันไม่สำเร็จ กรุณาโหลดหน้าใหม่');
+      applyCloudState(refreshed.state); syncSnapshot = cloneData(refreshed.state); syncVersion = refreshed.version;
+      me = refreshed.me || me;
+      build(); toast('กู้คืนข้อมูลทั้ง 3 สาขาเรียบร้อยแล้ว');
+    } catch (error) { toast(error.message || 'กู้คืนข้อมูลไม่สำเร็จ', 1); button.disabled = false; }
+  };
+
 if ($('#textScalePresets')) $('#textScalePresets').onclick = e => {
 const option = e.target.closest('[data-text-scale]');
 if (!option) return;
