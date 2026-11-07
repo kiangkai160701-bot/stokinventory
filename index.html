@@ -1578,6 +1578,15 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-nm em.t-off{--c:var(--j-off)}.jp-nm em.t-leave{--c:var(--j-leave)}.jp-nm em.t-late{--c:var(--j-late)}.jp-nm em.t-absent{--c:var(--j-absent)}
 .jp-nm em.more{background:transparent;color:var(--mute)}
 /* รายงานสรุปการตัดวีค */
+.jp-tools{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px!important}
+.jp-tools .jp-btn{min-width:0;white-space:nowrap;padding:9px 5px;font-size:11px}
+.jp-period-card .jp-month>b{font-size:15px;line-height:1.35;text-align:center;flex:1}
+.jp-week-heading{display:flex;flex-direction:column;gap:2px;margin:13px 2px 7px;padding:10px 12px;border-left:3px solid var(--acc);border-radius:0 10px 10px 0;background:var(--theme-wash)}
+.jp-week-heading b{font-size:13px;color:var(--ink)}
+.jp-week-heading span,.jp-week-heading small{font-size:11px;color:var(--mute)}
+.jp-team-modes{margin-bottom:14px}
+.jp-team .jp-stat{display:flex;flex-wrap:wrap;gap:6px}
+@media(max-width:360px){.jp-tools{gap:4px!important}.jp-tools .jp-btn{font-size:10px;padding:8px 2px}}
 .jp-period-tabs,.jp-team-modes{display:flex;gap:6px;margin:8px 0 12px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
 .jp-period-tabs button,.jp-team-modes button{flex:1;min-width:0;min-height:36px;padding:5px 6px;border:0;border-radius:9px;background:transparent;color:var(--mute);font:inherit;font-size:12px;font-weight:800}
 .jp-period-tabs button.on,.jp-team-modes button.on{background:var(--acc);color:#fff}
@@ -5130,10 +5139,10 @@ function jPeriodTotals(names, range) {
   return total;
 }
 function jRangeChips(st) {
-  return '<span class="jp-chip t-absent">ขาด ' + st.absent + '</span>' +
-    '<span class="jp-chip t-leave">ลา ' + st.leave + '</span>' +
+  return '<span class="jp-chip t-ok">ปกติ ' + st.normal + '</span>' +
+    '<span class="jp-chip t-absent">ขาด ' + st.absent + '</span>' +
     '<span class="jp-chip t-late">สาย ' + st.late + (st.min ? ' (' + st.min + ' น.)' : '') + '</span>' +
-    '<span class="jp-chip t-ok">ปกติ ' + st.normal + '</span>' +
+    '<span class="jp-chip t-leave">ลา ' + st.leave + '</span>' +
     '<span class="jp-chip t-off">หยุด ' + st.off + '</span>' +
     (st.pending ? '<span class="jp-chip">รอข้อมูล ' + st.pending + '</span>' : '');
 }
@@ -5174,10 +5183,17 @@ function jPeriodAction() {
   };
 }
 const jPill = e => `<span class="jp-pill t-${e.t}">${JT[e.t].e} ${JT[e.t].l}${e.t === 'late' && e.m ? ` ${e.m} นาที` : ''}</span>`;
-const jChips = s => ['absent', 'late', 'leave', 'off'].map(t => `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
+const jChips = s => ['normal', 'absent', 'late', 'leave', 'off'].map(t => t === 'normal' ? `<span class="jp-chip t-ok">ปกติ ${s.normal || 0}</span>` : `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
 const jFriends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
 const jMas = (i, cls) => { const f = jFriends(); return f.length && stkKeep(i) ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
 const jNav = () => `<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>${jFmt(dk(new Date(JS.y, JS.m, 1)), { month: 'long', year: 'numeric' })}</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`;
+const jPeriodNav = range => {
+  const a = pk(range.startKey), b = pk(range.endKey);
+  const monthA = a.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+  const monthB = b.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
+  const title = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear() ? monthA : monthA + ' - ' + monthB;
+  return '<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>' + title + '</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>';
+};
 const jpBody = () => $('#jpBody');
 
 // ---------- หน้าจอ ----------
@@ -5192,7 +5208,7 @@ function jRender() {
     const range = jCutRange(JS.y, JS.m, JS.periodWeek), all = jPeriodStaff(range), saved = J.periods && J.periods[range.key];
     const total = jPeriodTotals(all, range), label = JS.periodWeek === 'w1' ? 'วีค 1' : 'วีค 2';
     const dates = jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
-    html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jNav() + '</div>' +
+    html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jPeriodNav(range) + '</div>' +
       '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
       '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
       '<div class="jp-report-grid"><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ปกติ</small><b>' + total.normal + '</b></div></div>' +
@@ -5211,15 +5227,22 @@ function jRender() {
   if (JS.view === 'team' && mgr) {
     const all = jStaff();
     html += '<div class="jp-month">' + jNav() + '</div>';
-    html += '<div class="jp-team-modes"><button type="button" data-team-mode="month" class="' + (JS.teamMode === 'month' ? 'on' : '') + '">สรุปรายเดือน</button><button type="button" data-team-mode="week" class="' + (JS.teamMode === 'week' ? 'on' : '') + '">สรุปรายวีค</button></div>';
+    html += '<div class="jp-team-modes"><button type="button" data-team-mode="month" class="' + (JS.teamMode === 'month' ? 'on' : '') + '">สรุปรายเดือน</button><button type="button" data-team-mode="week" class="' + (JS.teamMode === 'week' ? 'on' : '') + '">สรุปรายสัปดาห์</button></div>';
     if (JS.teamMode === 'week') {
-      const range = jCutRange(JS.y, JS.m, JS.teamWeek), weekStaff = jPeriodStaff(range), saved = J.periods && J.periods[range.key];
-      html += '<div class="jp-period-tabs"><button type="button" data-team-week="w1" class="' + (JS.teamWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-team-week="w2" class="' + (JS.teamWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>';
-      html += '<p class="jp-ok" style="margin:0 2px 10px">' + jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' }) + (saved && saved.closedAt ? ' · ใช้ผลสรุปที่ปิดรอบไว้' : ' · คำนวณจากข้อมูลล่าสุด') + '</p>';
-      html += weekStaff.length ? weekStaff.map((n, i) => {
-        const st = jPeriodStat(n, range);
-        return '<div class="jp-card jp-team has-card-mascot"><div class="jp-report-head"><b>' + esc(n) + '</b><small>วันทำงาน ' + st.scheduled + ' วัน</small></div><div class="jp-stat">' + jRangeChips(st) + '</div>' + jMas(i, 'mascot-top-right') + '</div>';
-      }).join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+      const first = new Date(JS.y, JS.m, 1), last = new Date(JS.y, JS.m + 1, 0);
+      const firstSunday = new Date(first); firstSunday.setDate(first.getDate() - first.getDay());
+      let weekNo = 0;
+      for (let ws = new Date(firstSunday); ws <= last; ws.setDate(ws.getDate() + 7)) {
+        weekNo++;
+        const we = new Date(ws); we.setDate(we.getDate() + 6);
+        const range = { startKey: dk(ws), endKey: dk(we) };
+        const dates = jFmt(range.startKey, { day: 'numeric', month: 'short' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
+        html += '<div class="jp-week-heading"><b>สัปดาห์ที่ ' + weekNo + '</b><span>วันอาทิตย์ – วันเสาร์</span><small>' + dates + '</small></div>';
+        html += all.length ? all.map((n, i) => {
+          const st = jRangeStat(n, range);
+          return '<div class="jp-card jp-team has-card-mascot"><div class="jp-report-head"><b>' + esc(n) + '</b><small>วันทำงาน ' + st.scheduled + ' วัน</small></div><div class="jp-stat">' + jRangeChips(st) + '</div>' + jMas(i, 'mascot-top-right') + '</div>';
+        }).join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+      }
     } else {
       html += '<p class="jp-ok" style="margin:-2px 2px 10px">รวมวันที่วางแผนไว้ล่วงหน้าของเดือนนี้ด้วย</p>';
       html += all.length ? all.map((n, i) => '<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none"><span class="jp-av">' + esc([...n][0] || '?') + '</span><div class="jp-info"><b>' + esc(n) + '</b></div></div><div class="jp-stat">' + jChips(jStat(n, JS.y, JS.m)) + '</div>' + jMas(i, 'mascot-top-right') + '</div>').join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
@@ -5251,7 +5274,7 @@ function jRender() {
   }
   html += `</div><div class="jp-legend"><span><i style="--c:var(--j-leave)"></i>ปกติ ✓</span><span><i style="--c:var(--j-off)"></i>หยุด</span><span><i style="--c:var(--j-leave)"></i>ลา</span><span><i style="--c:var(--j-late)"></i>สาย</span><span><i style="--c:var(--j-absent)"></i>ขาด</span><span><i class="dash"></i>แผนล่วงหน้า</span></div>${jMas(1, 'mascot-tl')}</div>`;
   // เครื่องมือหัวหน้า
-  if (mgr) html += `<div class="jp-tools"><button type="button" class="jp-btn" id="jpCopy">📋 ใช้ตารางสัปดาห์ก่อน</button><button type="button" class="jp-btn" id="jpSwap">🔄 สลับวันหยุด</button><button type="button" class="jp-btn" id="jpWeekly">🔁 วันหยุดประจำ</button><button type="button" class="jp-btn" id="jpPick">👥 เลือกพนักงาน</button></div>`;
+  if (mgr) html += `<div class="jp-tools"><button type="button" class="jp-btn" id="jpSwap">🔄 สลับวันหยุด</button><button type="button" class="jp-btn" id="jpWeekly">🔁 วันหยุดประจำ</button><button type="button" class="jp-btn" id="jpPick">👥 เลือกพนักงาน</button></div>`;
   // รายละเอียดวัน
   const info = jDay(JS.sel), off = info.off + info.leave + info.absent, ph = jPhase(JS.sel), phL = { past: 'ย้อนหลัง', today: 'วันนี้', fut: 'แผนล่วงหน้า' }[ph];
   html += `<div class="jp-card jp-day has-card-mascot has-corner-stk"><div class="jp-day-top"><h3>${jFmt(JS.sel, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</h3>${mgr ? `<button type="button" class="jp-btn" id="jpClose">${info.closed ? 'ยกเลิกวันหยุดร้าน' : '🏪 วันหยุดร้าน'}</button>` : ''}</div><span class="jp-phase ${ph === 'fut' ? 'fut' : ''}">${phL}</span>`;
