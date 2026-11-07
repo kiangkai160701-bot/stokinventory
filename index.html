@@ -1590,6 +1590,9 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-period-tabs,.jp-team-modes{display:flex;gap:6px;margin:8px 0 12px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
 .jp-period-tabs button,.jp-team-modes button{flex:1;min-width:0;min-height:36px;padding:5px 6px;border:0;border-radius:9px;background:transparent;color:var(--mute);font:inherit;font-size:12px;font-weight:800}
 .jp-period-tabs button.on,.jp-team-modes button.on{background:var(--acc);color:#fff}
+.jp-period-tabs .jp-period-today{flex:1.25;background:var(--card-bg);border:1px solid var(--acc);color:var(--acc);font-size:11px;white-space:nowrap}
+.jp-period-tabs .jp-period-today:active{background:var(--theme-wash)}
+@media(max-width:360px){.jp-period-tabs{gap:3px;padding:3px}.jp-period-tabs .jp-period-today{font-size:9px;padding:4px 2px}}
 .jp-period-range{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 1px 10px}
 .jp-period-range b{font-size:14px}.jp-period-range span{color:var(--mute);font-size:11px;text-align:right}
 .jp-report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
@@ -5211,7 +5214,7 @@ function jRender() {
     const total = jPeriodTotals(all, range), label = JS.periodWeek === 'w1' ? 'วีค 1' : 'วีค 2';
     const dates = jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
     html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jPeriodNav(range) + '</div>' +
-      '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
+      '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" class="jp-period-today" data-period-today title="กลับไปยังวีคปัจจุบัน">กลับสู่วีคปัจจุบัน</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
       '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
       '<div class="jp-report-grid"><div><small>ปกติ</small><b>' + total.normal + '</b></div><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div></div>' +
       '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '<br>ปกติ = ไม่มีการบันทึกสถานะลา สาย หรือขาด · ไม่นับวันหยุดร้านและวันหยุดประจำ</div>' +
@@ -5501,6 +5504,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     const t = e.target; let b;
     if ((b = t.closest('[data-view]'))) { JS.view = b.dataset.view; jRender(); }
     else if ((b = t.closest('[data-who]'))) { JS.who = b.dataset.who; jRender(); }
+    else if (t.closest('[data-period-today]')) { const p = jPeriodForDate(jToday()).split('-'); JS.y = Number(p[0]); JS.m = Number(p[1]) - 1; JS.periodWeek = p[2]; jRender(); }
     else if ((b = t.closest('[data-period-week]'))) { JS.periodWeek = b.dataset.periodWeek; jRender(); }
     else if ((b = t.closest('[data-team-mode]'))) { JS.teamMode = b.dataset.teamMode; jRender(); }
     else if ((b = t.closest('[data-team-week]'))) { JS.teamWeek = b.dataset.teamWeek; jRender(); }
