@@ -5614,7 +5614,8 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
  page.addEventListener('click',async e=>{
   const b=e.target.closest('button');if(!b)return;
   try{
-   if(b.id==='efBack'){window.eggFeedClose();return;}\n   if(b.id==='efRefresh'){await load();return;}
+   if(b.id==='efBack'){window.eggFeedClose();return;}
+   if(b.id==='efRefresh'){await load();return;}
    if(b.dataset.efFilter){state.filter=b.dataset.efFilter;await load();return;}
    if(b.id==='efPublish'){
     const bodyText=document.getElementById('efPostText').value.trim(),audience=document.getElementById('efAudience').value;
