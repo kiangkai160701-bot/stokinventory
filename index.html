@@ -833,10 +833,13 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 /* ===== ฟีด ไข่หวาน ===== */
 .ef-page{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:var(--bg-app);transform:translateX(105%);transition:transform .24s ease;overflow:hidden}
 .ef-page.open{transform:none}
-.ef-head{display:grid;grid-template-columns:76px minmax(0,1fr) 76px;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;background:var(--card-bg);border-bottom:1px solid var(--line)}
-.ef-head h2{margin:0;font-size:17px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ef-back{width:76px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card-bg);border-radius:12px;padding:8px 10px;color:var(--ink);font-weight:600;font-size:13px;white-space:nowrap;transition:background .18s ease,border-color .18s ease,transform .18s ease}.ef-back:active,.ef-refresh:active{transform:scale(.96)}
-.ef-refresh{justify-self:end;width:42px;height:42px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));border-radius:13px;background:var(--acc-light);color:var(--acc-hover);box-shadow:0 3px 10px var(--acc-glow);transition:transform .18s ease,background .18s ease,opacity .18s ease}.ef-refresh svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ef-refresh.is-loading svg{animation:efRefreshSpin .8s linear infinite}.ef-refresh:disabled{opacity:.65;cursor:wait}@keyframes efRefreshSpin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.ef-back,.ef-refresh{transition:none}.ef-refresh.is-loading svg{animation:none}}
+.ef-head{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--card-bg);border-bottom:1px solid var(--line)}
+.ef-head h2{min-width:0;margin:0;font-size:17px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ef-back,.ef-refresh{justify-self:center}
+.ef-refresh.is-loading svg{animation:efRefreshSpin .8s linear infinite}
+.ef-refresh:disabled{opacity:.65;cursor:wait}
+@keyframes efRefreshSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ef-refresh.is-loading svg{animation:none}}
 .ef-body{overflow:auto;overscroll-behavior:contain;padding:12px;max-width:760px;width:100%;margin:0 auto;box-sizing:border-box}
 .ef-filters{display:flex;gap:8px;margin-bottom:12px}.ef-filter{flex:1;border:1px solid var(--line);background:var(--card-bg);color:var(--mute);border-radius:12px;padding:9px;font:inherit;font-size:13px}.ef-filter.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .ef-card{background:var(--card-bg);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
@@ -5249,7 +5252,7 @@ const jPill = e => `<span class="jp-pill t-${e.t}">${JT[e.t].e} ${JT[e.t].l}${e.
 const jChips = s => ['normal', 'absent', 'late', 'leave', 'off'].map(t => t === 'normal' ? `<span class="jp-chip t-ok">ปกติ ${s.normal || 0}</span>` : `<span class="jp-chip t-${t}">${JT[t].l} ${s[t]}${t === 'late' && s.min ? ` (${s.min} น.)` : ''}</span>`).join('');
 const jFriends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
 const jMas = (i, cls) => { const f = jFriends(); return f.length && stkKeep(i) ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
-const jNav = () => `<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>${jFmt(dk(new Date(JS.y, JS.m, 1)), { month: 'long', year: 'numeric' })}</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`;
+const jNav = () => `<button type="button" class="jp-btn sq" data-mon="-1" aria-label="เดือนก่อน"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><b>${jFmt(dk(new Date(JS.y, JS.m, 1)), { month: 'long', year: 'numeric' })}</b><button type="button" class="jp-btn sq" data-mon="1" aria-label="เดือนถัดไป"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" class="jp-btn" data-calendar-today>ปัจจุบัน</button>`;
 const jPeriodNav = range => {
   const a = pk(range.startKey), b = pk(range.endKey);
   const monthA = a.toLocaleDateString('th-TH', { month: 'long', year: 'numeric' });
@@ -5567,7 +5570,8 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     else if ((b = t.closest('[data-team-mode]'))) { JS.teamMode = b.dataset.teamMode; jRender(); }
     else if ((b = t.closest('[data-team-week]'))) { JS.teamWeek = b.dataset.teamWeek; jRender(); }
     else if ((b = t.closest('[data-mon]'))) { const d = new Date(JS.y, JS.m + Number(b.dataset.mon), 1); JS.y = d.getFullYear(); JS.m = d.getMonth(); if (JS.view === 'cal') JS.sel = dk(d); jRender(); }
-    else if ((b = t.closest('[data-d]'))) { JS.sel = b.dataset.d; jRender(); }
+     else if (t.closest('[data-calendar-today]')) { const today = new Date(); JS.y = today.getFullYear(); JS.m = today.getMonth(); JS.sel = dk(today); jRender(); }
+     else if ((b = t.closest('[data-d]'))) { JS.sel = b.dataset.d; jRender(); }
     else if ((b = t.closest('[data-edit]'))) jForm({ n: b.dataset.edit, k: JS.sel });
     else if (t.closest('#jpCopy')) jCopy();
     else if (t.closest('#jpSwap')) jSwap();
@@ -5589,7 +5593,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
  const rpc=(action,payload={})=>cloudRpc('api_eggfeed',{p_token:cloudToken,p_action:action,p_payload:payload});
  const fmt=ts=>new Date(ts).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
  const page=document.createElement('section'); page.className='ef-page'; page.id='eggFeedPage';
- page.innerHTML='<header class="ef-head"><button class="ef-back" type="button" id="efBack" aria-label="กลับไปหน้าก่อน"><span aria-hidden="true">←</span> กลับ</button><h2>🥚 ฟีด ไข่หวาน</h2><button class="ef-refresh" type="button" id="efRefresh" aria-label="รีเฟรชฟีด" title="รีเฟรชฟีด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.7-2L20 12M4 12l2.7 5a7 7 0 0 0 11.7-2"/></svg></button></header><main class="ef-body" id="efBody"></main>';
+ page.innerHTML='<header class="ef-head"><button class="jp-btn sq ef-back" type="button" id="efBack" aria-label="กลับ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🥚 ฟีด ไข่หวาน</h2><button class="jp-btn sq ef-refresh" type="button" id="efRefresh" aria-label="รีเฟรชฟีด" title="รีเฟรชฟีด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.7-2L20 12M4 12l2.7 5a7 7 0 0 0 11.7-2"/></svg></button></header><main class="ef-body" id="efBody"></main>';
  document.body.append(page);
  const body=()=>document.getElementById('efBody');
  window.eggFeedClose=()=>page.classList.remove('open');
