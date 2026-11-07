@@ -5079,10 +5079,12 @@ function jDay(k, names = jNames()) {
   return o;
 }
 function jStat(name, y, m) {
-  const s = { off: 0, leave: 0, late: 0, absent: 0, min: 0 };
+  const s = { off: 0, leave: 0, late: 0, absent: 0, normal: 0, min: 0 };
   for (let d = 1, n = new Date(y, m + 1, 0).getDate(); d <= n; d++) {
-    const k = dk(new Date(y, m, d)); if (J.closed[k]) continue;
-    const e = jEff(k, name); if (e) { s[e.t]++; if (e.t === 'late') s.min += Number(e.m) || 0; }
+    const k = dk(new Date(y, m, d)); if (J.closed[k] || (J.start && k < J.start)) continue;
+    const e = jEff(k, name);
+    if (e) { s[e.t]++; if (e.t === 'late') s.min += Number(e.m) || 0; }
+    else s.normal++;
   }
   return s;
 }
