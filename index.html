@@ -2600,23 +2600,45 @@ function bindAnnounceCard() {
     const eb = e.target.closest('[data-ann-edit]');
     if (eb) {
       const old = (annState.items || []).find(a => String(a.id) === eb.dataset.annEdit); if (!old) return toast('ไม่พบประกาศนี้ ลองโหลดใหม่', 1);
-      openModal(`<h3>✏️ แก้ไขข้อความประกาศ</h3><form id="annEditForm"><label class="fld"><span>ข้อความประกาศ</span><textarea class="in" name="msg" rows="4" maxlength="200" required>${esc(old.message)}</textarea><small class="ann-counter" id="annEditCount">${[...old.message].length}/200</small></label><p class="settings-hint">แสดงที่เดิม: ${esc(annBranchNames(old.branch_ids))} · เวลาที่เหลือไม่เปลี่ยน</p><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
-      const f = $('#annEditForm'); f.elements.msg.oninput = () => { $('#annEditCount').textContent = `${[...f.elements.msg.value].length}/200`; };
+      const initialMinutes = Math.max(1, Math.ceil((Number(old.remaining_seconds) || 60) / 60));
+      const initialHours = Math.floor(initialMinutes / 60), initialRemainder = initialMinutes % 60;
+      openModal(`<h3>✏️ แก้ไขข้อความประกาศ</h3><form id="annEditForm"><label class="fld"><span>ข้อความประกาศ</span><textarea class="in" name="msg" rows="4" maxlength="200" required>${esc(old.message)}</textarea><small class="ann-counter" id="annEditCount">${[...old.message].length}/200</small></label><p class="settings-hint">แสดงที่เดิม: ${esc(annBranchNames(old.branch_ids))}</p><div class="fld"><span>เวลาที่เหลือหลังบันทึก</span><div class="ann-duration"><label><input class="in" type="number" name="hours" min="0" max="720" inputmode="numeric" value="${initialHours}"><em>ชั่วโมง</em></label><label><input class="in" type="number" name="minutes" min="0" max="59" inputmode="numeric" value="${initialRemainder}"><em>นาที</em></label></div><div class="ann-chips" id="annEditTimeChips"><button type="button" class="ann-chip" data-edit-delta="-60">−1 ชม.</button><button type="button" class="ann-chip" data-edit-delta="-15">−15 นาที</button><button type="button" class="ann-chip" data-edit-delta="15">+15 นาที</button><button type="button" class="ann-chip" data-edit-delta="60">+1 ชม.</button></div><small class="ann-until" id="annEditUntil"></small></div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
+      const f = $('#annEditForm'); let durationDirty = false;
+      const readEditMinutes = () => {
+        const h = Math.min(720, Math.max(0, parseInt(f.elements.hours.value, 10) || 0));
+        const m = Math.min(59, Math.max(0, parseInt(f.elements.minutes.value, 10) || 0));
+        return Math.min(43259, h * 60 + m);
+      };
+      const showEditUntil = () => {
+        const t = readEditMinutes(), until = $('#annEditUntil');
+        until.textContent = t ? `แสดงต่ออีก ${annRemain(t * 60)} · ถึง ${new Date(Date.now() + t * 60000).toLocaleString('th-TH', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}` : 'ต้องกำหนดเวลาอย่างน้อย 1 นาที';
+      };
+      f.elements.msg.oninput = () => { $('#annEditCount').textContent = `${[...f.elements.msg.value].length}/200`; };
+      f.elements.hours.oninput = f.elements.minutes.oninput = () => { durationDirty = true; showEditUntil(); };
+      $('#annEditTimeChips').onclick = ev => {
+        const chip = ev.target.closest('[data-edit-delta]'); if (!chip) return;
+        const next = Math.max(1, Math.min(43259, readEditMinutes() + Number(chip.dataset.editDelta)));
+        f.elements.hours.value = Math.floor(next / 60); f.elements.minutes.value = next % 60;
+        durationDirty = true; showEditUntil();
+      };
+      showEditUntil();
       f.onsubmit = async ev => {
         ev.preventDefault(); const message = f.elements.msg.value.trim(), btn = ev.submitter;
         if (!message) return toast('กรุณากรอกข้อความประกาศ', 1);
-        if (message === old.message) { closeModal(); return; }
+        if (durationDirty && !readEditMinutes()) return toast('กรุณากำหนดเวลาอย่างน้อย 1 นาที', 1);
         if (btn) btn.disabled = true;
         try {
           const fresh = await cloudRpc('api_announcement_list', { p_token: cloudToken });
           const cur = (fresh?.items || []).find(a => String(a.id) === String(old.id));
           if (!cur) { if (btn) btn.disabled = false; closeModal(); annReloadList(); refreshAnnouncement(true); return toast('ประกาศนี้หมดเวลาหรือถูกยกเลิกไปแล้ว', 1); }
-          const args = { p_branch_ids: cur.branch_ids, p_minutes: Math.max(1, Math.ceil((Number(cur.remaining_seconds) || 60) / 60)) };
+          if (message === cur.message && !durationDirty) { closeModal(); return; }
+          const minutes = durationDirty ? readEditMinutes() : Math.max(1, Math.ceil((Number(cur.remaining_seconds) || 60) / 60));
+          const args = { p_branch_ids: cur.branch_ids, p_minutes: minutes };
           const del = await cloudRpc('api_announcement_cancel', { p_token: cloudToken, p_id: cur.id });
           if (!del?.ok) { if (btn) btn.disabled = false; return toast(del?.error || 'แก้ไขประกาศไม่สำเร็จ', 1); }
           const set = await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: message, ...args });
           if (!set?.ok) { await cloudRpc('api_announcement_set', { p_token: cloudToken, p_message: cur.message, ...args }).catch(() => {}); if (btn) btn.disabled = false; return toast(set?.error || 'แก้ไขประกาศไม่สำเร็จ (คืนข้อความเดิมให้แล้ว)', 1); }
-          closeModal(); toast('แก้ไขประกาศแล้ว'); annReloadList(); refreshAnnouncement(true);
+          closeModal(); toast('แก้ไขประกาศและระยะเวลาแล้ว'); annReloadList(); refreshAnnouncement(true);
         } catch (error) { if (btn) btn.disabled = false; toast(error.message || 'แก้ไขประกาศไม่สำเร็จ', 1); annReloadList(); refreshAnnouncement(true); }
       };
       return;
