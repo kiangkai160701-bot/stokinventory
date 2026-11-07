@@ -5213,7 +5213,7 @@ function jRender() {
     html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jPeriodNav(range) + '</div>' +
       '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
       '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
-      '<div class="jp-report-grid"><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ปกติ</small><b>' + total.normal + '</b></div></div>' +
+      '<div class="jp-report-grid"><div><small>ปกติ</small><b>' + total.normal + '</b></div><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div></div>' +
       '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '<br>ปกติ = ไม่มีการบันทึกสถานะลา สาย หรือขาด · ไม่นับวันหยุดร้านและวันหยุดประจำ</div>' +
       (saved && saved.closedAt ? '<div class="jp-period-status">🔒 ปิดรอบแล้ว · ผู้ตรวจสอบ ' + esc(saved.closedBy || '-') + ' · ' + esc(new Date(saved.closedAt).toLocaleString('th-TH')) + '</div>' :
         '<div class="jp-period-status">รอบนี้ยังเปิดอยู่ · ตัวเลขคำนวณจากข้อมูลล่าสุด</div>') +
