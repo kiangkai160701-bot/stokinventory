@@ -829,6 +829,26 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 .about-site-note{padding:13px 14px;border-left:3px solid var(--acc);border-radius:9px;background:var(--theme-wash)}
 .about-site-note b{display:block;margin-bottom:4px;color:var(--ink);font-size:12.5px}
 @media(max-width:640px){.about-site-grid{grid-template-columns:minmax(0,1fr)}.about-site-intro{padding:13px}.about-site-intro h3{font-size:16px}.about-site-section{padding:12px}.about-site-section ul{font-size:11.5px}}
+
+/* ===== ฟีด ไข่หวาน ===== */
+.ef-page{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:var(--bg-app);transform:translateX(105%);transition:transform .24s ease;overflow:hidden}
+.ef-page.open{transform:none}
+.ef-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;background:var(--card-bg);border-bottom:1px solid var(--line)}
+.ef-head h2{margin:0;font-size:17px;flex:1}.ef-back{border:1px solid var(--line);background:var(--card-bg);border-radius:10px;padding:8px 11px;color:var(--ink)}
+.ef-body{overflow:auto;overscroll-behavior:contain;padding:12px;max-width:760px;width:100%;margin:0 auto;box-sizing:border-box}
+.ef-filters{display:flex;gap:8px;margin-bottom:12px}.ef-filter{flex:1;border:1px solid var(--line);background:var(--card-bg);color:var(--mute);border-radius:12px;padding:9px;font:inherit;font-size:13px}.ef-filter.on{background:var(--acc);border-color:var(--acc);color:#fff}
+.ef-card{background:var(--card-bg);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
+.ef-compose textarea,.ef-comment-input{width:100%;box-sizing:border-box;resize:vertical;border:1px solid var(--line);border-radius:11px;background:var(--bg-app);color:var(--ink);padding:10px;font:inherit;font-size:13px}
+.ef-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ef-row .grow{flex:1}
+.ef-btn{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:12px}.ef-btn.primary{background:var(--acc);border-color:var(--acc);color:white}.ef-btn:disabled{opacity:.5}
+.ef-author{font-size:13px;font-weight:800}.ef-meta{font-size:11px;color:var(--mute);margin-top:2px}.ef-bodytext{font-size:13px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
+.ef-image{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:var(--bg-app);margin-top:9px}
+.ef-actions{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:9px;margin-top:10px}.ef-actions button{flex:1}
+.ef-comment{padding:8px 0;border-top:1px solid var(--line);font-size:12px}.ef-comment b{font-size:12px}.ef-comment small{color:var(--mute);margin-left:5px}
+.ef-empty{text-align:center;color:var(--mute);padding:28px 12px;font-size:13px}
+.ef-preview{max-width:100%;max-height:150px;border-radius:10px;margin-top:8px}
+@media(min-width:1100px){.ef-page{inset:10px 10px 10px auto;width:min(760px,96vw);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 40px rgba(0,0,0,.18)}}
+
 </style>
 <style id="smooth-motion">
 html{-webkit-text-size-adjust:100%}
@@ -2065,7 +2085,7 @@ set(v) { cloudToken = v || null; cloudTokenStore.set(v); }
 const num = n => Number(n).toLocaleString('th-TH');
 const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 'หัวหน้างาน', staff: 'พนักงานคลัง' };
 let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) }; delete ROLE.viewer;
-const READ_ONLY_PERMISSIONS = { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, resetData: false, manageBranches: false };
+const READ_ONLY_PERMISSIONS = { eggFeed: false, editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, resetData: false, manageBranches: false };
 const normalizeRemovedViewerAccounts = users => (Array.isArray(users) ? users : []).map(user => String(user?.role || '').toLowerCase() === 'viewer'
 ? { ...user, role: 'staff', permissions: { ...READ_ONLY_PERMISSIONS } }
 : user);
@@ -2075,9 +2095,9 @@ const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || Strin
 const globalAdminDirectoryUser = Object.freeze({ name: 'kiangkai', role: 'admin', active: true, owner: true, globalAdmin: true });
 const isGlobalBranchAdmin = user => !!user?.owner && !user?.branchManagerAccess;
 const defaultPermissions = role => role === 'admin'
-? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true }
+? { eggFeed: true, editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true }
 : role === 'supervisor'
-? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true }
+? { eggFeed: false, editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true }
 : role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false }
 : { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false };
 const I = {
@@ -2631,7 +2651,8 @@ permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
 manageBranches: () => isGlobalBranchAdmin(me),
 reset: () => fullAccessUser(me) || !!me?.permissions?.resetData,
 sideMenu: () => fullAccessUser(me) || !!(me?.permissions?.sideMenu ?? defaultPermissions(me?.role).sideMenu),
-manageJobs: () => fullAccessUser(me) || !!(me?.permissions?.manageJobs ?? defaultPermissions(me?.role).manageJobs)
+manageJobs: () => fullAccessUser(me) || !!(me?.permissions?.manageJobs ?? defaultPermissions(me?.role).manageJobs),
+eggFeed: () => fullAccessUser(me) || !!(me?.permissions?.eggFeed ?? defaultPermissions(me?.role).eggFeed)
 };
 function tabs() {
 const items = [
@@ -3772,7 +3793,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน']
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน'], ['eggFeed', 'ใช้งานฟีด ไข่หวาน']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || (key === 'sideMenu' || key === 'manageJobs' ? (user.permissions?.[key] ?? defaultPermissions(user.role)[key]) : user.permissions?.[key]) ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div></div></div>
     </div>` : ''}
@@ -5504,7 +5525,7 @@ function jSettings() {
     });
   }, { passive: true });
 })();
-const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
+const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'eggfeed', icon: '🥚', label: 'ฟีด ไข่หวาน', show: () => can.eggFeed(), open: () => window.eggFeedOpen && window.eggFeedOpen() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
 (function setupSideMenu() {
   const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
   const dock = document.createElement('div'); dock.className = 'sd-dock';
