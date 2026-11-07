@@ -833,8 +833,10 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 /* ===== ฟีด ไข่หวาน ===== */
 .ef-page{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:var(--bg-app);transform:translateX(105%);transition:transform .24s ease;overflow:hidden}
 .ef-page.open{transform:none}
-.ef-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;background:var(--card-bg);border-bottom:1px solid var(--line)}
-.ef-head h2{margin:0;font-size:17px;flex:1}.ef-back{border:1px solid var(--line);background:var(--card-bg);border-radius:10px;padding:8px 11px;color:var(--ink)}
+.ef-head{display:grid;grid-template-columns:76px minmax(0,1fr) 76px;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 12px) 14px 12px;background:var(--card-bg);border-bottom:1px solid var(--line)}
+.ef-head h2{margin:0;font-size:17px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ef-back{width:76px;min-height:42px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--card-bg);border-radius:12px;padding:8px 10px;color:var(--ink);font-weight:600;font-size:13px;white-space:nowrap;transition:background .18s ease,border-color .18s ease,transform .18s ease}.ef-back:active,.ef-refresh:active{transform:scale(.96)}
+.ef-refresh{justify-self:end;width:42px;height:42px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--acc) 35%,var(--line));border-radius:13px;background:var(--acc-light);color:var(--acc-hover);box-shadow:0 3px 10px var(--acc-glow);transition:transform .18s ease,background .18s ease,opacity .18s ease}.ef-refresh svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.ef-refresh.is-loading svg{animation:efRefreshSpin .8s linear infinite}.ef-refresh:disabled{opacity:.65;cursor:wait}@keyframes efRefreshSpin{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.ef-back,.ef-refresh{transition:none}.ef-refresh.is-loading svg{animation:none}}
 .ef-body{overflow:auto;overscroll-behavior:contain;padding:12px;max-width:760px;width:100%;margin:0 auto;box-sizing:border-box}
 .ef-filters{display:flex;gap:8px;margin-bottom:12px}.ef-filter{flex:1;border:1px solid var(--line);background:var(--card-bg);color:var(--mute);border-radius:12px;padding:9px;font:inherit;font-size:13px}.ef-filter.on{background:var(--acc);border-color:var(--acc);color:#fff}
 .ef-card{background:var(--card-bg);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
@@ -5078,7 +5080,7 @@ document.body.appendChild(btn);
 const app=document.querySelector('#app');
 const pos=()=>Math.max(window.scrollY||0,document.documentElement.scrollTop||0,document.body.scrollTop||0,app?app.scrollTop:0);
 let ticking=false;
-const update=()=>{ticking=false;btn.classList.toggle('show',(tab==='log'||tab==='dashboard'||tab==='stock')&&!isWideDesktop()&&pos()>300);};
+const update=()=>{ticking=false;btn.classList.toggle('show',(tab==='log'||tab==='dashboard'||tab==='stock'||tab==='users'||tab==='settings')&&!isWideDesktop()&&pos()>300);};
 const queue=()=>{if(!ticking){ticking=true;requestAnimationFrame(update);}};
 document.addEventListener('scroll',e=>{
   window.__lastScrollTs=Date.now();
@@ -5587,7 +5589,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
  const rpc=(action,payload={})=>cloudRpc('api_eggfeed',{p_token:cloudToken,p_action:action,p_payload:payload});
  const fmt=ts=>new Date(ts).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
  const page=document.createElement('section'); page.className='ef-page'; page.id='eggFeedPage';
- page.innerHTML='<header class="ef-head"><button class="ef-back" type="button" id="efBack">‹ กลับ</button><h2>🥚 ฟีด ไข่หวาน</h2><button class="ef-back" type="button" id="efRefresh">↻</button></header><main class="ef-body" id="efBody"></main>';
+ page.innerHTML='<header class="ef-head"><button class="ef-back" type="button" id="efBack" aria-label="กลับไปหน้าก่อน"><span aria-hidden="true">←</span> กลับ</button><h2>🥚 ฟีด ไข่หวาน</h2><button class="ef-refresh" type="button" id="efRefresh" aria-label="รีเฟรชฟีด" title="รีเฟรชฟีด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.7-2L20 12M4 12l2.7 5a7 7 0 0 0 11.7-2"/></svg></button></header><main class="ef-body" id="efBody"></main>';
  document.body.append(page);
  const body=()=>document.getElementById('efBody');
  window.eggFeedClose=()=>page.classList.remove('open');
@@ -5605,10 +5607,10 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   ${posts.length?posts.map(p=>`<article class="ef-card" data-post="${p.id}"><div class="ef-row"><span class="ef-author">${esc(p.author_name)} · สาขา${esc(p.branch_name||'-')}</span><span class="grow"></span>${(String(p.author_name).toLowerCase()===String(me?.name).toLowerCase()||fullAccessUser(me))?'<button class="ef-btn" data-ef-delete="'+p.id+'">ลบ</button>':''}</div><div class="ef-meta">โพสต์วันที่ ${esc(fmt(p.created_at))} · ${p.audience==='all'?'ทุกสาขา':'เฉพาะสาขา'}</div>${p.body?'<div class="ef-bodytext">'+esc(p.body)+'</div>':''}${p.image_data?'<img class="ef-image" src="'+p.image_data+'" alt="รูปภาพในโพสต์">':''}<div class="ef-meta">หมดอายุ ${esc(fmt(p.expires_at))}</div><div class="ef-actions"><button class="ef-btn ${p.liked?'primary':''}" data-ef-like="${p.id}">${p.liked?'♥ ถูกใจแล้ว':'♡ ถูกใจ'} · ${p.like_count||0}</button><button class="ef-btn" data-ef-focus-comment="${p.id}">💬 แสดงความคิดเห็น · ${(p.comments||[]).length}</button></div><div class="ef-comments">${(p.comments||[]).map(c=>'<div class="ef-comment"><b>'+esc(c.author_name)+' · สาขา'+esc(c.branch_name||'-')+'</b><small>'+esc(fmt(c.created_at))+'</small>'+(c.body?'<div class="ef-bodytext">'+esc(c.body)+'</div>':'')+(c.image_data?'<img class="ef-image" src="'+c.image_data+'" alt="รูปภาพความคิดเห็น">':'')+'</div>').join('')}</div><div class="ef-row" style="margin-top:8px"><input class="ef-comment-input grow" data-ef-comment-text="${p.id}" maxlength="1000" placeholder="เขียนความคิดเห็น..."><label class="ef-btn">📷<input type="file" accept="image/*" hidden data-ef-comment-image="${p.id}"></label><button class="ef-btn primary" data-ef-comment-send="${p.id}">ส่ง</button></div><div class="ef-meta" data-ef-comment-preview="${p.id}"></div></article>`).join(''):'<div class="ef-empty">ยังไม่มีโพสต์ในฟีดนี้<br>เริ่มโพสต์ข้อความหรือรูปภาพได้เลย 💛</div>'}`;
  }
  async function load(){
-  if(state.busy)return;state.busy=true;body().innerHTML='<div class="ef-empty">กำลังโหลดฟีด...</div>';
+  if(state.busy)return;state.busy=true;const refreshBtn=page.querySelector('#efRefresh');if(refreshBtn){refreshBtn.disabled=true;refreshBtn.classList.add('is-loading');refreshBtn.setAttribute('aria-busy','true');}body().innerHTML='<div class="ef-empty">กำลังโหลดฟีด...</div>';
   try{const r=await rpc('list',{filter:state.filter});if(!r.ok)throw new Error(r.error||'โหลดฟีดไม่สำเร็จ');state.posts=r.posts||[];render();}
   catch(e){body().innerHTML='<div class="ef-empty">'+esc(e.message||'โหลดฟีดไม่สำเร็จ')+'</div>';}
-  finally{state.busy=false;}
+  finally{state.busy=false;if(refreshBtn){refreshBtn.disabled=false;refreshBtn.classList.remove('is-loading');refreshBtn.removeAttribute('aria-busy');}}
  }
  let postImage='',commentImages={};
  page.addEventListener('click',async e=>{
