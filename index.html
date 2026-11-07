@@ -1601,16 +1601,17 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .jp-team-modes{margin-bottom:14px}
 .jp-team .jp-stat{display:flex;flex-wrap:wrap;gap:6px}
 @media(max-width:360px){.jp-tools{gap:4px!important}.jp-tools .jp-btn{font-size:10px;padding:8px 2px}}
-.jp-period-tabs,.jp-team-modes{display:flex;gap:6px;margin:8px 0 12px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
-.jp-period-tabs button,.jp-team-modes button{flex:1;min-width:0;min-height:36px;padding:5px 6px;border:0;border-radius:9px;background:transparent;color:var(--mute);font:inherit;font-size:12px;font-weight:800}
-.jp-period-tabs button.on,.jp-team-modes button.on{background:var(--acc);color:#fff}
-.jp-period-tabs .jp-period-today{flex:1.25;display:flex;align-items:center;justify-content:center;gap:5px;min-height:40px;padding:7px 8px;border:1px solid var(--acc);border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc-hover));color:#fff;font:inherit;font-size:12.5px;font-weight:850;line-height:1.2;text-align:center;white-space:normal;box-shadow:0 3px 8px var(--acc-glow);cursor:pointer;transition:transform .16s ease,filter .16s ease,box-shadow .16s ease}
-.jp-period-tabs .jp-period-today::before{content:"↻";font-size:17px;line-height:1;font-weight:900}
-.jp-period-tabs .jp-period-today:hover{filter:brightness(1.06);box-shadow:0 4px 11px var(--acc-glow)}
-.jp-period-tabs .jp-period-today:active{transform:scale(.96);filter:brightness(.94);box-shadow:0 1px 3px var(--acc-glow)}
-.jp-period-tabs .jp-period-today:focus-visible{outline:3px solid color-mix(in srgb,var(--acc) 35%,transparent);outline-offset:2px}
-@media(max-width:420px){.jp-period-tabs .jp-period-today{font-size:11.5px;padding:6px 4px;gap:3px}}
-@media(max-width:360px){.jp-period-tabs{gap:3px;padding:3px}.jp-period-tabs .jp-period-today{font-size:10.5px;padding:5px 2px;min-height:40px}.jp-period-tabs .jp-period-today::before{font-size:15px}}
+.jp-period-tabs{display:flex;align-items:center;gap:8px;margin:8px 0 12px;padding:0;border:0;border-radius:0;background:transparent}
+.jp-team-modes{display:flex;gap:6px;margin:8px 0 12px;padding:4px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash)}
+.jp-period-tabs button,.jp-team-modes button{flex:1;min-width:0;min-height:38px;padding:7px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card-bg);color:var(--mute);font:inherit;font-size:12px;font-weight:800;cursor:pointer}
+.jp-period-tabs button.on,.jp-team-modes button.on{border-color:var(--acc);background:var(--acc);color:#fff}
+.jp-period-tabs .jp-period-today{flex:0 0 auto;min-width:max-content;min-height:38px;margin-left:auto;padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:12px;font-weight:750;line-height:1.2;text-align:center;white-space:nowrap;box-shadow:none;cursor:pointer;transition:background .15s ease,border-color .15s ease}
+.jp-period-tabs .jp-period-today::before{content:"↻";margin-right:5px;font-size:14px;font-weight:800}
+.jp-period-tabs .jp-period-today:hover{background:var(--theme-wash);border-color:var(--acc);filter:none;box-shadow:none}
+.jp-period-tabs .jp-period-today:active{background:var(--theme-wash);filter:none;transform:none;box-shadow:none}
+.jp-period-tabs .jp-period-today:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+@media(max-width:420px){.jp-period-tabs{gap:5px}.jp-period-tabs button{padding:6px 7px;font-size:11px}.jp-period-tabs .jp-period-today{padding:6px 8px;font-size:10.5px}}
+@media(max-width:360px){.jp-period-tabs{gap:4px}.jp-period-tabs button{padding:6px 5px;font-size:10px}.jp-period-tabs .jp-period-today{min-width:0;padding:6px;font-size:9.5px}.jp-period-tabs .jp-period-today::before{margin-right:3px}}
 .jp-period-range{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 1px 10px}
 .jp-period-range b{font-size:14px}.jp-period-range span{color:var(--mute);font-size:11px;text-align:right}
 .jp-report-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
@@ -5249,7 +5250,7 @@ function jRender() {
     const total = jPeriodTotals(all, range), label = JS.periodWeek === 'w1' ? 'วีค 1' : 'วีค 2';
     const dates = jFmt(range.startKey, { day: 'numeric', month: 'short', year: 'numeric' }) + ' – ' + jFmt(range.endKey, { day: 'numeric', month: 'short', year: 'numeric' });
     html += '<div class="jp-card jp-period-card"><div class="jp-month">' + jPeriodNav(range) + '</div>' +
-      '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" class="jp-period-today" data-period-today title="กลับไปยังวีคปัจจุบัน">กลับสู่วีคปัจจุบัน</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button></div>' +
+      '<div class="jp-period-tabs"><button type="button" data-period-week="w1" class="' + (JS.periodWeek === 'w1' ? 'on' : '') + '">วีค 1 · 11–25</button><button type="button" data-period-week="w2" class="' + (JS.periodWeek === 'w2' ? 'on' : '') + '">วีค 2 · 26–10</button><button type="button" class="jp-period-today" data-period-today title="กลับไปยังวีคปัจจุบัน">กลับสู่วีคปัจจุบัน</button></div>' +
       '<div class="jp-period-range"><b>' + label + '</b><span>' + dates + '</span></div>' +
       '<div class="jp-report-grid"><div><small>ปกติ</small><b>' + total.normal + '</b></div><div><small>ขาด</small><b>' + total.absent + '</b></div><div><small>มาสาย</small><b>' + total.late + '</b></div><div><small>ลา</small><b>' + total.leave + '</b></div></div>' +
       '<div class="jp-period-foot">พนักงาน ' + all.length + ' คน · วันทำงานตามตาราง ' + total.scheduled + ' วัน · ทำงาน/ปกติหรือสาย ' + total.worked + ' วัน' + (total.pending ? ' · รอถึงวันทำงาน ' + total.pending + ' วัน' : '') + '<br>ปกติ = ไม่มีการบันทึกสถานะลา สาย หรือขาด · ไม่นับวันหยุดร้านและวันหยุดประจำ</div>' +
