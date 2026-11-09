@@ -2432,7 +2432,7 @@ function pushBase64UrlBytes(value) {
   return Uint8Array.from(raw, ch => ch.charCodeAt(0));
 }
 async function syncNotificationPreferences(preferences = getNotificationPrefs()) {
-  if (!('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return;
   const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
   const subscription = await registration?.pushManager?.getSubscription();
   if (!subscription || !cloudToken) return;
@@ -2468,6 +2468,16 @@ async function enablePushOnThisDevice() {
     preferences: getNotificationPrefs()
   });
   return registration;
+}
+async function refreshPushSubscriptionForSession() {
+  if (!cloudToken || !me || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
+    const subscription = await registration?.pushManager?.getSubscription();
+    if (!subscription) return;
+    await pushApi({ action: 'register', token: cloudToken, deviceId: notificationDeviceId(), subscription: subscription.toJSON() });
+    await pushApi({ action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(), preferences: getNotificationPrefs() });
+  } catch {}
 }
 async function dispatchPendingPushEvents() {
   if (!cloudToken || !me) return;
@@ -2540,13 +2550,19 @@ enter(result.me, result.branch);
 function enter(u, branch = currentBranch) {
 setCurrentBranch(branch);
 me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
+void refreshPushSubscriptionForSession();
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
 tab = 'stock'; build(); startPresence(); refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 stopPresence();
-const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+const oldToken = cloudToken;
+if (oldToken) {
+  const deviceId = store.get('inv_notification_device_id', '');
+  if (deviceId) pushApi({ action: 'unregister', token: oldToken, deviceId }).catch(() => {});
+  cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+}
 sess.set(null); syncSnapshot = null; me = null; renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
