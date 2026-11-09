@@ -712,6 +712,25 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-summary:hover{background:var(--theme-soft)}
 .disclosure-summary:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
 .disclosure-count{margin-left:auto;color:var(--mute);font-size:11px;font-weight:500}
+
+/* Device notification preferences */
+.notification-settings-list{display:grid;gap:7px;max-height:min(52vh,440px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 3px 2px 0;scrollbar-width:thin}
+.notification-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}
+.notification-setting-copy{min-width:0;display:grid;gap:2px}
+.notification-setting-copy b{font-size:13px;font-weight:650}
+.notification-setting-copy small{font-size:11px;color:var(--mute);line-height:1.4}
+.notification-switch{position:relative;flex:none;width:46px;height:27px;border-radius:99px;background:var(--line);border:1px solid var(--theme-border-strong);transition:background .18s ease}
+.notification-switch::after{content:"";position:absolute;left:3px;top:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0003;transition:transform .18s ease}
+.notification-switch[aria-checked="true"]{background:var(--acc);border-color:var(--acc)}
+.notification-switch[aria-checked="true"]::after{transform:translateX(19px)}
+.notification-switch:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+.notification-toolbar small{color:var(--mute);font-size:11px}
+.notification-actions{display:flex;gap:7px;flex-wrap:wrap}
+.notification-status{padding:10px 12px;border:1px solid var(--theme-border-strong);border-radius:12px;background:var(--theme-wash);font-size:12px;line-height:1.5;margin-bottom:10px}
+.notification-status b{display:block;margin-bottom:2px}
+@media(max-width:680px){.notification-settings-list{max-height:46vh}.notification-setting-row{min-height:56px}}
+
 .disclosure-chevron{width:10px;height:10px;flex:none;border-right:2px solid var(--acc-hover);border-bottom:2px solid var(--acc-hover);transform:rotate(45deg) translateY(-2px);transition:transform .32s cubic-bezier(.22,.78,.22,1)}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron{transform:rotate(225deg) translate(-1px,-1px)}
 .disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.22,.78,.22,1)}
@@ -2031,6 +2050,37 @@ const store = {
 get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
 set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+
+const NOTIFICATION_TYPES = [
+  { id:'stock_low', icon:'⚠️', label:'สินค้าใกล้หมด', description:'เมื่อจำนวนคงเหลือต่ำกว่าค่าขั้นต่ำที่กำหนด' },
+  { id:'stock_out', icon:'🚨', label:'สินค้าหมดสต๊อก', description:'เมื่อจำนวนคงเหลือของสินค้าเป็นศูนย์' },
+  { id:'stock_in', icon:'📥', label:'รับสินค้าเข้าคลัง', description:'เมื่อมีการบันทึกรับวัตถุดิบเข้าสต๊อก' },
+  { id:'stock_outbound', icon:'📤', label:'เบิกสินค้าออก', description:'เมื่อมีการบันทึกเบิกวัตถุดิบออกจากคลัง' },
+  { id:'stock_transfer', icon:'🔁', label:'โอนย้ายสินค้า', description:'เมื่อมีการโอนสินค้าไปยังสาขาอื่น' },
+  { id:'stock_return', icon:'↩️', label:'คืนสินค้า', description:'เมื่อมีการคืนสินค้าเข้าคลัง' },
+  { id:'product_create', icon:'➕', label:'เพิ่มสินค้าใหม่', description:'เมื่อมีการเพิ่มรายการวัตถุดิบใหม่' },
+  { id:'product_update', icon:'✏️', label:'แก้ไขข้อมูลสินค้า', description:'เมื่อมีการแก้ไขรายละเอียดสินค้า' },
+  { id:'product_delete', icon:'🗑️', label:'ลบสินค้า', description:'เมื่อมีการลบรายการวัตถุดิบ' },
+  { id:'stock_adjust', icon:'🧮', label:'ปรับยอดสต๊อก', description:'เมื่อมีการปรับจำนวนคงเหลือด้วยตนเอง' },
+  { id:'request_create', icon:'📝', label:'สร้างใบเบิกสินค้า', description:'เมื่อมีการสร้างรายการเบิกใหม่' },
+  { id:'request_approve', icon:'✅', label:'อนุมัติรายการ', description:'เมื่อรายการที่รอดำเนินการได้รับอนุมัติ' },
+  { id:'request_reject', icon:'⛔', label:'ปฏิเสธรายการ', description:'เมื่อรายการถูกปฏิเสธ' },
+  { id:'branch_change', icon:'🏬', label:'เพิ่มหรือแก้ไขสาขา', description:'เมื่อมีการเพิ่มหรือแก้ไขข้อมูลสาขา' },
+  { id:'user_create', icon:'👤', label:'มีผู้ใช้งานใหม่', description:'เมื่อมีการสร้างบัญชีผู้ใช้งานใหม่' }
+];
+const notificationPreferenceKey = () => {
+  const user = String(me?.name || 'guest').trim().toLowerCase().replace(/[^\p{L}\p{N}_-]/gu, '_');
+  return `inv_notification_preferences_v1_${user}`;
+};
+function getNotificationPreferences() {
+  const saved = store.get(notificationPreferenceKey(), null);
+  const valid = saved && typeof saved === 'object' && !Array.isArray(saved) ? saved : {};
+  return Object.fromEntries(NOTIFICATION_TYPES.map(item => [item.id, valid[item.id] === true]));
+}
+function saveNotificationPreferences(preferences) {
+  store.set(notificationPreferenceKey(), preferences);
+}
+
 const STK_LEVELS = [20, 40, 60, 80, 100];
 let uiStickerLevel = (() => { const v = Number(store.get('inv_sticker_level', 100)) || 100; return STK_LEVELS.includes(v) ? v : 100; })();
 const stkKeep = i => uiStickerLevel >= 100 || Math.floor((i + 1) * uiStickerLevel / 100) > Math.floor(i * uiStickerLevel / 100);
@@ -3941,6 +3991,19 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
         <div class="backup-admin-list" id="adminBackupList"><small class="dash-empty-note">กำลังโหลดรายการสำรอง…</small></div>
       </div></div>
     </div>
+    <div class="dash-card disclosure-card notification-card" id="notificationSettingsCard">
+      <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="notificationDisclosurePanel"><span>🔔 การแจ้งเตือน</span><span class="disclosure-count" id="notificationEnabledCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button>
+      <div class="disclosure-panel" id="notificationDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
+        <p class="settings-hint">เลือกประเภทการแจ้งเตือนที่ต้องการรับบนอุปกรณ์นี้ การตั้งค่าจะแยกตามบัญชีผู้ใช้และเบราว์เซอร์ ไม่กระทบอุปกรณ์อื่น</p>
+        <div class="notification-status" id="notificationPermissionStatus" role="status" aria-live="polite"><b>สถานะการแจ้งเตือนบนอุปกรณ์</b><span>กำลังตรวจสอบสิทธิ์เบราว์เซอร์…</span></div>
+        <div class="notification-toolbar"><small id="notificationSelectionSummary">เปิดอยู่ 0 จาก 15 รายการ</small><div class="notification-actions"><button type="button" class="btn sm sec" id="notificationEnableAll">เปิดทั้งหมด</button><button type="button" class="btn sm sec" id="notificationDisableAll">ปิดทั้งหมด</button></div></div>
+        <div class="notification-settings-list" id="notificationSettingsList" aria-label="เลือกรายการแจ้งเตือน">
+          ${NOTIFICATION_TYPES.map(item => `<div class="notification-setting-row"><div class="notification-setting-copy"><b>${item.icon} ${item.label}</b><small>${item.description}</small></div><button type="button" class="notification-switch" role="switch" data-notification-toggle="${item.id}" aria-checked="false" aria-label="เปิดหรือปิดแจ้งเตือน${item.label}"></button></div>`).join('')}
+        </div>
+        <p class="settings-hint" style="margin:10px 0 0">หมายเหตุ: การเปิดรายการเป็นการบันทึกความต้องการรับแจ้งเตือนเท่านั้น การแจ้งเตือนแบบ Push แม้ปิดเว็บไซต์ยังต้องติดตั้งระบบส่งแจ้งเตือนและอนุญาตสิทธิ์บนเบราว์เซอร์</p>
+        <button type="button" class="btn sm sec" id="notificationRequestPermission" style="margin-top:10px">อนุญาตการแจ้งเตือนบนอุปกรณ์</button>
+      </div></div>
+    </div>
     <div class="dash-card disclosure-card backup-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="backupDisclosurePanel"><span>💾 จัดการข้อมูลสำรอง</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="backupDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:12.5px;color:var(--mute);margin-bottom:12px">ส่งออกรายการเป็น Excel/CSV เพื่อแก้ไขแล้วนำกลับเข้าได้ หรือใช้ JSON สำรองและกู้คืนข้อมูลทั้งระบบ</p>
       <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -4193,6 +4256,55 @@ uiStickerLevel = Number(o.dataset.stickerLevel) || 100; store.set('inv_sticker_l
 document.querySelectorAll('[data-sticker-level]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.stickerLevel) === uiStickerLevel)));
 updatePageMascots(); toast(`ตั้งจำนวนสติ๊กเกอร์ ${uiStickerLevel}% แล้ว`);
 };
+
+const notificationList = $('#notificationSettingsList');
+if (notificationList) {
+  let preferences = getNotificationPreferences();
+  const updateNotificationUI = () => {
+    const enabled = NOTIFICATION_TYPES.filter(item => preferences[item.id]).length;
+    const summary = $('#notificationSelectionSummary'), count = $('#notificationEnabledCount');
+    if (summary) summary.textContent = `เปิดอยู่ ${enabled} จาก ${NOTIFICATION_TYPES.length} รายการ`;
+    if (count) count.textContent = `${enabled}/${NOTIFICATION_TYPES.length} เปิดอยู่`;
+    notificationList.querySelectorAll('[data-notification-toggle]').forEach(button => {
+      const on = preferences[button.dataset.notificationToggle] === true;
+      button.setAttribute('aria-checked', String(on));
+      button.classList.toggle('on', on);
+    });
+  };
+  const saveAndUpdate = () => { saveNotificationPreferences(preferences); updateNotificationUI(); };
+  notificationList.onclick = event => {
+    const button = event.target.closest('[data-notification-toggle]');
+    if (!button || !Object.hasOwn(preferences, button.dataset.notificationToggle)) return;
+    preferences[button.dataset.notificationToggle] = !preferences[button.dataset.notificationToggle];
+    saveAndUpdate();
+  };
+  if ($('#notificationEnableAll')) $('#notificationEnableAll').onclick = () => {
+    preferences = Object.fromEntries(NOTIFICATION_TYPES.map(item => [item.id, true])); saveAndUpdate();
+  };
+  if ($('#notificationDisableAll')) $('#notificationDisableAll').onclick = () => {
+    preferences = Object.fromEntries(NOTIFICATION_TYPES.map(item => [item.id, false])); saveAndUpdate();
+  };
+  const permissionStatus = $('#notificationPermissionStatus');
+  const refreshPermissionStatus = () => {
+    if (!permissionStatus) return;
+    const supported = 'Notification' in window;
+    const state = supported ? Notification.permission : 'unsupported';
+    const labels = { granted:'อนุญาตแล้วบนเบราว์เซอร์นี้', denied:'ถูกปฏิเสธในการตั้งค่าเบราว์เซอร์', default:'ยังไม่ได้อนุญาต', unsupported:'เบราว์เซอร์นี้ไม่รองรับ Web Notifications' };
+    permissionStatus.innerHTML = '<b>สถานะการแจ้งเตือนบนอุปกรณ์</b><span>' + (labels[state] || labels.unsupported) + '</span>';
+  };
+  refreshPermissionStatus();
+  if ($('#notificationRequestPermission')) $('#notificationRequestPermission').onclick = async () => {
+    if (!('Notification' in window)) return toast('เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน', 1);
+    if (!window.isSecureContext) return toast('ต้องเปิดเว็บไซต์ผ่าน HTTPS จึงจะขอสิทธิ์แจ้งเตือนได้', 1);
+    try {
+      const result = await Notification.requestPermission();
+      refreshPermissionStatus();
+      toast(result === 'granted' ? 'อนุญาตการแจ้งเตือนบนอุปกรณ์แล้ว' : result === 'denied' ? 'ยังไม่ได้รับอนุญาต กรุณาตรวจสอบการตั้งค่าเบราว์เซอร์' : 'ยังไม่ได้อนุญาตการแจ้งเตือน');
+    } catch (error) { toast(error.message || 'ขอสิทธิ์แจ้งเตือนไม่สำเร็จ', 1); }
+  };
+  updateNotificationUI();
+}
+
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
