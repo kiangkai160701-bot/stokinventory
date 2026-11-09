@@ -712,6 +712,25 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-summary:hover{background:var(--theme-soft)}
 .disclosure-summary:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
 .disclosure-count{margin-left:auto;color:var(--mute);font-size:11px;font-weight:500}
+
+/* Device notification preferences */
+.notification-settings-list{display:grid;gap:7px;max-height:min(52vh,440px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 3px 2px 0;scrollbar-width:thin}
+.notification-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}
+.notification-setting-copy{min-width:0;display:grid;gap:2px}
+.notification-setting-copy b{font-size:13px;font-weight:650}
+.notification-setting-copy small{font-size:11px;color:var(--mute);line-height:1.4}
+.notification-switch{position:relative;flex:none;width:46px;height:27px;border-radius:99px;background:var(--line);border:1px solid var(--theme-border-strong);transition:background .18s ease}
+.notification-switch::after{content:"";position:absolute;left:3px;top:3px;width:19px;height:19px;border-radius:50%;background:#fff;box-shadow:0 1px 4px #0003;transition:transform .18s ease}
+.notification-switch[aria-checked="true"]{background:var(--acc);border-color:var(--acc)}
+.notification-switch[aria-checked="true"]::after{transform:translateX(19px)}
+.notification-switch:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.notification-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:4px 0 10px}
+.notification-toolbar small{color:var(--mute);font-size:11px}
+.notification-actions{display:flex;gap:7px;flex-wrap:wrap}
+.notification-status{padding:10px 12px;border:1px solid var(--theme-border-strong);border-radius:12px;background:var(--theme-wash);font-size:12px;line-height:1.5;margin-bottom:10px}
+.notification-status b{display:block;margin-bottom:2px}
+@media(max-width:680px){.notification-settings-list{max-height:46vh}.notification-setting-row{min-height:56px}}
+
 .disclosure-chevron{width:10px;height:10px;flex:none;border-right:2px solid var(--acc-hover);border-bottom:2px solid var(--acc-hover);transform:rotate(45deg) translateY(-2px);transition:transform .32s cubic-bezier(.22,.78,.22,1)}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron{transform:rotate(225deg) translate(-1px,-1px)}
 .disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.22,.78,.22,1)}
@@ -726,6 +745,19 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .settings-grid>.settings-bottom-row{display:contents}
 .settings-bottom-row>.disclosure-card{padding:0!important}
 .settings-bottom-row>.disclosure-card>.disclosure-summary{min-height:54px}
+.notification-list-scroll{max-height:min(340px,52vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:13px;background:var(--theme-soft);padding:5px}
+.notification-pref-row{display:flex;align-items:center;gap:12px;padding:10px;min-height:60px;border-bottom:1px solid var(--line)}
+.notification-pref-row:last-child{border-bottom:0}
+.notification-pref-copy{min-width:0;flex:1}
+.notification-pref-copy b{display:block;font-size:13px;font-weight:650;color:var(--ink)}
+.notification-pref-copy small{display:block;margin-top:2px;font-size:11px;line-height:1.4;color:var(--mute)}
+.notification-switch{width:42px;height:25px;flex:none;padding:3px;border-radius:99px;background:var(--line);border:1px solid var(--line);transition:background .18s,border-color .18s}
+.notification-switch:after{content:"";display:block;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .18s}
+.notification-switch[aria-checked="true"]{background:var(--acc);border-color:var(--acc)}
+.notification-switch[aria-checked="true"]:after{transform:translateX(17px)}
+.notification-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.notification-toolbar .btn{min-height:34px}
+.notification-footnote{display:block;margin-top:9px;color:var(--mute);font-size:11px;line-height:1.45}
 @media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 :root{--theme-ease:cubic-bezier(.2,.78,.22,1);--theme-card-gloss:linear-gradient(145deg,color-mix(in srgb,var(--theme-soft) 54%,white),transparent 68%)}
@@ -2018,6 +2050,7 @@ const store = {
 get(k, d) { try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch { return d; } },
 set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
 };
+
 const STK_LEVELS = [20, 40, 60, 80, 100];
 let uiStickerLevel = (() => { const v = Number(store.get('inv_sticker_level', 100)) || 100; return STK_LEVELS.includes(v) ? v : 100; })();
 const stkKeep = i => uiStickerLevel >= 100 || Math.floor((i + 1) * uiStickerLevel / 100) > Math.floor(i * uiStickerLevel / 100);
@@ -2381,6 +2414,75 @@ return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')
 let h = 5381; for (const c of 'inv:' + s) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return 'f' + h;
 }
 }
+const PUSH_FUNCTION_URL = `${CLOUD_URL}/functions/v1/push-dispatch`;
+async function pushApi(payload = null, method = 'POST') {
+  const headers = { apikey: CLOUD_KEY, Authorization: `Bearer ${CLOUD_KEY}` };
+  if (method === 'POST') headers['Content-Type'] = 'application/json';
+  const response = await fetch(PUSH_FUNCTION_URL, {
+    method, headers,
+    ...(method === 'POST' ? { body: JSON.stringify(payload || {}) } : {})
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data?.ok === false) throw new Error(data?.error || 'เชื่อมต่อระบบ Push ไม่สำเร็จ');
+  return data;
+}
+function pushBase64UrlBytes(value) {
+  const normalized = String(value).replace(/-/g, '+').replace(/_/g, '/');
+  const raw = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
+  return Uint8Array.from(raw, ch => ch.charCodeAt(0));
+}
+async function syncNotificationPreferences(preferences = getNotificationPrefs()) {
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return;
+  const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
+  const subscription = await registration?.pushManager?.getSubscription();
+  if (!subscription || !cloudToken) return;
+  await pushApi({ action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(), preferences });
+}
+async function enablePushOnThisDevice() {
+  if (!cloudToken || !me) throw new Error('กรุณาเข้าสู่ระบบก่อนเปิดใช้งาน Push');
+  if (!window.isSecureContext) throw new Error('ต้องเปิดเว็บไซต์ผ่าน HTTPS จึงจะใช้ Push Notification ได้');
+  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+    throw new Error('เบราว์เซอร์นี้ยังไม่รองรับ Web Push');
+  }
+  let permission = Notification.permission;
+  if (permission === 'default') permission = await Notification.requestPermission();
+  if (permission !== 'granted') throw new Error(permission === 'denied' ? 'การแจ้งเตือนถูกปิดไว้ในการตั้งค่าเบราว์เซอร์' : 'ยังไม่ได้อนุญาตการแจ้งเตือน');
+  const keyResult = await pushApi(null, 'GET');
+  if (!keyResult.publicKey) throw new Error('ยังไม่ได้ตั้งค่า VAPID Public Key ใน Supabase');
+  const appBase = new URL('.', location.href);
+  const registration = await navigator.serviceWorker.register(new URL('sw.js', appBase).href, { scope: appBase.pathname });
+  await navigator.serviceWorker.ready;
+  let subscription = await registration.pushManager.getSubscription();
+  if (!subscription) {
+    subscription = await registration.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: pushBase64UrlBytes(keyResult.publicKey)
+    });
+  }
+  await pushApi({
+    action: 'register', token: cloudToken, deviceId: notificationDeviceId(),
+    subscription: subscription.toJSON()
+  });
+  await pushApi({
+    action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(),
+    preferences: getNotificationPrefs()
+  });
+  return registration;
+}
+async function refreshPushSubscriptionForSession() {
+  if (!cloudToken || !me || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
+  try {
+    const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
+    const subscription = await registration?.pushManager?.getSubscription();
+    if (!subscription) return;
+    await pushApi({ action: 'register', token: cloudToken, deviceId: notificationDeviceId(), subscription: subscription.toJSON() });
+    await pushApi({ action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(), preferences: getNotificationPrefs() });
+  } catch {}
+}
+async function dispatchPendingPushEvents() {
+  if (!cloudToken || !me) return;
+  try { await pushApi({ action: 'dispatch', token: cloudToken }); } catch {}
+}
 const save = () => {
 syncQueue = syncQueue.then(async () => {
 if (!cloudToken || !syncSnapshot) return;
@@ -2395,6 +2497,7 @@ if (result.error?.includes('หมดเวลา')) { logout(); return toast(re
 return toast(result.error || 'บันทึกข้อมูลส่วนกลางไม่สำเร็จ', 1);
 }
 syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1; logNeedsPrune = false;
+void dispatchPendingPushEvents();
 U.forEach(user => { delete user.pin; });
 const activeProfile = U.find(user => user.name === me?.name);
 if (activeProfile) { me = activeProfile; $('#meRole').textContent = ROLE[me.role] || me.role; }
@@ -2447,13 +2550,19 @@ enter(result.me, result.branch);
 function enter(u, branch = currentBranch) {
 setCurrentBranch(branch);
 me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
+void refreshPushSubscriptionForSession();
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
 tab = 'stock'; build(); startPresence(); refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 stopPresence();
-const oldToken = cloudToken; if (oldToken) cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+const oldToken = cloudToken;
+if (oldToken) {
+  const deviceId = store.get('inv_notification_device_id', '');
+  if (deviceId) pushApi({ action: 'unregister', token: oldToken, deviceId }).catch(() => {});
+  cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+}
 sess.set(null); syncSnapshot = null; me = null; renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
@@ -3841,6 +3950,54 @@ confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันแล�
 };
 }
 
+
+const NOTIFICATION_ITEMS = [
+  ['low_stock','สินค้าใกล้หมด','เมื่อจำนวนคงเหลือต่ำกว่าค่าขั้นต่ำที่กำหนด','📉'],
+  ['out_of_stock','สินค้าหมดสต๊อก','เมื่อจำนวนคงเหลือของสินค้าเป็นศูนย์','🚨'],
+  ['stock_received','รับสินค้าเข้าคลัง','เมื่อมีการบันทึกรับวัตถุดิบเข้าสต๊อก','📥'],
+  ['stock_issued','เบิกสินค้าออก','เมื่อมีการบันทึกเบิกวัตถุดิบออกจากคลัง','📤'],
+  ['stock_transferred','โอนย้ายสินค้าระหว่างสาขา','เมื่อมีการโอนย้ายสินค้าไปยังอีกสาขา','🔁'],
+  ['stock_returned','คืนสินค้าเข้าคลัง','เมื่อมีการบันทึกคืนวัตถุดิบเข้าคลัง','↩️'],
+  ['product_created','เพิ่มสินค้าใหม่','เมื่อมีการเพิ่มรายการวัตถุดิบใหม่','➕'],
+  ['product_updated','แก้ไขข้อมูลสินค้า','เมื่อมีการแก้ไขชื่อ หมวด หน่วย หรือข้อมูลสินค้า','✏️'],
+  ['product_deleted','ลบสินค้า','เมื่อมีการลบรายการวัตถุดิบออกจากระบบ','🗑️'],
+  ['stock_adjusted','ปรับยอดสต๊อก','เมื่อมีการปรับจำนวนคงเหลือโดยตรง','🧮'],
+  ['request_created','สร้างใบเบิกสินค้า','เมื่อมีการสร้างคำขอเบิกสินค้าใหม่','📝'],
+  ['request_approved','อนุมัติรายการ','เมื่อคำขอหรือรายการที่รอดำเนินการได้รับอนุมัติ','✅'],
+  ['request_rejected','ปฏิเสธรายการ','เมื่อคำขอหรือรายการถูกปฏิเสธ','⛔'],
+  ['branch_changed','เพิ่มหรือแก้ไขสาขา','เมื่อมีการเพิ่มสาขาหรือเปลี่ยนข้อมูลสาขา','🏬'],
+  ['user_created','มีผู้ใช้งานใหม่','เมื่อมีการสร้างบัญชีผู้ใช้งานใหม่','👤']
+].map(([id,title,description,icon]) => ({id,title,description,icon}));
+const NOTIFICATION_DEFAULTS = Object.freeze({low_stock:true,out_of_stock:true});
+function notificationDeviceId() {
+  let device = store.get('inv_notification_device_id', '');
+  if (!device) {
+    device = globalThis.crypto?.randomUUID?.() || ('device-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
+    store.set('inv_notification_device_id', device);
+  }
+  return device;
+}
+function notificationPrefsKey() {
+  const account = String(me?.name || 'guest').trim().toLowerCase();
+  return 'inv_notification_preferences_v1:' + account + ':' + notificationDeviceId();
+}
+function getNotificationPrefs() {
+  const saved = store.get(notificationPrefsKey(), {});
+  return Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, typeof saved?.[item.id] === 'boolean' ? saved[item.id] : !!NOTIFICATION_DEFAULTS[item.id]]));
+}
+function notificationPrefsCount(prefs = getNotificationPrefs()) {
+  return NOTIFICATION_ITEMS.filter(item => prefs[item.id]).length;
+}
+function notificationPrefsRows(prefs = getNotificationPrefs()) {
+  return NOTIFICATION_ITEMS.map(item => {
+    const enabled = !!prefs[item.id];
+    return '<div class="notification-pref-row"><div class="notification-pref-copy"><b>' + item.icon + ' ' + esc(item.title) + '</b><small>' + esc(item.description) + '</small></div><button type="button" class="notification-switch" data-notification-toggle="' + item.id + '" role="switch" aria-checked="' + enabled + '" aria-label="' + (enabled ? 'ปิด' : 'เปิด') + 'แจ้งเตือน' + esc(item.title) + '"></button></div>';
+  }).join('');
+}
+function updateNotificationPrefsCount(prefs = getNotificationPrefs()) {
+  const count = $('#notificationPrefsCount');
+  if (count) count.textContent = notificationPrefsCount(prefs) + '/' + NOTIFICATION_ITEMS.length + ' เปิด';
+}
 function settingsView() {
 const canViewStorage = !!(me?.owner || me?.role === 'admin');
 const canManageBackup = String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true;
@@ -3900,6 +4057,17 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div></div></div>
+    <div class="dash-card disclosure-card notification-settings-card" id="notificationSettingsCard">
+      <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="notificationDisclosurePanel"><span>🔔 การแจ้งเตือน</span><span class="disclosure-count" id="notificationPrefsCount">${notificationPrefsCount()}/${NOTIFICATION_ITEMS.length} เปิด</span><span class="disclosure-chevron" aria-hidden="true"></span></button>
+      <div class="disclosure-panel" id="notificationDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
+        <p class="settings-hint">เลือกเปิด–ปิดการแจ้งเตือนแต่ละประเภทได้ตามต้องการ การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้ ไม่กระทบผู้ใช้งานหรืออุปกรณ์อื่น</p>
+        <div class="notification-status" id="notificationPermissionStatus" role="status" aria-live="polite"><b>สถานะ Push Notification</b><span>กำลังตรวจสอบอุปกรณ์…</span></div>
+        <div class="notification-toolbar"><button type="button" class="btn sm sec" id="notificationEnableAll">เปิดทั้งหมด</button><button type="button" class="btn sm sec" id="notificationDisableAll">ปิดทั้งหมด</button></div>
+        <div class="notification-list-scroll" id="notificationPrefsList" role="group" aria-label="รายการตั้งค่าการแจ้งเตือน">${notificationPrefsRows()}</div>
+        <button type="button" class="btn sm" id="notificationRequestPermission" style="margin-top:10px">อนุญาตและเปิดใช้งาน Push บนอุปกรณ์นี้</button>
+        <small class="notification-footnote">เลื่อนภายในรายการเพื่อดูการแจ้งเตือนทั้งหมด 15 ประเภท การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้</small>
+      </div></div>
+    </div>
     ${can.reset() || can.permissions() ? '<div class="settings-bottom-row">' : ''}
     ${can.reset() ? `<div class="dash-card disclosure-card reset-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
@@ -4087,6 +4255,71 @@ siteLogoDraft = null; const preview = $('#siteLogoPreview'); if (preview) { prev
 if ($('#siteLogoInput')) $('#siteLogoInput').value = '';
 };
 if ($('#saveSiteBrandBtn')) $('#saveSiteBrandBtn').onclick = event => saveSiteBrand(event.currentTarget);
+
+const notificationPrefsList = $('#notificationPrefsList');
+if (notificationPrefsList) {
+  let preferences = getNotificationPrefs();
+  const permissionStatus = $('#notificationPermissionStatus');
+  const updateStatus = async () => {
+    if (!permissionStatus) return;
+    const permission = 'Notification' in window ? Notification.permission : 'unsupported';
+    let subscribed = false;
+    try {
+      const reg = await navigator.serviceWorker?.getRegistration(new URL('.', location.href).pathname);
+      subscribed = !!(await reg?.pushManager?.getSubscription());
+    } catch {}
+    const labels = {
+      granted: subscribed ? 'อนุญาตแล้ว · อุปกรณ์นี้สมัครรับ Push แล้ว' : 'อนุญาตแล้ว · ยังไม่ได้สมัครรับ Push',
+      denied: 'ถูกปฏิเสธ · ต้องเปิดสิทธิ์ในตั้งค่าเบราว์เซอร์',
+      default: 'ยังไม่ได้อนุญาตการแจ้งเตือน',
+      unsupported: 'เบราว์เซอร์นี้ไม่รองรับ Push Notification'
+    };
+    permissionStatus.innerHTML = '<b>สถานะ Push Notification</b><span>' + (labels[permission] || labels.unsupported) + '</span>';
+  };
+  const updatePrefsUI = () => {
+    const count = $('#notificationPrefsCount');
+    if (count) count.textContent = notificationPrefsCount(preferences) + '/' + NOTIFICATION_ITEMS.length + ' เปิด';
+    notificationPrefsList.querySelectorAll('[data-notification-toggle]').forEach(button => {
+      const on = preferences[button.dataset.notificationToggle] === true;
+      button.setAttribute('aria-checked', String(on));
+      button.setAttribute('aria-label', (on ? 'ปิด' : 'เปิด') + 'แจ้งเตือน' + (NOTIFICATION_ITEMS.find(x => x.id === button.dataset.notificationToggle)?.title || ''));
+    });
+  };
+  const persistPrefs = () => {
+    store.set(notificationPrefsKey(), preferences);
+    updatePrefsUI();
+    syncNotificationPreferences(preferences).catch(() => {});
+  };
+  notificationPrefsList.onclick = event => {
+    const button = event.target.closest('[data-notification-toggle]');
+    if (!button || !Object.hasOwn(preferences, button.dataset.notificationToggle)) return;
+    preferences[button.dataset.notificationToggle] = !preferences[button.dataset.notificationToggle];
+    persistPrefs();
+  };
+  if ($('#notificationEnableAll')) $('#notificationEnableAll').onclick = () => {
+    preferences = Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, true]));
+    persistPrefs();
+  };
+  if ($('#notificationDisableAll')) $('#notificationDisableAll').onclick = () => {
+    preferences = Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, false]));
+    persistPrefs();
+  };
+  if ($('#notificationRequestPermission')) $('#notificationRequestPermission').onclick = async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    try {
+      await enablePushOnThisDevice();
+      await updateStatus();
+      toast('เปิดใช้งาน Push Notification บนอุปกรณ์นี้แล้ว');
+    } catch (error) {
+      await updateStatus();
+      toast(error.message || 'เปิดใช้งาน Push ไม่สำเร็จ', 1);
+    } finally { button.disabled = false; }
+  };
+  updatePrefsUI();
+  updateStatus();
+}
+
 if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
 const panel = document.getElementById(button.getAttribute('aria-controls'));
 if (!panel) return;
@@ -4126,6 +4359,9 @@ uiStickerLevel = Number(o.dataset.stickerLevel) || 100; store.set('inv_sticker_l
 document.querySelectorAll('[data-sticker-level]').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.stickerLevel) === uiStickerLevel)));
 updatePageMascots(); toast(`ตั้งจำนวนสติ๊กเกอร์ ${uiStickerLevel}% แล้ว`);
 };
+
+
+
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
@@ -4320,6 +4556,7 @@ try {
 const result = await cloudRpc('api_branch_create', { p_token: cloudToken, p_name: fv(e.target, 'name') });
 if (!result.ok) { if (button) button.disabled = false; return toast(result.error || 'สร้างสาขาไม่สำเร็จ', 1); }
 branches = [...branches.filter(branch => branch.id !== result.branch.id), result.branch];
+void dispatchPendingPushEvents();
 renderBranchOptions(branches); closeModal(); build(); toast(`สร้าง${result.branch.name}แล้ว ข้อมูลของสาขาเริ่มต้นว่างเปล่า`);
 } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
 };
@@ -4369,6 +4606,7 @@ if (!verificationToken || !verification.me?.owner || String(verification.me.name
 const result = await cloudRpc('api_branch_deactivate', { p_token: verificationToken, p_branch_id: branch.id });
 if (!result.ok) throw new Error(result.error || 'ปิดสาขาไม่สำเร็จ');
 branches = branches.filter(item => String(item.id) !== String(branch.id));
+void dispatchPendingPushEvents();
 renderBranchOptions(branches); closeModal(); build(); toast(`ปิดการใช้งานสาขา${branch.name}แล้ว ข้อมูลเดิมยังเก็บไว้`);
 } catch (error) {
 errorBox.textContent = error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ';
