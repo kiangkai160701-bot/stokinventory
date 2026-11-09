@@ -726,6 +726,19 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .settings-grid>.settings-bottom-row{display:contents}
 .settings-bottom-row>.disclosure-card{padding:0!important}
 .settings-bottom-row>.disclosure-card>.disclosure-summary{min-height:54px}
+.notification-list-scroll{max-height:min(340px,52vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:13px;background:var(--theme-soft);padding:5px}
+.notification-pref-row{display:flex;align-items:center;gap:12px;padding:10px;min-height:60px;border-bottom:1px solid var(--line)}
+.notification-pref-row:last-child{border-bottom:0}
+.notification-pref-copy{min-width:0;flex:1}
+.notification-pref-copy b{display:block;font-size:13px;font-weight:650;color:var(--ink)}
+.notification-pref-copy small{display:block;margin-top:2px;font-size:11px;line-height:1.4;color:var(--mute)}
+.notification-switch{width:42px;height:25px;flex:none;padding:3px;border-radius:99px;background:var(--line);border:1px solid var(--line);transition:background .18s,border-color .18s}
+.notification-switch:after{content:"";display:block;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px #0002;transition:transform .18s}
+.notification-switch[aria-checked="true"]{background:var(--acc);border-color:var(--acc)}
+.notification-switch[aria-checked="true"]:after{transform:translateX(17px)}
+.notification-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.notification-toolbar .btn{min-height:34px}
+.notification-footnote{display:block;margin-top:9px;color:var(--mute);font-size:11px;line-height:1.45}
 @media(max-width:380px){.theme-page{gap:5px;grid-template-rows:repeat(5,minmax(52px,auto))}.theme-page .theme-opt{min-height:52px!important}.theme-page .theme-opt .theme-label{font-size:9px}}
 @media(prefers-reduced-motion:reduce){#themePicker,.theme-page-dot,.disclosure-summary,.disclosure-chevron,.disclosure-panel,.disclosure-inner{scroll-behavior:auto!important;transition-duration:.01ms!important}}
 :root{--theme-ease:cubic-bezier(.2,.78,.22,1);--theme-card-gloss:linear-gradient(145deg,color-mix(in srgb,var(--theme-soft) 54%,white),transparent 68%)}
