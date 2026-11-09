@@ -3854,6 +3854,51 @@ confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันแล�
 };
 }
 
+
+const NOTIFICATION_ITEMS = [
+  ['low_stock','สินค้าใกล้หมด','เมื่อจำนวนคงเหลือต่ำกว่าค่าขั้นต่ำที่กำหนด','📉'],
+  ['out_of_stock','สินค้าหมดสต๊อก','เมื่อจำนวนคงเหลือของสินค้าเป็นศูนย์','🚨'],
+  ['stock_received','รับสินค้าเข้าคลัง','เมื่อมีการบันทึกรับวัตถุดิบเข้าสต๊อก','📥'],
+  ['stock_issued','เบิกสินค้าออก','เมื่อมีการบันทึกเบิกวัตถุดิบออกจากคลัง','📤'],
+  ['stock_transferred','โอนย้ายสินค้าระหว่างสาขา','เมื่อมีการโอนย้ายสินค้าไปยังอีกสาขา','🔁'],
+  ['stock_returned','คืนสินค้าเข้าคลัง','เมื่อมีการบันทึกคืนวัตถุดิบเข้าคลัง','↩️'],
+  ['product_created','เพิ่มสินค้าใหม่','เมื่อมีการเพิ่มรายการวัตถุดิบใหม่','➕'],
+  ['product_updated','แก้ไขข้อมูลสินค้า','เมื่อมีการแก้ไขชื่อ หมวด หน่วย หรือข้อมูลสินค้า','✏️'],
+  ['product_deleted','ลบสินค้า','เมื่อมีการลบรายการวัตถุดิบออกจากระบบ','🗑️'],
+  ['stock_adjusted','ปรับยอดสต๊อก','เมื่อมีการปรับจำนวนคงเหลือโดยตรง','🧮'],
+  ['request_created','สร้างใบเบิกสินค้า','เมื่อมีการสร้างคำขอเบิกสินค้าใหม่','📝'],
+  ['request_approved','อนุมัติรายการ','เมื่อคำขอหรือรายการที่รอดำเนินการได้รับอนุมัติ','✅'],
+  ['request_rejected','ปฏิเสธรายการ','เมื่อคำขอหรือรายการถูกปฏิเสธ','⛔'],
+  ['branch_changed','เพิ่มหรือแก้ไขสาขา','เมื่อมีการเพิ่มสาขาหรือเปลี่ยนข้อมูลสาขา','🏬'],
+  ['user_created','มีผู้ใช้งานใหม่','เมื่อมีการสร้างบัญชีผู้ใช้งานใหม่','👤']
+].map(([id,title,description,icon]) => ({id,title,description,icon}));
+const NOTIFICATION_DEFAULTS = Object.freeze({low_stock:true,out_of_stock:true});
+function notificationPrefsKey() {
+  const account = String(me?.name || 'guest').trim().toLowerCase();
+  let device = store.get('inv_notification_device_id', '');
+  if (!device) {
+    device = globalThis.crypto?.randomUUID?.() || ('device-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
+    store.set('inv_notification_device_id', device);
+  }
+  return 'inv_notification_preferences_v1:' + account + ':' + device;
+}
+function getNotificationPrefs() {
+  const saved = store.get(notificationPrefsKey(), {});
+  return Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, typeof saved?.[item.id] === 'boolean' ? saved[item.id] : !!NOTIFICATION_DEFAULTS[item.id]]));
+}
+function notificationPrefsCount(prefs = getNotificationPrefs()) {
+  return NOTIFICATION_ITEMS.filter(item => prefs[item.id]).length;
+}
+function notificationPrefsRows(prefs = getNotificationPrefs()) {
+  return NOTIFICATION_ITEMS.map(item => {
+    const enabled = !!prefs[item.id];
+    return '<div class="notification-pref-row"><div class="notification-pref-copy"><b>' + item.icon + ' ' + esc(item.title) + '</b><small>' + esc(item.description) + '</small></div><button type="button" class="notification-switch" data-notification-toggle="' + item.id + '" role="switch" aria-checked="' + enabled + '" aria-label="' + (enabled ? 'ปิด' : 'เปิด') + 'แจ้งเตือน' + esc(item.title) + '"></button></div>';
+  }).join('');
+}
+function updateNotificationPrefsCount(prefs = getNotificationPrefs()) {
+  const count = $('#notificationPrefsCount');
+  if (count) count.textContent = notificationPrefsCount(prefs) + '/' + NOTIFICATION_ITEMS.length + ' เปิด';
+}
 function settingsView() {
 const canViewStorage = !!(me?.owner || me?.role === 'admin');
 const canManageBackup = String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true;
