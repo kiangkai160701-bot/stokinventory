@@ -4556,6 +4556,7 @@ try {
 const result = await cloudRpc('api_branch_create', { p_token: cloudToken, p_name: fv(e.target, 'name') });
 if (!result.ok) { if (button) button.disabled = false; return toast(result.error || 'สร้างสาขาไม่สำเร็จ', 1); }
 branches = [...branches.filter(branch => branch.id !== result.branch.id), result.branch];
+void dispatchPendingPushEvents();
 renderBranchOptions(branches); closeModal(); build(); toast(`สร้าง${result.branch.name}แล้ว ข้อมูลของสาขาเริ่มต้นว่างเปล่า`);
 } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
 };
@@ -4605,6 +4606,7 @@ if (!verificationToken || !verification.me?.owner || String(verification.me.name
 const result = await cloudRpc('api_branch_deactivate', { p_token: verificationToken, p_branch_id: branch.id });
 if (!result.ok) throw new Error(result.error || 'ปิดสาขาไม่สำเร็จ');
 branches = branches.filter(item => String(item.id) !== String(branch.id));
+void dispatchPendingPushEvents();
 renderBranchOptions(branches); closeModal(); build(); toast(`ปิดการใช้งานสาขา${branch.name}แล้ว ข้อมูลเดิมยังเก็บไว้`);
 } catch (error) {
 errorBox.textContent = error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ';
