@@ -1726,6 +1726,16 @@ html.formal-theme .top-runway{display:none!important}
 </head>
 <body data-theme="teal">
 <div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
+<script>
+/* Restore the uploaded logo before the startup screen is first painted. */
+try {
+  const cachedLogo = localStorage.getItem('inv_site_logo_cache');
+  if (cachedLogo && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(cachedLogo) && cachedLogo.length <= 2500000) {
+    const bootLogo = document.getElementById('siteBootLogo');
+    if (bootLogo) bootLogo.innerHTML = '<img src="' + cachedLogo + '" alt="" class="site-brand-image">';
+  }
+} catch {}
+</script>
 <!-- LOGIN SCREEN -->
 <section id="login" class="hide">
   <div class="login-wrap">
@@ -1788,8 +1798,9 @@ let siteBrand = { siteName: 'ไข่หวานบ้านซูชิ', log
 let siteLogoDraft = null;
 function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
-const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 700000 ? data.logoData : null;
+const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 2500000 ? data.logoData : null;
 siteBrand = { siteName: name, logoData: logo };
+try { if (logo) localStorage.setItem('inv_site_logo_cache', logo); else localStorage.removeItem('inv_site_logo_cache'); } catch {}
 document.title = name + ' | ระบบจัดการสต็อกวัตถุดิบ';
 const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 setText('siteStoryName', name);
@@ -2357,7 +2368,7 @@ document.documentElement.classList.toggle('dark-theme', !!theme.dark);
 ['--warn','--warn-bg'].forEach(k => document.documentElement.style.removeProperty(k));
 Object.entries(theme.colors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
 if (theme.friends.length) document.querySelectorAll('.sushi-friend').forEach((friend, index) => { const first = friend.childNodes[0]; if (first?.nodeType === Node.TEXT_NODE) first.nodeValue = theme.friends[index % theme.friends.length]; });
-document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.classList.contains('theme-emoji')) return; mark.textContent = theme.mascot; });
+document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.classList.contains('theme-emoji') || mark.querySelector('.site-brand-image')) return; mark.textContent = theme.mascot; });
 try { renderTopRunners(); } catch {}
 }
 applyTheme(currentTheme);
