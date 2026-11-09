@@ -63,13 +63,45 @@ Deno.serve(async (req: Request) => {
     const action = String(body?.action ?? "");
     const token = String(body?.token ?? "");
     let branchId: string | null = null;
+    let username: string | null = null;
     if (action === "dispatch" && req.headers.get("x-push-cron-secret") === config.cron_secret) {
       branchId = null;
     } else {
       const ctx = await authContext(token);
       branchId = String(ctx.branch_id);
+      username = String(ctx.username);
     }
     const deviceId = String(body?.deviceId ?? "");
+    if (action === "test") {
+      if (!deviceId || !branchId || !username) return response({ ok: false, error: "invalid_device" }, 400);
+      const subscriptions = await rest(
+        `inventory_push_subscriptions?select=id,endpoint,p256dh,auth&branch_id=eq.${encodeURIComponent(branchId)}&username=eq.${encodeURIComponent(username)}&device_id=eq.${encodeURIComponent(deviceId)}&limit=1`,
+      ) ?? [];
+      const sub = subscriptions[0];
+      if (!sub) return response({ ok: false, error: "device_not_registered" }, 404);
+      vapidReady(config);
+      try {
+        await webpush.sendNotification(
+          { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+          JSON.stringify({
+            title: "ทดสอบการแจ้งเตือน",
+            body: "ระบบ Push Notification ของ Stock Inventory ทำงานแล้ว",
+            url: "/",
+            tag: `push-test-${crypto.randomUUID()}`,
+            eventType: "test",
+          }),
+          { TTL: 60 },
+        );
+      } catch (error) {
+        const statusCode = Number((error as any)?.statusCode ?? 0);
+        if (statusCode === 404 || statusCode === 410) {
+          await rest(`inventory_push_subscriptions?id=eq.${encodeURIComponent(sub.id)}`, { method: "DELETE" });
+          return response({ ok: false, error: "subscription_expired_please_enable_push_again" }, 410);
+        }
+        throw error;
+      }
+      return response({ ok: true, sent: true });
+    }
     if (action === "register") {
       const sub = body?.subscription;
       if (!deviceId || !sub?.endpoint || !sub?.keys?.p256dh || !sub?.keys?.auth) {

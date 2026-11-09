@@ -729,6 +729,11 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .notification-actions{display:flex;gap:7px;flex-wrap:wrap}
 .notification-status{padding:10px 12px;border:1px solid var(--theme-border-strong);border-radius:12px;background:var(--theme-wash);font-size:12px;line-height:1.5;margin-bottom:10px}
 .notification-status b{display:block;margin-bottom:2px}
+.notification-test-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:11px 12px;border:1px solid var(--theme-border-strong);border-radius:12px;background:var(--theme-wash)}
+.notification-test-copy{display:grid;gap:3px;min-width:0}
+.notification-test-copy b{font-size:12px}
+.notification-test-copy small{font-size:11px;color:var(--mute);line-height:1.4}
+#notificationTestPush:disabled{opacity:.48;cursor:not-allowed}
 @media(max-width:680px){.notification-settings-list{max-height:46vh}.notification-setting-row{min-height:56px}}
 
 .disclosure-chevron{width:10px;height:10px;flex:none;border-right:2px solid var(--acc-hover);border-bottom:2px solid var(--acc-hover);transform:rotate(45deg) translateY(-2px);transition:transform .32s cubic-bezier(.22,.78,.22,1)}
@@ -3960,7 +3965,6 @@ const NOTIFICATION_ITEMS = [
   ['product_updated','แก้ไขข้อมูลสินค้า','เมื่อมีการแก้ไขชื่อ หมวด หน่วย หรือข้อมูลสินค้า','✏️'],
   ['product_deleted','ลบสินค้า','เมื่อมีการลบรายการวัตถุดิบออกจากระบบ','🗑️'],
   ['stock_adjusted','ปรับยอดสต๊อก','เมื่อมีการปรับจำนวนคงเหลือโดยตรง','🧮'],
-  ['request_approved','อนุมัติรายการ','เมื่อคำขอหรือรายการที่รอดำเนินการได้รับอนุมัติ','✅'],
   ['branch_changed','เพิ่มหรือแก้ไขสาขา','เมื่อมีการเพิ่มสาขาหรือเปลี่ยนข้อมูลสาขา','🏬'],
   ['user_created','มีผู้ใช้งานใหม่','เมื่อมีการสร้างบัญชีผู้ใช้งานใหม่','👤']
 ].map(([id,title,description,icon]) => ({id,title,description,icon}));
@@ -4061,7 +4065,8 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
         <div class="notification-toolbar"><button type="button" class="btn sm sec" id="notificationEnableAll">เปิดทั้งหมด</button><button type="button" class="btn sm sec" id="notificationDisableAll">ปิดทั้งหมด</button></div>
         <div class="notification-list-scroll" id="notificationPrefsList" role="group" aria-label="รายการตั้งค่าการแจ้งเตือน">${notificationPrefsRows()}</div>
         <button type="button" class="btn sm" id="notificationRequestPermission" style="margin-top:10px">อนุญาตและเปิดใช้งาน Push บนอุปกรณ์นี้</button>
-        <small class="notification-footnote">เลื่อนภายในรายการเพื่อดูการแจ้งเตือนทั้งหมด 15 ประเภท การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้</small>
+        <div class="notification-test-row"><div class="notification-test-copy"><b>🔔 ตรวจสอบการแจ้งเตือน</b><small>ส่งการแจ้งเตือนทดสอบมายังมือถือเครื่องนี้</small></div><button type="button" class="btn sm sec" id="notificationTestPush" disabled>ทดสอบ</button></div>
+        <small class="notification-footnote">เลื่อนภายในรายการเพื่อดูการแจ้งเตือนทั้งหมด 10 รายการ การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้</small>
       </div></div>
     </div>
     ${can.reset() || can.permissions() ? '<div class="settings-bottom-row">' : ''}
@@ -4271,6 +4276,8 @@ if (notificationPrefsList) {
       unsupported: 'เบราว์เซอร์นี้ไม่รองรับ Push Notification'
     };
     permissionStatus.innerHTML = '<b>สถานะ Push Notification</b><span>' + (labels[permission] || labels.unsupported) + '</span>';
+    const testButton = $('#notificationTestPush');
+    if (testButton) testButton.disabled = !(permission === 'granted' && subscribed && !!cloudToken && !!me);
   };
   const updatePrefsUI = () => {
     const count = $('#notificationPrefsCount');
@@ -4311,6 +4318,21 @@ if (notificationPrefsList) {
       await updateStatus();
       toast(error.message || 'เปิดใช้งาน Push ไม่สำเร็จ', 1);
     } finally { button.disabled = false; }
+  };
+  if ($('#notificationTestPush')) $('#notificationTestPush').onclick = async event => {
+    const button = event.currentTarget;
+    button.disabled = true;
+    const originalText = button.textContent;
+    button.textContent = 'กำลังส่ง…';
+    try {
+      await pushApi({ action: 'test', token: cloudToken, deviceId: notificationDeviceId() });
+      toast('ส่งการแจ้งเตือนทดสอบแล้ว กรุณาตรวจสอบมือถือเครื่องนี้');
+    } catch (error) {
+      toast(error.message || 'ส่งการแจ้งเตือนทดสอบไม่สำเร็จ', 1);
+    } finally {
+      button.textContent = originalText;
+      await updateStatus();
+    }
   };
   updatePrefsUI();
   updateStatus();
