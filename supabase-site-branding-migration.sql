@@ -8,7 +8,7 @@ create table if not exists private.inventory_site_settings (
   logo_data text,
   updated_at timestamptz not null default now(),
   constraint inventory_site_settings_name_length check (char_length(site_name) between 1 and 60),
-  constraint inventory_site_settings_logo_size check (logo_data is null or char_length(logo_data) <= 700000)
+  constraint inventory_site_settings_logo_size check (logo_data is null or char_length(logo_data) <= 2500000)
 );
 alter table private.inventory_site_settings enable row level security;
 revoke all on private.inventory_site_settings from public, anon, authenticated;
@@ -52,7 +52,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'ชื่อเว็บไซต์ต้องมี 1–60 ตัวอักษร');
   end if;
   if p_logo_data is not null and (
-    char_length(p_logo_data) > 700000
+    char_length(p_logo_data) > 2500000
     or p_logo_data !~ '^data:image/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$'
   ) then
     return jsonb_build_object('ok', false, 'error', 'ไฟล์โลโก้ไม่ถูกต้องหรือมีขนาดใหญ่เกินไป');
