@@ -1711,22 +1711,31 @@ html.formal-theme .top-runway{display:none!important}
 .runner-switch.on{background:var(--acc);border-color:var(--acc)}
 .runner-switch.on::after{transform:translateX(20px)}
 .runner-switch:focus-visible{outline:2px solid var(--acc);outline-offset:3px}
+.site-brand-image{display:block;width:100%;height:100%;object-fit:contain;border-radius:inherit}
+.brand-badge:has(.site-brand-image){overflow:hidden;padding:4px}
+.site-logo-preview-wrap{display:flex;align-items:center;justify-content:center;min-height:92px;padding:12px;border:1px dashed var(--line);border-radius:14px;background:var(--theme-wash);margin:8px 0 12px}
+.site-logo-preview{width:84px;height:84px;object-fit:contain;border-radius:12px}
+.site-logo-preview[hidden]{display:none}
+.site-admin-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0}
+.site-admin-card .fld{margin-bottom:12px}
+.site-admin-card input[type=file]{font-size:12px;padding:9px}
+.story-brand-name{display:block}
 </style>
 </head>
 <body data-theme="teal">
-<div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
+<div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
 <!-- LOGIN SCREEN -->
 <section id="login" class="hide">
   <div class="login-wrap">
     <div class="login-story" aria-hidden="true">
-      <div class="story-brand"><span class="story-mark" aria-hidden="true">🍣</span><span>ไข่หวานบ้านซูชิ<span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
-      <div class="story-copy"><h2>สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ</h2></div>
+      <div class="story-brand"><span class="story-mark" id="siteStoryLogo" aria-hidden="true">🍣</span><span><span class="story-brand-name" id="siteStoryName">ไข่หวานบ้านซูชิ</span><span class="story-brand-sub">ร้านซูชิและวัตถุดิบสดใหม่</span></span></div>
+      <div class="story-copy"><h2 id="siteLoginHeading">สต็อกวัตถุดิบร้านไข่หวานบ้านซูชิ</h2></div>
       <div class="ingredient-art"><span class="ingredient rice">🍚</span><span class="ingredient fish">🐟</span><span class="ingredient leaf">🌿</span><span class="art-caption">คัดสรรวัตถุดิบด้วยความใส่ใจ</span></div>
       <div class="story-foot"><span>ไข่หวานบ้านซูชิ</span><span>สดใหม่ · ใส่ใจ · ได้คุณภาพ</span></div>
     </div>
     <form class="lg" id="lgForm" autocomplete="on">
       <div class="lg-header">
-        <div class="lg-icon" aria-hidden="true" style="font-size:27px">🍣</div>
+        <div class="lg-icon" id="siteLoginLogo" aria-hidden="true" style="font-size:27px">🍣</div>
         <h1>เข้าสู่ระบบ</h1>
       </div>
       <label class="fld"><span>สาขาที่ปฏิบัติงาน</span><div class="branch-select-wrap"><select class="in branch-select" id="lgBranch" name="branch" required aria-label="เลือกสาขาที่ปฏิบัติงานก่อนเข้าสู่ระบบ"><option value="">กำลังโหลดรายชื่อสาขา…</option></select></div></label>
@@ -1743,9 +1752,9 @@ html.formal-theme .top-runway{display:none!important}
 <div id="app" class="hide">
   <header class="top">
     <div class="brand">
-      <div class="brand-badge">🍣</div>
+      <div class="brand-badge" id="siteHeaderLogo">🍣</div>
       <div class="brand-copy">
-        <div class="brand-title-row"><span class="brand-title">ไข่หวานบ้านซูชิ</span><span class="sync-status hide" id="syncStatus" role="status" aria-live="polite" aria-label="ข้อมูลอัปเดตจากเครื่องอื่นแล้ว"><i class="sync-status-dot" aria-hidden="true"></i><span>อัปเดต</span></span></div>
+        <div class="brand-title-row"><span class="brand-title" id="siteHeaderName">ไข่หวานบ้านซูชิ</span><span class="sync-status hide" id="syncStatus" role="status" aria-live="polite" aria-label="ข้อมูลอัปเดตจากเครื่องอื่นแล้ว"><i class="sync-status-dot" aria-hidden="true"></i><span>อัปเดต</span></span></div>
         <small class="brand-branch" id="branchName">สาขาพันท้ายนรสิงห์</small><small id="clock">กำลังโหลดเวลา...</small>
       </div>
     </div>
@@ -1773,6 +1782,49 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
 const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
+let siteBrand = { siteName: 'ไข่หวานบ้านซูชิ', logoData: null };
+let siteLogoDraft = null;
+function applySiteBrand(data = {}) {
+const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
+const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 700000 ? data.logoData : null;
+siteBrand = { siteName: name, logoData: logo };
+document.title = name + ' | ระบบจัดการสต็อกวัตถุดิบ';
+const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
+setText('siteStoryName', name);
+setText('siteHeaderName', name);
+setText('siteLoginHeading', 'สต็อกวัตถุดิบ' + name);
+const marks = ['siteStoryLogo', 'siteLoginLogo', 'siteHeaderLogo', 'siteBootLogo'];
+marks.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = logo ? '<img src="' + esc(logo) + '" alt="" class="site-brand-image">' : '🍣'; });
+const preview = document.getElementById('siteLogoPreview');
+if (preview) { preview.hidden = !logo; if (logo) preview.src = logo; else preview.removeAttribute('src'); }
+const nameInput = document.getElementById('siteNameInput');
+if (nameInput && document.activeElement !== nameInput) nameInput.value = name;
+siteLogoDraft = logo;
+}
+async function loadSiteBrand() {
+try { const result = await cloudRpc('api_site_brand_get'); if (result?.ok) applySiteBrand(result); }
+catch (error) { console.warn('โหลดข้อมูลแบรนด์เว็บไซต์ไม่สำเร็จ', error); }
+}
+async function readSiteLogo(file) {
+if (!file) return null;
+if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) throw new Error('รองรับเฉพาะไฟล์ PNG, JPG หรือ WEBP');
+if (file.size > 500000) throw new Error('โลโก้ต้องมีขนาดไม่เกิน 500 KB');
+return await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || '')); reader.onerror = () => reject(new Error('อ่านไฟล์โลโก้ไม่สำเร็จ')); reader.readAsDataURL(file); });
+}
+async function saveSiteBrand(button) {
+if (String(me?.name || '').trim().toLowerCase() !== 'kiangkai' || me?.owner !== true) return toast('ไม่มีสิทธิ์จัดการเว็บไซต์', 1);
+const input = $('#siteNameInput');
+const name = String(input?.value || '').trim();
+if (!name || name.length > 60) return toast('ชื่อเว็บไซต์ต้องมี 1–60 ตัวอักษร', 1);
+if (button) { button.disabled = true; button.textContent = 'กำลังบันทึก…'; }
+try {
+const result = await cloudRpc('api_site_brand_update', { p_token: cloudToken, p_site_name: name, p_logo_data: siteLogoDraft });
+if (!result?.ok) throw new Error(result?.error || 'บันทึกข้อมูลเว็บไซต์ไม่สำเร็จ');
+applySiteBrand(result);
+toast('บันทึกชื่อและโลโก้เว็บไซต์แล้ว ทุกสาขาจะใช้ข้อมูลเดียวกัน');
+} catch (error) { toast(error.message || 'บันทึกข้อมูลเว็บไซต์ไม่สำเร็จ', 1); }
+finally { if (button) { button.disabled = false; button.textContent = 'บันทึกการเปลี่ยนแปลง'; } }
+}
 const IS_MOBILE_BROWSER = (() => { try { const ua = navigator.userAgent || ''; return /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1); } catch { return false; } })();
 const mobileSessionBackup = {
 key: 'inv_cloud_session_bk',
@@ -3759,6 +3811,7 @@ confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันแล�
 function settingsView() {
 const canViewStorage = !!(me?.owner || me?.role === 'admin');
 const canManageBackup = String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true;
+const canManageSite = String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true;
 const allThemes = Object.values(THEMES);
 const themePages = [];
 const baseThemes = allThemes.filter(t => !t.sushi), sushiThemes = allThemes.filter(t => t.sushi);
@@ -3768,6 +3821,7 @@ const stockResetLog = L.find(x => x.note === STOCK_RESET_NOTE);
 const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Number(lastReset.ts || 0)) ? { scope: 'stock', user: stockResetLog.user, ts: stockResetLog.ts } : lastReset;
 return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
+    ${canManageSite ? `<div class="dash-card disclosure-card site-admin-card" id="siteAdminCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="siteAdminDisclosurePanel"><span>🌐 จัดการเว็บไซต์</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="siteAdminDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เปลี่ยนชื่อและโลโก้ส่วนกลาง ข้อมูลนี้จะแสดงเหมือนกันในทุกสาขาและหน้าเข้าสู่ระบบ</p><label class="fld"><span>ชื่อเว็บไซต์</span><input class="in" id="siteNameInput" maxlength="60" value="${esc(siteBrand.siteName)}" placeholder="ชื่อเว็บไซต์"></label><label class="fld"><span>โลโก้เว็บไซต์ (PNG, JPG หรือ WEBP)</span><input class="in" type="file" id="siteLogoInput" accept="image/png,image/jpeg,image/webp"></label><div class="site-logo-preview-wrap"><img id="siteLogoPreview" class="site-logo-preview" alt="ตัวอย่างโลโก้" ${siteBrand.logoData ? `src="${esc(siteBrand.logoData)}"` : 'hidden'}></div><div class="site-admin-actions"><button type="button" class="btn sm sec" id="clearSiteLogoBtn">นำโลโก้ออก</button><button type="button" class="btn sm" id="saveSiteBrandBtn">บันทึกการเปลี่ยนแปลง</button></div><small class="settings-hint">ขนาดไฟล์ไม่เกิน 500 KB เพื่อให้โหลดได้รวดเร็ว</small></div></div></div>` : ''}
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name-wrap"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${branchOnlineHtml(b)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
     ${isAnnouncer() ? `<div class="dash-card disclosure-card announce-card" id="announceCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="announceDisclosurePanel"><span>📢 ประกาศข้อความ</span><span class="disclosure-count" id="announceCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="announceDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p class="settings-hint">ข้อความจะเลื่อนจากขวาไปซ้ายใต้หัวเว็บไซต์ของผู้ใช้ในสาขาที่เลือก จนครบเวลาที่กำหนด หรือจนกว่าจะยกเลิก</p>
@@ -3989,6 +4043,17 @@ function toggleDisclosure(button) {
 
 function bindSettings() {
 clearInterval(storageUsageTimer); storageUsageTimer = null;
+if ($('#siteLogoInput')) $('#siteLogoInput').onchange = async event => {
+const file = event.target.files?.[0];
+if (!file) return;
+try { siteLogoDraft = await readSiteLogo(file); const preview = $('#siteLogoPreview'); if (preview) { preview.src = siteLogoDraft; preview.hidden = false; } }
+catch (error) { event.target.value = ''; toast(error.message || 'เลือกโลโก้ไม่สำเร็จ', 1); }
+};
+if ($('#clearSiteLogoBtn')) $('#clearSiteLogoBtn').onclick = () => {
+siteLogoDraft = null; const preview = $('#siteLogoPreview'); if (preview) { preview.removeAttribute('src'); preview.hidden = true; }
+if ($('#siteLogoInput')) $('#siteLogoInput').value = '';
+};
+if ($('#saveSiteBrandBtn')) $('#saveSiteBrandBtn').onclick = event => saveSiteBrand(event.currentTarget);
 if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
 const panel = document.getElementById(button.getAttribute('aria-controls'));
 if (!panel) return;
@@ -5074,6 +5139,8 @@ if (message) $('#lgMsg').textContent = message;
 }
 (async () => {
 await init();
+await loadSiteBrand();
+setInterval(loadSiteBrand, 120000);
 let startupMessage = '';
 try {
 const branchResult = await cloudRpc('api_branch_list');
