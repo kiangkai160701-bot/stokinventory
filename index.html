@@ -4217,7 +4217,7 @@ siteLogoDraft = null; const preview = $('#siteLogoPreview'); if (preview) { prev
 if ($('#siteLogoInput')) $('#siteLogoInput').value = '';
 };
 if ($('#saveSiteBrandBtn')) $('#saveSiteBrandBtn').onclick = event => saveSiteBrand(event.currentTarget);
-if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
+if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card:not(.notification-card)>[data-disclosure-toggle]').forEach(button => {
 const panel = document.getElementById(button.getAttribute('aria-controls'));
 if (!panel) return;
 button.disabled = true;
