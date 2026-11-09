@@ -1,3 +1,6 @@
+self.addEventListener("install", event => { event.waitUntil(self.skipWaiting()); });
+self.addEventListener("activate", event => { event.waitUntil(self.clients.claim()); });
+
 self.addEventListener("push", event => {
   let data = {};
   try { data = event.data ? event.data.json() : {}; } catch {
@@ -17,7 +20,8 @@ self.addEventListener("push", event => {
 
 self.addEventListener("notificationclick", event => {
   event.notification.close();
-  const target = new URL(event.notification.data?.url || "/", self.location.origin);
+  const rawUrl = event.notification.data?.url || "./";
+  const target = rawUrl === "/" ? new URL("./", self.registration.scope) : new URL(rawUrl, self.registration.scope);
   if (target.origin !== self.location.origin) return;
   event.waitUntil((async () => {
     const windows = await clients.matchAll({ type: "window", includeUncontrolled: true });
