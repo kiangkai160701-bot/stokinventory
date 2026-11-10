@@ -216,6 +216,13 @@ svg{width: 18px;height: 18px;fill: none;stroke: currentColor;stroke-width: 2;str
 .seg input{position: absolute;opacity: 0}
 .seg span{display: block;padding: 9px 4px;border-radius: 10px;font-weight: 600;font-size: 12.5px;color: var(--mute);transition: 0.2s}
 .seg input:checked + span{background: #fff;color: var(--ink);box-shadow: 0 2px 5px rgba(0,0,0,0.06)}
+.seg-opt{position:relative;min-width:0}
+.seg .seg-pin{position:absolute;top:2px;right:2px;width:26px;height:26px;padding:0;margin:0;border:0;border-radius:9px;background:transparent;box-shadow:none;color:var(--mute);opacity:.5;display:grid;place-items:center;cursor:pointer;z-index:2;-webkit-tap-highlight-color:transparent;transition:opacity .2s,color .2s,transform .2s}
+.seg .seg-pin svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;transform:rotate(35deg);transition:transform .2s}
+.seg .seg-pin:hover{opacity:.85}
+.seg .seg-pin:active{transform:scale(.88)}
+.seg .seg-pin.on{opacity:1;color:var(--acc)}
+.seg .seg-pin.on svg{fill:currentColor;transform:rotate(0deg)}
 .acts{display: flex;gap: 8px;margin-top: 10px}
 .acts .btn{flex: 1}
 .toast{position: fixed;left: 50%;bottom: calc(85px + env(safe-area-inset-bottom,0px));transform: translate(-50%,20px);background: #0f172a;color: #fff;padding: 10px 20px;border-radius: 99px;opacity: 0;pointer-events: none;transition: opacity .25s cubic-bezier(.16,1,.3,1),transform .25s cubic-bezier(.16,1,.3,1);z-index: 60;font-size: 13px;font-weight: 500;box-shadow: 0 10px 20px rgba(0,0,0,0.2);max-width: 90%;white-space: nowrap}
@@ -4975,10 +4982,18 @@ $('#ihClear').onclick = () => { st.user = st.from = st.to = ''; st.limit = 150; 
 $('#ihList').onclick = e => { if (e.target.closest('#ihMore')) { st.limit += 150; draw(); } };
 draw();
 }
+const MOVE_TYPES = [['in', 'รับเข้า (+)', 'รับเข้า'], ['out', 'เบิกจ่าย (-)', 'เบิกจ่าย'], ['adjust', 'ปรับยอด', 'ปรับยอด']];
+const MOVE_LABELS = { in: 'จำนวนที่รับเข้าเพิ่ม', out: 'จำนวนที่ต้องการเบิกจ่ายออก', adjust: 'ยอดนับจริงในคลัง' };
+const MOVE_PIN_SVG = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"/></svg>';
+const movePinKey = () => 'inv_move_pin_v1:' + String(me?.name || 'guest').trim().toLowerCase();
+const getMovePin = () => { const v = store.get(movePinKey(), ''); return ['in', 'out', 'adjust'].includes(v) ? v : ''; };
+const movePinLabel = (type, on) => (on ? 'ยกเลิกปักหมุด ' : 'ปักหมุด ') + MOVE_TYPES.find(t => t[0] === type)[2] + ' เป็นค่าเริ่มต้น';
+const moveSegHTML = pinned => MOVE_TYPES.map(([v, text]) => `<div class="seg-opt"><label><input type="radio" name="t" value="${v}"${(pinned || 'out') === v ? ' checked' : ''}><span>${text}</span></label><button type="button" class="seg-pin${pinned === v ? ' on' : ''}" data-pin="${v}" aria-pressed="${pinned === v}" aria-label="${movePinLabel(v, pinned === v)}" title="${movePinLabel(v, pinned === v)}">${MOVE_PIN_SVG}</button></div>`).join('');
 function itemDetailModal(id) {
 const p = P.find(x => x.id === id);
 if (!p) return;
 const canMove = can.edit();
+const movePin = getMovePin();
 const wideDesktop = isWideDesktop();
 const mobileSheet = !wideDesktop;
 const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
@@ -4988,8 +5003,8 @@ const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name
     <div>สถานะ: <b>${STX[status(p)]}</b> | ซัพพลายเออร์: <b>${esc(p.loc || '-')}</b></div>
   </div>
   ${canMove ? `<form id="mf">
-   <div class="seg"><label><input type="radio" name="t" value="in"><span>รับเข้า (+)</span></label><label><input type="radio" name="t" value="out" checked><span>เบิกจ่าย (-)</span></label><label><input type="radio" name="t" value="adjust"><span>ปรับยอด</span></label></div>
-   <label class="fld"><span id="ml">จำนวนที่ต้องการเบิกจ่ายออก</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
+   <div class="seg">${moveSegHTML(movePin)}</div>
+   <label class="fld"><span id="ml">${MOVE_LABELS[movePin || 'out']}</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
    <label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="2" maxlength="500" placeholder="เช่น ใช้ทำออเดอร์หน้าร้าน หรือปรับยอดจากการตรวจนับ"></textarea></label>
    <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
@@ -5009,8 +5024,22 @@ openModal(`<h3>ลบวัตถุดิบนี้หรือไม่</h3>
 $('#confirmDeleteProduct').onclick = () => { addLog('delete', p, p.qty, p.qty, 0); P = P.filter(product => product.id !== id); save(); closeModal(); render(); toast('ลบวัตถุดิบแล้ว'); };
 };
 if (!canMove) return;
-const labels = { in: 'จำนวนที่รับเข้าเพิ่ม', out: 'จำนวนที่ต้องการเบิกจ่ายออก', adjust: 'ยอดนับจริงในคลัง' };
+const labels = MOVE_LABELS;
 $('#mf').onchange = e => { if (e.target.name === 't') $('#ml').textContent = labels[e.target.value]; };
+$('#mf').querySelectorAll('.seg-pin').forEach(btn => {
+btn.onclick = e => {
+e.preventDefault(); e.stopPropagation();
+const type = btn.dataset.pin, wasPinned = getMovePin() === type, now = wasPinned ? '' : type;
+store.set(movePinKey(), now);
+$('#mf').querySelectorAll('.seg-pin').forEach(b => {
+const on = b.dataset.pin === now, text = movePinLabel(b.dataset.pin, on);
+b.classList.toggle('on', on); b.setAttribute('aria-pressed', String(on)); b.setAttribute('aria-label', text); b.title = text;
+});
+if (!wasPinned) { $('#mf').querySelector(`input[name="t"][value="${type}"]`).checked = true; $('#ml').textContent = labels[type]; }
+const name = MOVE_TYPES.find(t => t[0] === type)[2];
+toast(wasPinned ? 'ยกเลิกปักหมุดแล้ว · เปิดรายการถัดไปจะเริ่มที่ “เบิกจ่าย”' : `ปักหมุด “${name}” แล้ว · เปิดรายการถัดไปจะเลือกให้อัตโนมัติ`);
+};
+});
 $('#mf').querySelectorAll('[data-quantity-step]').forEach(button => {
 button.onclick = () => {
 const input = $('#mf').elements.n, step = Number(button.dataset.quantityStep) || 0;
