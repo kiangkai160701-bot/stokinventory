@@ -5545,17 +5545,18 @@ if(window.scrollY>0)window.scrollTo({top:0,behavior});
 queue();
 })();
 
-/* Stock AI Assistant: local read-only prototype, no AI service or Supabase calls */
+/* Stock AI Assistant v2: local read-only engine (intent + context memory + forecast), no external AI service or Supabase calls */
 (function installStockAssistant(){
 if(document.getElementById('stockAiFab'))return;
 const style=document.createElement('style');style.textContent=`
-#stockAiFab{position:fixed;left:max(14px,calc((100vw - 460px)/2 + 14px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:39;width:44px;height:44px;display:grid;place-items:center;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:13px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;font:800 14px var(--font);box-shadow:none}
+#stockAiFab{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .15s ease;position:fixed;left:max(14px,calc((100vw - 460px)/2 + 14px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:39;width:44px;height:44px;display:grid;place-items:center;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:13px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;font:800 14px var(--font);box-shadow:none}
 #stockAiFab[hidden],#stockAiPanel[hidden],#stockAiBackdrop[hidden]{display:none!important}
-#stockAiBackdrop{position:fixed;inset:0;z-index:60;background:rgba(12,10,14,.48);-webkit-backdrop-filter:blur(6px) brightness(.72);backdrop-filter:blur(6px) brightness(.72);opacity:0;transition:opacity .42s ease;touch-action:none}
+#stockAiBackdrop{position:fixed;inset:0;z-index:60;background:rgba(12,10,14,.46);opacity:0;transition:opacity .32s ease;touch-action:none;will-change:opacity;-webkit-tap-highlight-color:transparent}
 #stockAiBackdrop.open{opacity:1}
-#stockAiPanel{position:fixed;z-index:70;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translate(-50%,110%);width:min(100vw,520px);height:min(78dvh,720px);min-height:360px;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--card-bg);color:var(--ink);box-shadow:0 18px 60px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .38s ease,transform .54s cubic-bezier(.22,.72,.18,1)}
-#stockAiPanel.open{opacity:1;transform:translate(-50%,0);pointer-events:auto}
-.sai-head{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--theme-soft,var(--acc-light));border-bottom:1px solid var(--line)}
+#stockAiPanel{position:fixed;z-index:70;left:50%;bottom:calc(10px + max(var(--sai-kb,0px),env(safe-area-inset-bottom,0px)));transform:translate3d(-50%,108%,0);width:min(100vw,520px);height:min(78dvh,720px);min-height:min(360px,calc(var(--sai-vh,100dvh) - 20px));max-height:min(calc(100dvh - 24px - env(safe-area-inset-top,0px)),calc(var(--sai-vh,100dvh) - 20px));will-change:transform,opacity;backface-visibility:hidden;contain:layout paint;overscroll-behavior:contain;touch-action:manipulation;-webkit-text-size-adjust:100%;text-size-adjust:100%;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--card-bg);color:var(--ink);box-shadow:0 12px 36px rgba(0,0,0,.26);opacity:0;pointer-events:none;transition:transform .46s cubic-bezier(.32,.72,0,1),opacity .24s ease}
+#stockAiPanel.dragging{transition:none}
+#stockAiPanel.open{opacity:1;transform:translate3d(-50%,0,0);pointer-events:auto}
+.sai-head{touch-action:none;user-select:none;-webkit-user-select:none;position:relative;display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--theme-soft,var(--acc-light));border-bottom:1px solid var(--line)}
 .sai-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:var(--acc);color:white;font-weight:800}
 .sai-heading{flex:1}.sai-heading b,.sai-heading small{display:block}.sai-heading b{font-size:14px}.sai-heading small{font-size:10px;color:var(--mute)}
 .sai-close{min-height:34px;padding:0 12px;border-radius:10px;background:var(--card-bg);border:1px solid var(--line);font:700 11px var(--font);color:var(--ink);white-space:nowrap}
@@ -5563,8 +5564,8 @@ const style=document.createElement('style');style.textContent=`
 .sai-intro b{display:inline;margin-right:5px;color:var(--ink)}
 .sai-examples{display:flex;gap:6px;overflow-x:auto;padding:2px 12px 7px;scrollbar-width:none}.sai-examples::-webkit-scrollbar{display:none}
 .sai-example{white-space:nowrap;padding:6px 9px;border:1px solid var(--line);border-radius:99px;background:var(--card-bg);color:var(--acc-hover,var(--ink));font-size:10px}
-.sai-messages{flex:1;min-height:0;overflow-y:auto;padding:8px 13px 12px;display:flex;flex-direction:column;gap:8px}
-.sai-msg{max-width:92%;padding:9px 10px;border-radius:13px;font-size:11.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.sai-messages{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:8px 13px 12px;display:flex;flex-direction:column;gap:8px}
+.sai-msg{max-width:92%;padding:9px 11px;border-radius:13px;font-size:12.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
 .sai-msg.bot{align-self:flex-start;background:var(--theme-soft,var(--acc-light));border:1px solid var(--line);border-bottom-left-radius:4px}
 .sai-msg.user{align-self:flex-end;background:var(--acc);color:white;border-bottom-right-radius:4px}
 .sai-msg small{display:block;margin-top:4px;font-size:9px;opacity:.72}
@@ -5573,74 +5574,387 @@ const style=document.createElement('style');style.textContent=`
 .sai-typing span:nth-child(2){animation-delay:.15s}.sai-typing span:nth-child(3){animation-delay:.3s}
 @keyframes saiTyping{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
 .sai-compose{display:flex;gap:7px;padding:9px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
-.sai-input{flex:1;min-width:0;min-height:42px;max-height:85px;resize:none;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:var(--theme-input,var(--card-bg));color:var(--ink);font:inherit;font-size:12px}
+.sai-input{flex:1;min-width:0;min-height:42px;max-height:85px;resize:none;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:var(--theme-input,var(--card-bg));color:var(--ink);font:inherit;font-size:16px;line-height:1.35}
 .sai-send{width:42px;border-radius:11px;background:var(--acc);color:#fff;font-size:18px}
 @media(min-width:1100px){#stockAiFab{display:none!important}#stockAiPanel{width:min(520px,calc(100vw - 32px));height:min(78dvh,720px)}}
 @media(max-width:380px){#stockAiPanel{width:calc(100vw - 14px);height:min(80dvh,720px);min-height:320px;border-radius:21px}.sai-intro{font-size:9.5px}.sai-msg{font-size:11px}.sai-example{font-size:9px;padding:5px 8px}}
+.sai-chips{display:flex;flex-wrap:wrap;gap:6px;align-self:flex-start;max-width:96%}
+.sai-chip{padding:6px 10px;border:1px solid var(--theme-border-strong,var(--line));border-radius:99px;background:var(--card-bg);color:var(--acc-hover,var(--ink));font:inherit;font-size:11px;line-height:1.3}
+.sai-copy{display:inline-block;margin-top:7px;padding:5px 10px;border:1px solid var(--line);border-radius:9px;background:var(--card-bg);color:var(--ink);font:700 10.5px var(--font)}
+.sai-msg b{font-weight:800}
+.sai-clear{padding:0 10px;margin-right:-4px}
+.sai-mic{width:42px;border-radius:11px;background:var(--card-bg);border:1px solid var(--line);font-size:16px}
+.sai-mic.on{background:var(--acc);animation:saiTyping 1s infinite ease-in-out}
+.sai-head::before{content:"";position:absolute;top:4px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:99px;background:var(--line)}
+#stockAiFab:active{transform:scale(.92)}
+.sai-ico{min-width:34px;padding:0!important;display:grid;place-items:center;font-size:14px}
+.sai-ico.on{background:var(--acc);color:#fff;border-color:transparent}
+.sai-send,.sai-mic,.sai-chip,.sai-example,.sai-copy,.sai-close{touch-action:manipulation}
+@media(max-width:380px){.sai-msg{font-size:12px}}
 @media(prefers-reduced-motion:reduce){#stockAiPanel,#stockAiBackdrop{transition:none}.sai-typing span{animation:none;opacity:.8}}`;
 document.head.appendChild(style);
 const fab=document.createElement('button');fab.id='stockAiFab';fab.type='button';fab.textContent='AI';fab.setAttribute('aria-label','เปิดผู้ช่วย AI');fab.hidden=true;
 const backdrop=document.createElement('div');backdrop.id='stockAiBackdrop';backdrop.hidden=true;backdrop.setAttribute('aria-hidden','true');
 const panel=document.createElement('section');panel.id='stockAiPanel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Stock AI Assistant');
-panel.innerHTML=`<header class="sai-head"><div class="sai-mark">AI</div><div class="sai-heading"><b>Stock AI Assistant</b><small>ผู้ช่วยตอบคำถามจากข้อมูลในหน้านี้</small></div><button class="sai-close" type="button" aria-label="ปิดแท็บ">ปิดแท็บ</button></header>
-<div class="sai-intro"><b>ถามได้เลย</b>ค้นหาสต็อกและประวัติย้อนหลัง · อ่านอย่างเดียว</div>
-<div class="sai-examples"><button class="sai-example">สินค้าอะไรใกล้หมด?</button><button class="sai-example">มีสินค้าอะไรหมดสต็อก?</button><button class="sai-example">ใครเบิกล่าสุด?</button><button class="sai-example">สรุปภาพรวมสต็อก</button></div>
-<div class="sai-messages" aria-live="polite"><div class="sai-msg bot">สวัสดีครับ 👋 ผมช่วยค้นหาสต็อก สรุปยอด และตรวจประวัติย้อนหลังตามวันที่ได้ครับ</div></div>
-<form class="sai-compose"><textarea class="sai-input" rows="1" placeholder="พิมพ์คำถามเกี่ยวกับสต็อก..." aria-label="พิมพ์คำถาม"></textarea><button class="sai-send" type="submit" aria-label="ส่ง">➤</button></form>`;
+panel.innerHTML=`<header class="sai-head"><div class="sai-mark">AI</div><div class="sai-heading"><b>Stock AI Assistant</b><small>ผู้ช่วยอัจฉริยะ · ตอบจากข้อมูลสต็อกจริงของสาขา</small></div><button class="sai-close sai-ico sai-speak" type="button" aria-label="เปิด/ปิดเสียงอ่านคำตอบ" title="อ่านคำตอบออกเสียง">🔊</button><button class="sai-close sai-ico sai-clear" type="button" aria-label="ล้างแชต" title="เริ่มคุยใหม่">🗑</button><button class="sai-close sai-x" type="button" aria-label="ปิดแท็บ">ปิดแท็บ</button></header>
+<div class="sai-intro"><b>ถามได้เลย</b>สต็อก · ประวัติ · คาดการณ์ · แนวโน้ม · วิเคราะห์ · รายงานไลน์ · พิมพ์/พูดได้ · อ่านอย่างเดียว</div>
+<div class="sai-examples"><button class="sai-example">สรุปภาพรวมสต็อก</button><button class="sai-example">สินค้าอะไรใกล้หมด?</button><button class="sai-example">ขอรายการสั่งซื้อ</button><button class="sai-example">วันนี้มีใครเบิกอะไรบ้าง</button><button class="sai-example">ของอะไรจะหมดอีกกี่วัน</button><button class="sai-example">ของอะไรเบิกบ่อยที่สุด</button><button class="sai-example">สินค้าไหนไม่ถูกเบิกเลย</button><button class="sai-example">ใครเบิกล่าสุด?</button><button class="sai-example">เทียบสัปดาห์นี้กับสัปดาห์ที่แล้ว</button><button class="sai-example">มีอะไรน่าห่วงบ้าง</button><button class="sai-example">แนวโน้มการเบิก 7 วัน</button><button class="sai-example">ช่วงไหนเบิกเยอะที่สุด</button><button class="sai-example">เบิกผิดปกติไหม</button><button class="sai-example">ขอรายงานส่งไลน์</button><button class="sai-example">ขอใบนับสต็อก</button><button class="sai-example">ตรวจสอบคุณภาพข้อมูล</button><button class="sai-example">ทำอะไรได้บ้าง</button></div>
+<div class="sai-messages" aria-live="polite"><div class="sai-msg bot">สวัสดีครับ 👋 ผมคือผู้ช่วยสต็อก ถามเป็นภาษาธรรมดาได้เลย เช่น "ปลาแซลมอนเหลือเท่าไหร่" หรือ "วันนี้ใครเบิกอะไรบ้าง" แล้วถามต่อเนื่องได้ เช่น "แล้วเมื่อวานล่ะ" ครับ</div></div>
+<form class="sai-compose"><textarea class="sai-input" rows="1" placeholder="ถามอะไรก็ได้เกี่ยวกับสต็อก..." aria-label="พิมพ์คำถาม"></textarea><button class="sai-mic" type="button" aria-label="พูดเพื่อถาม" title="พูดเพื่อถาม">🎤</button><button class="sai-send" type="submit" aria-label="ส่ง">➤</button></form>`;
 document.body.append(backdrop,fab,panel);
 const messages=panel.querySelector('.sai-messages'),form=panel.querySelector('form'),input=panel.querySelector('.sai-input'),send=panel.querySelector('.sai-send');let busy=false;
-function add(text,who='bot',note=''){const el=document.createElement('div');el.className='sai-msg '+who;el.textContent=text;if(note){const sm=document.createElement('small');sm.textContent=note;el.append(sm)}messages.append(el);messages.scrollTop=messages.scrollHeight;return el;}
+function add(text,who='bot',note='',chips=null,copy=''){const el=document.createElement('div');el.className='sai-msg '+who;if(who==='bot')el.innerHTML=rich(text);else el.textContent=text;if(note){const sm=document.createElement('small');sm.textContent=note;el.append(sm)}if(copy){const b=document.createElement('button');b.type='button';b.className='sai-copy';b.textContent='📋 คัดลอก';b.onclick=()=>{const done=()=>{b.textContent='✓ คัดลอกแล้ว'};const fb=()=>{const t=document.createElement('textarea');t.value=copy;t.style.cssText='position:fixed;opacity:0';document.body.append(t);t.select();try{document.execCommand('copy');done()}catch(e){}t.remove()};if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(copy).then(done,fb);else fb()};el.append(b)}messages.append(el);if(chips&&chips.length){messages.querySelectorAll('.sai-chips').forEach(x=>x.remove());const row=document.createElement('div');row.className='sai-chips';chips.slice(0,4).forEach(t=>{const b=document.createElement('button');b.type='button';b.className='sai-chip';b.textContent=t;b.onclick=()=>{if(busy)return;input.value=t;form.requestSubmit()};row.append(b)});messages.append(row)}messages.scrollTop=messages.scrollHeight;if(typeof onAdd==='function')onAdd(text,who,note,chips,copy);return el;}
 function showTyping(){const el=document.createElement('div');el.className='sai-msg bot sai-typing';el.setAttribute('aria-label','AI กำลังพิมพ์');el.innerHTML='<span></span><span></span><span></span>';messages.append(el);messages.scrollTop=messages.scrollHeight;return el;}
 let previousBodyOverflow='';
-function show(){backdrop.hidden=false;panel.hidden=false;previousBodyOverflow=document.body.style.overflow;document.body.style.overflow='hidden';requestAnimationFrame(()=>{backdrop.classList.add('open');panel.classList.add('open')});fab.setAttribute('aria-expanded','true');setTimeout(()=>input.focus(),180)}
-function hide(){if(panel.hidden)return;panel.classList.remove('open');backdrop.classList.remove('open');fab.setAttribute('aria-expanded','false');document.body.style.overflow=previousBodyOverflow;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;setTimeout(()=>{if(!panel.classList.contains('open')){panel.hidden=true;backdrop.hidden=true}},reduced?0:560)}
-fab.addEventListener('click',()=>panel.classList.contains('open')?hide():show());panel.querySelector('.sai-close').onclick=hide;backdrop.addEventListener('click',hide);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))hide()});
+let hideT=0;
+function syncVV(){const vv=window.visualViewport;if(!vv)return;const kb=Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));panel.style.setProperty('--sai-kb',kb+'px');panel.style.setProperty('--sai-vh',Math.round(vv.height)+'px')}
+if(window.visualViewport){visualViewport.addEventListener('resize',syncVV);visualViewport.addEventListener('scroll',syncVV)}
+function show(){if(panel.classList.contains('open'))return;clearTimeout(hideT);panel.style.transform='';backdrop.style.opacity='';backdrop.hidden=false;panel.hidden=false;syncVV();void panel.offsetWidth;requestAnimationFrame(()=>requestAnimationFrame(()=>{backdrop.classList.add('open');panel.classList.add('open')}));fab.setAttribute('aria-expanded','true');if(matchMedia('(hover:hover) and (pointer:fine)').matches)setTimeout(()=>input.focus({preventScroll:true}),480)}
+function hide(){if(panel.hidden)return;try{input.blur()}catch(e){}if(window.speechSynthesis)speechSynthesis.cancel();panel.classList.remove('dragging','open');backdrop.classList.remove('open');panel.style.transform='';backdrop.style.opacity='';fab.setAttribute('aria-expanded','false');const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;clearTimeout(hideT);hideT=setTimeout(()=>{if(!panel.classList.contains('open')){panel.hidden=true;backdrop.hidden=true}},reduced?0:500)}
+fab.addEventListener('click',()=>panel.classList.contains('open')?hide():show());panel.querySelector('.sai-x').onclick=hide;backdrop.addEventListener('click',hide);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))hide()});
 panel.querySelectorAll('.sai-example').forEach(b=>b.onclick=()=>{input.value=b.textContent;form.requestSubmit()});
-const number=n=>Number(n||0).toLocaleString('th-TH'),name=p=>p.name||p.pname||'ไม่ระบุชื่อ';
-function analyze(question){
-const q=question.toLocaleLowerCase('th-TH'),products=Array.isArray(P)?P:[],logs=Array.isArray(L)?L:[],branch=typeof currentBranch!=='undefined'?(currentBranch?.name||'สาขาปัจจุบัน'):'สาขาปัจจุบัน',now=Date.now();
-const note=`สาขา ${branch} · ข้อมูลที่โหลด ${logs.length.toLocaleString('th-TH')} ประวัติ`;
-const normTs=x=>{const n=typeof x==='number'?x:Date.parse(x);return Number.isFinite(n)?n:0};
-const fmtTs=x=>normTs(x)?new Date(normTs(x)).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'ไม่ระบุเวลา';
-const qty=x=>number(x);
-const matched=products.filter(p=>{const n=name(p).toLocaleLowerCase('th-TH');return n.length>1&&(q.includes(n)||n.split(/[\s/()-]+/).some(w=>w.length>2&&q.includes(w)))});
-if(!products.length&&!logs.length)return{text:'ยังไม่พบข้อมูลที่โหลดอยู่ กรุณาเข้าสู่ระบบและรอให้ข้อมูลสาขาโหลดเสร็จก่อนครับ',note};
-// ช่วงเวลาที่ผู้ใช้ระบุ: รองรับย้อนหลัง N วัน/ชั่วโมง/สัปดาห์/เดือน และคำว่า วันนี้/เมื่อวาน
-let spanMs=0,rangeLabel='';
-let m=q.match(/ย้อนหลัง\s*(\d+)\s*(วัน|ชั่วโมง|ชม\.?|สัปดาห์|อาทิตย์|เดือน)/)||q.match(/(\d+)\s*(วัน|ชั่วโมง|ชม\.?|สัปดาห์|อาทิตย์|เดือน)\s*(ที่ผ่านมา|ย้อนหลัง)/);
-if(m){const n=Math.max(1,Math.min(365,Number(m[1]))),u=m[2];spanMs=n*(/ชั่วโมง|ชม/.test(u)?3600000:/สัปดาห์|อาทิตย์/.test(u)?604800000:/เดือน/.test(u)?2592000000:86400000);rangeLabel=`ย้อนหลัง ${n} ${u}`;}
-else if(/วันนี้/.test(q)){const d=new Date();d.setHours(0,0,0,0);spanMs=now-d.getTime();rangeLabel='วันนี้';}
-else if(/เมื่อวาน/.test(q)){const d=new Date();d.setHours(0,0,0,0);spanMs=now-(d.getTime()-86400000);rangeLabel='เมื่อวาน';}
-else if(/สัปดาห์นี้|อาทิตย์นี้/.test(q)){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());spanMs=now-d.getTime();rangeLabel='สัปดาห์นี้';}
-else if(/ประวัติ|ย้อนหลัง|รายการเคลื่อนไหว/.test(q)){spanMs=7*86400000;rangeLabel='ย้อนหลัง 7 วัน (ค่าเริ่มต้น)';}
-const hasHistoryIntent=/(ประวัติ|ย้อนหลัง|รายการเคลื่อนไหว|รับเข้า|เบิก|ปรับยอด|เคลื่อนไหว)/.test(q);
-if(hasHistoryIntent){
- let list=logs.filter(x=>normTs(x.ts)>0);
- if(spanMs)list=list.filter(x=>normTs(x.ts)>=now-spanMs&&normTs(x.ts)<=now+60000);
- if(matched.length)list=list.filter(x=>matched.some(p=>String(x.pid)===String(p.id)||String(x.pname||'')===name(p)));
- const userMatch=q.match(/(?:ของ|โดย|พนักงาน|คนชื่อ)\s*([ก-๙a-zA-Z][ก-๙a-zA-Z ._-]{1,24})/);
- if(userMatch){const who=userMatch[1].trim();list=list.filter(x=>String(x.user||'').toLocaleLowerCase('th-TH').includes(who.toLocaleLowerCase('th-TH')));}
- if(/รับเข้า/.test(q)&&!/ไม่รับเข้า/.test(q))list=list.filter(x=>x.type==='in');
- else if(/เบิก|นำออก/.test(q))list=list.filter(x=>x.type==='out');
- else if(/ปรับยอด|ปรับสต็อก/.test(q))list=list.filter(x=>x.type==='adjust');
- list.sort((a,b)=>normTs(b.ts)-normTs(a.ts));
- if(!list.length)return{text:`ไม่พบประวัติ${rangeLabel?' '+rangeLabel:''}${matched.length?' ของ '+matched.map(name).join(', '):''} ในข้อมูลที่โหลดอยู่ครับ\n\nหมายเหตุ: ระบบแสดงได้เฉพาะประวัติที่ถูกโหลดมาในหน้านี้`,note};
- const totals={in:0,out:0,adjust:0},counts={in:0,out:0,adjust:0},byUnit={};
- list.forEach(x=>{const t=['in','out','adjust'].includes(x.type)?x.type:'other';if(t!=='other'){counts[t]++;const u=x.unit||'หน่วยไม่ระบุ';byUnit[u]??={in:0,out:0};if(t==='in')byUnit[u].in+=Math.abs(Number(x.amt)||0);if(t==='out')byUnit[u].out+=Math.abs(Number(x.amt)||0);}});
- const rows=list.slice(0,35).map((x,i)=>`${i+1}. ${fmtTs(x.ts)}\n${x.type==='in'?'รับเข้า':x.type==='out'?'เบิกจ่าย':x.type==='adjust'?'ปรับยอด':x.type==='import'?'นำเข้าข้อมูล':x.type||'รายการ'} · ${x.pname||'ไม่ระบุสินค้า'}\nจำนวน ${qty(x.amt)} ${x.unit||''} · ผู้ทำรายการ ${x.user||'ไม่ระบุ'}${x.after!=null?' · คงเหลือ '+qty(x.after):''}`).join('\n\n');
- const summary=Object.entries(byUnit).map(([u,v])=>`${u}: รับเข้า ${qty(v.in)} / เบิก ${qty(v.out)}`).join('\n');
- return{text:`ประวัติ${rangeLabel?' '+rangeLabel:''}\nพบทั้งหมด ${list.length} รายการ${list.length>35?' (แสดง 35 รายการล่าสุด)':''}\n• รับเข้า ${counts.in} ครั้ง\n• เบิกจ่าย ${counts.out} ครั้ง\n• ปรับยอด ${counts.adjust} ครั้ง${summary?'\n\nสรุปปริมาณแยกตามหน่วย\n'+summary:''}\n\nรายละเอียด\n${rows}`,note:`${note} · ช่วงเวลา ${rangeLabel||'ทั้งหมดที่มี'}`};
+/*AI-ENGINE-START*/
+const D=86400000,number=n=>Number(n||0).toLocaleString('th-TH',{maximumFractionDigits:2}),name=p=>p.name||p.pname||'ไม่ระบุชื่อ';
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const esc2=s=>String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const rich=s=>esc2(s).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+const ctx={intent:null,c:null,turns:0,lastCopy:''};
+const prods=()=>Array.isArray(P)?P:[],logs=()=>Array.isArray(L)?L:[];
+const nts=x=>{const n=typeof x==='number'?x:Date.parse(x);return Number.isFinite(n)?n:0};
+const fmtTs=x=>nts(x)?new Date(nts(x)).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'ไม่ระบุเวลา';
+const ago=x=>{const t=nts(x),d=Date.now()-t;if(!t||d<0)return '';const m=Math.floor(d/60000);if(m<1)return 'เมื่อสักครู่';if(m<60)return m+' นาทีที่แล้ว';const h=Math.floor(m/60);if(h<24)return h+' ชั่วโมงที่แล้ว';return Math.floor(h/24)+' วันที่แล้ว'};
+const TYPE={in:'รับเข้า',out:'เบิกจ่าย',adjust:'ปรับยอด',create:'เพิ่มวัตถุดิบ',edit:'แก้ไขข้อมูล',delete:'ลบวัตถุดิบ',import:'นำเข้าไฟล์'};
+const stat=p=>{const q=Number(p.qty)||0,m=Number(p.min)||0;return q<=0?'out':q<=m?'low':(m>0&&q>=m*4)?'high':'ok'};
+const un=p=>p.unit||'',line=p=>`${name(p)} — ${number(p.qty)} ${un(p)}`.trim();
+const lc=s=>String(s==null?'':s).toLocaleLowerCase('th-TH');
+const dayStart=(off=0)=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()+off);return d.getTime()};
+const lev=(a,b)=>{const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let prev=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const cur=[i];for(let j=1;j<=n;j++)cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1));prev=cur}return prev[n]};
+const medal=i=>['🥇','🥈','🥉'][i]||`${i+1}.`;
+function cleanQ(s){let q=lc(s).trim();for(let i=0;i<3;i++)q=q.replace(/\s*(ครับ|ค่ะ|คะ|นะครับ|นะคะ|นะ|จ้า|จ้ะ|ค่า|หน่อย|ด้วย|เลย|ที|หน่อยครับ)\s*$/,'');return q.replace(/\s+/g,' ').trim()}
+function findProducts(q){
+ const ps=prods(),res=[];
+ ps.forEach(p=>{const n=lc(name(p)).trim();if(n.length<2)return;let s=0;
+  if(q.includes(n))s=100+n.length;
+  else{const ws=n.split(/[\s/()\-,+]+/).filter(w=>w.length>=3&&!/^(สด|แช่แข็ง|ขนาด)$/.test(w)),hit=ws.filter(w=>q.includes(w));if(hit.length)s=30+hit.reduce((a,w)=>a+w.length,0)*3}
+  if(s)res.push([s,p])});
+ if(res.length)return res.sort((a,b)=>b[0]-a[0]).map(r=>r[1]);
+ if(q.length<4)return [];
+ const fz=[];ps.forEach(p=>{const n=lc(name(p)).replace(/\s+/g,'');if(n.length<4)return;const tol=n.length>6?2:1,qq=q.replace(/\s+/g,'');let best=9;for(let i=0;i+n.length<=qq.length+1;i++){const w=qq.slice(i,i+n.length);if(w.length<n.length-1)continue;const d=lev(n,w);if(d<best)best=d;if(best===0)break}if(best<=tol)fz.push([best,p])});
+ return fz.sort((a,b)=>a[0]-b[0]).map(r=>r[1]);
 }
-if(/(สรุป|ภาพรวม|ทั้งหมด|กี่รายการ)/.test(q)){const low=products.filter(p=>Number(p.qty)<=Number(p.min||0)&&Number(p.qty)>0),out=products.filter(p=>Number(p.qty)<=0);return{text:`ภาพรวมสต็อก\n• วัตถุดิบ ${number(products.length)} รายการ\n• ถึง/ต่ำกว่าขั้นต่ำ ${number(low.length)} รายการ\n• หมดสต็อก ${number(out.length)} รายการ\n\n${low.length?'รายการที่ควรตรวจสอบ: '+low.slice(0,10).map(p=>`${name(p)} (${number(p.qty)} ${p.unit||''})`).join(', '):'ไม่พบรายการถึงจุดขั้นต่ำ'}`,note}}
-if(/(ใกล้หมด|เหลือน้อย|ต่ำสุด|ขั้นต่ำ|ต้องเติม|ควรสั่ง)/.test(q)){const low=products.filter(p=>Number(p.qty)<=Number(p.min||0)).sort((a,b)=>Number(a.qty)-Number(b.qty));return{text:low.length?`พบ ${low.length} รายการที่ถึง/ต่ำกว่าจุดขั้นต่ำ\n`+low.slice(0,25).map((p,i)=>`${i+1}. ${name(p)} — ${number(p.qty)} ${p.unit||''} (ขั้นต่ำ ${number(p.min)} ${p.unit||''})`).join('\n'):'ไม่พบรายการที่ถึงหรือต่ำกว่าจุดขั้นต่ำครับ',note}}
-if(/(หมดสต็อก|ไม่มีเหลือ|เป็นศูนย์)/.test(q)){const out=products.filter(p=>Number(p.qty)<=0);return{text:out.length?'รายการหมดสต็อก\n'+out.slice(0,25).map((p,i)=>`${i+1}. ${name(p)}`).join('\n'):'ไม่พบรายการหมดสต็อกครับ',note}}
-if(/(มากที่สุด|เยอะที่สุด|เหลือมาก|จำนวนมาก)/.test(q)){const top=products.slice().sort((a,b)=>Number(b.qty)-Number(a.qty)).slice(0,10);return{text:top.map((p,i)=>`${i+1}. ${name(p)} — ${number(p.qty)} ${p.unit||''}`).join('\n')||'ยังไม่มีรายการสินค้า',note}}
-if(/(เบิก|ใช้|ถอน).*(บ่อย|มาก|สูง)|ผิดปกติ/.test(q)){const totals={};logs.filter(x=>x.type==='out'&&x.pid).forEach(x=>totals[x.pid]=(totals[x.pid]||0)+Number(x.amt||0));const top=products.map(p=>({...p,used:totals[p.id]||0})).sort((a,b)=>b.used-a.used).filter(p=>p.used>0).slice(0,8);return{text:top.length?'ปริมาณเบิกสะสมสูงสุดจากประวัติที่โหลด\n'+top.map((p,i)=>`${i+1}. ${name(p)} — ${number(p.used)} ${p.unit||''}`).join('\n'):'ไม่มีประวัติการเบิกเพียงพอสำหรับวิเคราะห์',note}}
-if(matched.length)return{text:matched.slice(0,15).map(p=>`${name(p)}\nคงเหลือ ${number(p.qty)} ${p.unit||''} · ขั้นต่ำ ${number(p.min)} ${p.unit||''}\nหมวดหมู่: ${p.cat||'ไม่ระบุ'}`).join('\n\n'),note};
-return{text:'ผมยังไม่เข้าใจคำถามนี้ครับ ลองถามได้ เช่น\n• ขอประวัติย้อนหลัง 3 วัน\n• วันนี้มีใครเบิกอะไรบ้าง?\n• ขอประวัติรับเข้าย้อนหลัง 7 วัน\n• ใครเบิกสินค้า [ชื่อสินค้า] ล่าสุด?\n• สินค้า [ชื่อ] เหลือเท่าไหร่?\n• สินค้าอะไรใกล้หมดหรือหมดสต็อก?\n• สรุปภาพรวมสต็อก\n\nหมายเหตุ: ผลลัพธ์อ้างอิงข้อมูลสาขาปัจจุบันที่โหลดอยู่ ไม่สามารถแสดงข้อมูลที่ไม่ได้ถูกส่งมาให้หน้านี้',note};
+function parseRange(q){
+ const now=Date.now();let m;
+ m=q.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?/);
+ if(m){let y=m[3]?Number(m[3]):new Date().getFullYear();if(y>2400)y-=543;else if(y<100)y+=2000;const d=new Date(y,Number(m[2])-1,Number(m[1]));if(!isNaN(d.getTime())){const f=d.getTime();return{from:f,to:f+D-1,label:'วันที่ '+d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'})}}}
+ m=q.match(/(\d+)\s*(วัน|ชั่วโมง|ชม\.?|สัปดาห์|อาทิตย์|เดือน|ปี)/);
+ if(m){const n=Math.max(1,Math.min(1000,Number(m[1]))),u=m[2],ms=/ชั่วโมง|ชม/.test(u)?3600000:/สัปดาห์|อาทิตย์/.test(u)?7*D:/เดือน/.test(u)?30*D:/ปี/.test(u)?365*D:D;return{from:now-n*ms,to:now,label:`ย้อนหลัง ${n} ${u}`}}
+ const wk=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+ if(/สัปดาห์ที่แล้ว|อาทิตย์ที่แล้ว|สัปดาห์ก่อน|อาทิตย์ก่อน/.test(q)){const s=wk();return{from:s-7*D,to:s-1,label:'สัปดาห์ที่แล้ว'}}
+ if(/สัปดาห์นี้|อาทิตย์นี้/.test(q))return{from:wk(),to:now,label:'สัปดาห์นี้'};
+ if(/เดือนที่แล้ว|เดือนก่อน/.test(q)){const d=new Date();return{from:new Date(d.getFullYear(),d.getMonth()-1,1).getTime(),to:new Date(d.getFullYear(),d.getMonth(),1).getTime()-1,label:'เดือนที่แล้ว'}}
+ if(/เดือนนี้/.test(q)){const d=new Date();return{from:new Date(d.getFullYear(),d.getMonth(),1).getTime(),to:now,label:'เดือนนี้'}}
+ if(/ปีนี้/.test(q))return{from:new Date(new Date().getFullYear(),0,1).getTime(),to:now,label:'ปีนี้'};
+ if(/เมื่อวานซืน/.test(q))return{from:dayStart(-2),to:dayStart(-1)-1,label:'เมื่อวานซืน'};
+ if(/เมื่อวาน/.test(q))return{from:dayStart(-1),to:dayStart(0)-1,label:'เมื่อวาน'};
+ if(/วันนี้|เช้านี้|ตอนนี้ทั้งวัน/.test(q))return{from:dayStart(0),to:now,label:'วันนี้'};
+ return null;
 }
-form.addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q||busy)return;add(q,'user');input.value='';busy=true;send.disabled=true;const typing=showTyping();const wait=matchMedia('(prefers-reduced-motion: reduce)').matches?850:1450;setTimeout(()=>{try{const a=analyze(q);typing.remove();add(a.text,'bot',a.note)}catch(err){typing.remove();add('เกิดข้อผิดพลาดขณะอ่านข้อมูล กรุณาลองใหม่ครับ')}finally{busy=false;send.disabled=false;input.focus()}},wait)});
-input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+function parse(q){
+ const c={q,range:parseRange(q),products:findProducts(q),type:null,user:null,cat:null,sup:null,n:null};
+ if(/รับเข้า|รับของ|เติมสต็อก|ของเข้า|นำเข้าสต็อก/.test(q)&&!/ไม่รับเข้า/.test(q))c.type='in';
+ else if(/เบิก|นำออก|ใช้ไป|จ่ายออก|ตัดสต็อก/.test(q))c.type='out';
+ else if(/ปรับยอด|ปรับสต็อก|ปรับจำนวน|นับสต็อก/.test(q))c.type='adjust';
+ else if(/ลบ(?:วัตถุดิบ|สินค้า|รายการ)|ที่ถูกลบ/.test(q))c.type='delete';
+ else if(/แก้ไข(?:ข้อมูล)?|เพิ่มวัตถุดิบใหม่|สร้างใหม่|เพิ่มสินค้าใหม่/.test(q))c.type=/เพิ่ม|สร้าง/.test(q)?'create':'edit';
+ const pn=new Set(prods().map(p=>lc(name(p)))),marker=/โดย|ของ|พนักงาน|คุณ|พี่|น้อง|ใคร/.test(q);
+ const names=[...new Set([...(typeof U!=='undefined'&&Array.isArray(U)?U.map(u=>u&&u.name):[]),...logs().map(x=>x.user)].filter(n=>n&&String(n).length>=2))];
+ const um=names.filter(n=>q.includes(lc(n))).sort((a,b)=>b.length-a.length);
+ if(um.length&&(marker||!pn.has(lc(um[0])))){c.user=um[0];c.products=c.products.filter(p=>lc(name(p))!==lc(um[0]))}
+ else{const r=q.match(/(?:ของคุณ|ของพี่|ของน้อง|โดย|พนักงาน|คนชื่อ)\s*([ก-๙a-z][ก-๙a-z0-9 ._-]{1,24})/);if(r&&!/ทั้งหมด|ทุกคน/.test(r[1]))c.user=r[1].trim()}
+ const cats=[...new Set([...(typeof CATS!=='undefined'&&Array.isArray(CATS)?CATS:[]),...prods().map(p=>p.cat)].filter(Boolean))];
+ const byWord=/หมวด|ประเภท/.test(q);
+ const cm=cats.filter(k=>q.includes(lc(k))||(byWord&&lc(k).split(/และ|[\s/,&]+/).some(w=>w.length>=3&&q.includes(w))));
+ if(cm.length){c.cat=cm.sort((a,b)=>b.length-a.length)[0];if(q.includes(lc(c.cat))||byWord)c.products=c.products.filter(p=>!(lc(c.cat).split(/และ|[\s/,&]+/).includes(lc(name(p)))))}
+ const sups=[...new Set(prods().map(p=>p.loc).filter(Boolean))],sm=sups.filter(s=>String(s).length>=2&&q.includes(lc(s)));
+ if(sm.length)c.sup=sm.sort((a,b)=>b.length-a.length)[0];
+ const nm=q.match(/(?:top|ท็อป)\s*(\d+)|(\d+)\s*(?:อันดับ|รายการแรก|ตัวแรก)/);if(nm)c.n=Math.max(1,Math.min(50,Number(nm[1]||nm[2])));
+ return c;
+}
+function filterLogs(c,o={}){
+ const type=o.type===undefined?c.type:o.type,range=o.range===undefined?c.range:o.range;
+ let l=logs().filter(x=>nts(x.ts)>0);
+ if(range)l=l.filter(x=>nts(x.ts)>=range.from&&nts(x.ts)<=range.to+60000);
+ if(o.product!==false&&c.products.length)l=l.filter(x=>c.products.some(p=>String(x.pid)===String(p.id)||String(x.pname||'')===name(p)));
+ if(o.cat!==false&&c.cat&&!c.products.length){const ids=new Set(prods().filter(p=>p.cat===c.cat).map(p=>String(p.id)));l=l.filter(x=>ids.has(String(x.pid)))}
+ if(o.user!==false&&c.user)l=l.filter(x=>lc(x.user).includes(lc(c.user)));
+ if(type)l=l.filter(x=>x.type===type);
+ return l.sort((a,b)=>nts(b.ts)-nts(a.ts));
+}
+const earliest=()=>{const t=logs().map(x=>nts(x.ts)).filter(Boolean);return t.length?Math.min(...t):Date.now()};
+function usage(days){const since=Date.now()-days*D,m={};logs().forEach(x=>{if(x.type!=='out'||nts(x.ts)<since)return;const k=x.pid!=null?String(x.pid):String(x.pname);(m[k]??={amt:0,n:0,last:0});m[k].amt+=Math.abs(Number(x.amt)||0);m[k].n++;m[k].last=Math.max(m[k].last,nts(x.ts))});return m}
+function daily(p,U30){const span=Math.max(3,Math.min(30,(Date.now()-earliest())/D)),u=U30[String(p.id)];return u?u.amt/span:0}
+function daysLeft(p,U30){const a=daily(p,U30);return a>0?(Number(p.qty)||0)/a:null}
+const dl=d=>d==null?'ประเมินไม่ได้ (ยังไม่มีประวัติเบิก)':d<1?'ไม่ถึง 1 วัน':`ประมาณ ${number(Math.round(d))} วัน`;
+const target=p=>Math.max((Number(p.min)||0)*2,(Number(p.min)||0)+1);
+const need=p=>Math.max(1,Math.ceil(target(p)-(Number(p.qty)||0)));
+const list=(arr,fn,max=15,more='รายการ')=>arr.slice(0,max).map((x,i)=>`${i+1}. ${fn(x,i)}`).join('\n')+(arr.length>max?`\n… และอีก ${arr.length-max} ${more}`:'');
+const rangeTxt=c=>c.range?c.range.label:'';
+const logRow=x=>`${fmtTs(x.ts)} · ${TYPE[x.type]||x.type||'รายการ'} · ${x.pname||'—'}${x.type==='in'||x.type==='out'||x.type==='adjust'?` ${number(Math.abs(x.amt))} ${x.unit||''}`:''} · โดย ${x.user||'ไม่ระบุ'}${x.after!=null&&['in','out','adjust'].includes(x.type)?` (คงเหลือ ${number(x.after)})`:''}`;
+
+const H={};
+H.low=c=>{let l=prods().filter(p=>stat(p)==='low');if(c.cat)l=l.filter(p=>p.cat===c.cat);if(c.sup)l=l.filter(p=>p.loc===c.sup);l.sort((a,b)=>(a.qty/(a.min||1))-(b.qty/(b.min||1)));
+ if(!l.length)return{text:pick(['ตอนนี้ไม่มีรายการไหนเหลือต่ำกว่าจุดขั้นต่ำเลยครับ 👍','เช็กแล้วครับ ยังไม่มีของใกล้หมด สต็อกปกติดี 👍'])+(c.cat?`\n(เฉพาะหมวด ${c.cat})`:''),chips:['สรุปภาพรวมสต็อก','สินค้าอะไรหมดสต็อก']};
+ return{text:`${pick(['เช็กให้แล้วครับ','ได้เลยครับ','มาดูกัน'])} มี **${l.length} รายการ** ที่เหลือน้อยถึงจุดขั้นต่ำ${c.cat?` ในหมวด ${c.cat}`:''}\n\n${list(l,p=>`${name(p)} — เหลือ ${number(p.qty)} ${un(p)} (ขั้นต่ำ ${number(p.min)})`,20)}\n\n${l[0]?`⚠️ เร่งด่วนสุดน่าจะเป็น **${name(l[0])}** ครับ`:''}`,chips:['ขอรายการสั่งซื้อ','สินค้าอะไรหมดสต็อก','จะหมดอีกกี่วัน']}};
+H.out=c=>{let l=prods().filter(p=>stat(p)==='out');if(c.cat)l=l.filter(p=>p.cat===c.cat);if(c.sup)l=l.filter(p=>p.loc===c.sup);
+ if(!l.length)return{text:'ไม่มีรายการหมดสต็อกครับ ดีเลย 🎉',chips:['สินค้าอะไรใกล้หมด','สรุปภาพรวมสต็อก']};
+ return{text:`ตอนนี้ **หมดสต็อก ${l.length} รายการ** ครับ\n\n${list(l,p=>`${name(p)}${p.loc?` · ซื้อจาก ${p.loc}`:''}`,25)}`,chips:['ขอรายการสั่งซื้อ','สินค้าอะไรใกล้หมด']}};
+H.reorder=c=>{let l=prods().filter(p=>['low','out'].includes(stat(p)));if(c.cat)l=l.filter(p=>p.cat===c.cat);if(c.sup)l=l.filter(p=>p.loc===c.sup);
+ if(!l.length)return{text:'ยังไม่ต้องสั่งอะไรเพิ่มครับ ทุกรายการยังอยู่เหนือจุดขั้นต่ำ 👍',chips:['สรุปภาพรวมสต็อก']};
+ const g={};l.forEach(p=>{(g[p.loc||'ไม่ระบุแหล่งซื้อ']??=[]).push(p)});
+ const body=Object.entries(g).sort((a,b)=>b[1].length-a[1].length).map(([s,a])=>`🛒 **${s}**\n`+a.sort((x,y)=>(Number(x.qty)||0)-(Number(y.qty)||0)).map(p=>`• ${name(p)} — ซื้อเพิ่มประมาณ ${number(need(p))} ${un(p)} (เหลือ ${number(p.qty)})`).join('\n')).join('\n\n');
+ const copy=Object.entries(g).map(([s,a])=>`${s}\n`+a.map(p=>`- ${name(p)} ${number(need(p))} ${un(p)}`).join('\n')).join('\n\n');
+ return{text:`จัดรายการสั่งซื้อให้แล้วครับ รวม **${l.length} รายการ** จัดกลุ่มตามแหล่งซื้อ\n\n${body}\n\nℹ️ จำนวนที่แนะนำคิดจากเติมให้ถึงประมาณ 2 เท่าของจุดขั้นต่ำ ปรับตามหน้างานได้เลยครับ`,chips:['จะหมดอีกกี่วัน','สินค้าอะไรหมดสต็อก'],copy}};
+H.forecast=c=>{const U30=usage(30);let l=c.products.length?c.products.slice(0,8):prods().filter(p=>(Number(p.qty)||0)>0&&U30[String(p.id)]);
+ if(c.cat&&!c.products.length)l=l.filter(p=>p.cat===c.cat);
+ const r=l.map(p=>({p,d:daysLeft(p,U30),a:daily(p,U30)})).filter(x=>c.products.length||x.d!=null).sort((a,b)=>(a.d==null)-(b.d==null)||a.d-b.d);
+ if(!r.length)return{text:'ยังมีประวัติการเบิกไม่พอสำหรับคาดการณ์ครับ ลองเบิก/รับเข้าสักพักแล้วถามใหม่นะ',chips:['ขอประวัติย้อนหลัง 7 วัน']};
+ const n=c.n||10;
+ return{text:`คาดการณ์จากอัตราการเบิกเฉลี่ย (ราว 30 วันล่าสุด) ครับ\n\n${list(r,x=>`${name(x.p)} — เหลือ ${number(x.p.qty)} ${un(x.p)} · ใช้เฉลี่ย ${number(x.a)}/วัน → ${dl(x.d)}`,n)}\n\n💡 เป็นค่าประมาณจากข้อมูลที่โหลดอยู่ ใช้ประกอบการตัดสินใจครับ`,chips:['ขอรายการสั่งซื้อ','ของอะไรเบิกบ่อยที่สุด']}};
+H.dead=c=>{const days=c.range&&/\d/.test(c.range.label)?Math.round((c.range.to-c.range.from)/D):30,since=Date.now()-days*D,used=new Set(logs().filter(x=>x.type==='out'&&nts(x.ts)>=since).map(x=>String(x.pid)));
+ let l=prods().filter(p=>(Number(p.qty)||0)>0&&!used.has(String(p.id)));if(c.cat)l=l.filter(p=>p.cat===c.cat);
+ if(!l.length)return{text:`ทุกรายการที่มีสต็อกถูกเบิกใช้ภายใน ${days} วันล่าสุดครับ ไม่มีของนิ่ง 👍`,chips:['ของอะไรเบิกบ่อยที่สุด']};
+ return{text:`มี **${l.length} รายการ** ที่มีของอยู่แต่ไม่มีการเบิกเลยใน ${days} วันล่าสุด\n\n${list(l,p=>line(p),20)}\n\n💡 ลองเช็กวันหมดอายุหรือลดการสั่งเพิ่มของกลุ่มนี้ครับ`,chips:['ของอะไรเกินจำเป็น','ขอรายการสั่งซื้อ']}};
+H.overstock=c=>{let l=prods().filter(p=>stat(p)==='high');if(c.cat)l=l.filter(p=>p.cat===c.cat);l.sort((a,b)=>b.qty/(b.min||1)-a.qty/(a.min||1));
+ if(!l.length)return{text:'ไม่พบรายการที่สต็อกเกินจำเป็นครับ (เกณฑ์: เกิน 4 เท่าของขั้นต่ำ)',chips:['สินค้าไหนไม่ถูกเบิกเลย']};
+ return{text:`รายการที่สต็อก **สูงเกิน 4 เท่าของขั้นต่ำ** มี ${l.length} รายการ\n\n${list(l,p=>`${name(p)} — ${number(p.qty)} ${un(p)} (ขั้นต่ำ ${number(p.min)})`,15)}\n\n💡 ชะลอการสั่งซื้อกลุ่มนี้ได้ ช่วยลดเงินจมและของเสียครับ`,chips:['สินค้าไหนไม่ถูกเบิกเลย']}};
+H.extreme=c=>{const low=/น้อยที่สุด|ต่ำที่สุด|เหลือน้อยสุด/.test(c.q),n=c.n||10;let l=prods().filter(p=>!c.cat||p.cat===c.cat).slice().sort((a,b)=>low?(Number(a.qty)||0)-(Number(b.qty)||0):(Number(b.qty)||0)-(Number(a.qty)||0));
+ return{text:`${n} อันดับ${low?'ที่เหลือน้อยที่สุด':'ที่มีมากที่สุด'}${c.cat?` ในหมวด ${c.cat}`:''}\n\n${l.slice(0,n).map((p,i)=>`${medal(i)} ${line(p)}`).join('\n')||'ยังไม่มีรายการ'}`,chips:[low?'ขอรายการสั่งซื้อ':'ของอะไรเกินจำเป็น']}};
+H.usage=c=>{const r=c.range||{from:Date.now()-30*D,to:Date.now(),label:'ย้อนหลัง 30 วัน (ค่าเริ่มต้น)'},l=filterLogs(c,{type:'out',range:r,product:false});const m={};l.forEach(x=>{const k=x.pid!=null?String(x.pid):x.pname;(m[k]??={name:x.pname,unit:x.unit,amt:0,n:0})&&(m[k].amt+=Math.abs(Number(x.amt)||0),m[k].n++)});
+ const a=Object.values(m).sort((x,y)=>y.n-x.n||y.amt-x.amt),n=c.n||8;
+ if(!a.length)return{text:`ไม่พบประวัติการเบิก ${r.label} ในข้อมูลที่โหลดอยู่ครับ`,chips:['ขอประวัติย้อนหลัง 30 วัน']};
+ return{text:`รายการที่ถูกเบิกบ่อยสุด ${r.label} (จัดอันดับตามจำนวนครั้ง)\n\n${a.slice(0,n).map((x,i)=>`${medal(i)} ${x.name} — เบิก ${x.n} ครั้ง รวม ${number(x.amt)} ${x.unit||''}`).join('\n')}\n\nรวมเบิกทั้งหมด ${l.length} ครั้ง`,chips:['จะหมดอีกกี่วัน','สินค้าไหนไม่ถูกเบิกเลย']}};
+H.userrank=c=>{const r=c.range,l=filterLogs(c,{range:r,user:false,product:false,type:c.type});const m={};l.forEach(x=>{const k=x.user||'ไม่ระบุ';(m[k]??={n:0,t:{}}).n++;m[k].t[x.type]=(m[k].t[x.type]||0)+1});
+ const a=Object.entries(m).sort((x,y)=>y[1].n-x[1].n);if(!a.length)return{text:'ยังไม่มีประวัติการทำรายการในช่วงนี้ครับ'};
+ return{text:`พนักงานที่ทำรายการมากสุด${r?' '+r.label:' (เท่าที่ข้อมูลโหลดอยู่)'}\n\n${a.slice(0,10).map(([u,v],i)=>`${medal(i)} ${u} — ${v.n} รายการ (${Object.entries(v.t).map(([t,n])=>`${TYPE[t]||t} ${n}`).join(', ')})`).join('\n')}`,chips:['สรุปวันนี้','ใครเบิกล่าสุด']}};
+H.who=c=>{const l=filterLogs(c,{range:c.range});if(!l.length)return{text:`ไม่พบประวัติที่ตรงกับคำถามครับ${c.products.length?` (ของ ${c.products.map(name).join(', ')})`:''}`,chips:['ขอประวัติย้อนหลัง 7 วัน']};
+ const x=l[0],act=c.type?TYPE[c.type]:'ทำรายการ';
+ return{text:`ล่าสุดคือ **${x.user||'ไม่ระบุ'}** ครับ — ${TYPE[x.type]||act} ${x.pname||''}${['in','out','adjust'].includes(x.type)?` ${number(Math.abs(x.amt))} ${x.unit||''}`:''}\nเมื่อ ${fmtTs(x.ts)} (${ago(x.ts)})${l[1]?`\n\nก่อนหน้านั้น:\n${l.slice(1,4).map(logRow).join('\n')}`:''}`,chips:['ขอประวัติย้อนหลัง 3 วัน','ใครทำรายการเยอะที่สุด']}};
+H.history=c=>{const l=filterLogs(c,{range:c.range||(c.products.length||c.user||c.type?null:{from:Date.now()-7*D,to:Date.now(),label:'ย้อนหลัง 7 วัน (ค่าเริ่มต้น)'})}),lab=rangeTxt(c)||(c.range===null&&!c.products.length&&!c.user&&!c.type?'':'');
+ if(!l.length)return{text:`ไม่พบประวัติ${c.type?TYPE[c.type]:''}${lab?' '+lab:''}${c.products.length?' ของ '+c.products.slice(0,3).map(name).join(', '):''}${c.user?' โดย '+c.user:''} ในข้อมูลที่โหลดอยู่ครับ\n\nหมายเหตุ: ผมเห็นเฉพาะประวัติที่หน้านี้โหลดมา`,chips:['ขอประวัติย้อนหลัง 30 วัน','สรุปภาพรวมสต็อก']};
+ const cnt={};l.forEach(x=>cnt[x.type]=(cnt[x.type]||0)+1);const byU={};l.forEach(x=>{if(['in','out'].includes(x.type)){const u=x.unit||'หน่วยไม่ระบุ';(byU[u]??={in:0,out:0})[x.type]+=Math.abs(Number(x.amt)||0)}});
+ const head=Object.entries(cnt).map(([t,n])=>`${TYPE[t]||t} ${n}`).join(' · ');
+ const sum=Object.entries(byU).map(([u,v])=>`${u}: รับเข้า ${number(v.in)} / เบิก ${number(v.out)}`).join('\n');
+ return{text:`พบ **${l.length} รายการ**${lab?' ('+lab+')':''}${c.user?' ของ '+c.user:''}\n${head}${sum?'\n\nสรุปปริมาณ\n'+sum:''}\n\nรายละเอียด${l.length>20?' (20 ล่าสุด)':''}\n${list(l,logRow,20)}`,chips:['ใครทำรายการเยอะที่สุด','ของอะไรเบิกบ่อยที่สุด'],copy:l.slice(0,100).map(logRow).join('\n')}};
+H.period=c=>{const r=c.range||{from:dayStart(0),to:Date.now(),label:'วันนี้'},l=filterLogs(c,{range:r,product:false,type:null});
+ if(!l.length)return{text:`${r.label}ยังไม่มีการทำรายการเลยครับ`,chips:['ขอประวัติย้อนหลัง 7 วัน']};
+ const cnt={},us={},pm={};l.forEach(x=>{cnt[x.type]=(cnt[x.type]||0)+1;us[x.user||'ไม่ระบุ']=(us[x.user||'ไม่ระบุ']||0)+1;if(['in','out'].includes(x.type))pm[x.pname]=(pm[x.pname]||0)+1});
+ const top=Object.entries(pm).sort((a,b)=>b[1]-a[1]).slice(0,3),tu=Object.entries(us).sort((a,b)=>b[1]-a[1]).slice(0,3);
+ return{text:`สรุป${r.label} 📋\nทำรายการทั้งหมด **${l.length} ครั้ง**\n${Object.entries(cnt).map(([t,n])=>`• ${TYPE[t]||t} ${n} ครั้ง`).join('\n')}\n${top.length?`\nสินค้าที่เคลื่อนไหวบ่อย: ${top.map(([n,k])=>`${n} (${k})`).join(', ')}`:''}\nผู้ทำรายการ: ${tu.map(([n,k])=>`${n} (${k})`).join(', ')}\n\nล่าสุด: ${logRow(l[0])}`,chips:['ขอประวัติวันนี้','สินค้าอะไรใกล้หมด']}};
+H.compare=c=>{
+ if(c.products.length>=2){const U30=usage(30),ps=c.products.slice(0,4);return{text:`เทียบกันให้ครับ\n\n${ps.map(p=>`**${name(p)}**\nคงเหลือ ${number(p.qty)} ${un(p)} · ขั้นต่ำ ${number(p.min)} · ${({out:'🔴 หมด',low:'🟠 ใกล้หมด',ok:'🟢 ปกติ',high:'🔵 เกินจำเป็น'})[stat(p)]}\nใช้เฉลี่ย ${number(daily(p,U30))}/วัน → ${dl(daysLeft(p,U30))}`).join('\n\n')}`,chips:['ขอรายการสั่งซื้อ']}}
+ const q=c.q;let a,b;
+ if(/สัปดาห์/.test(q)){const s=(()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()})();a={from:s,to:Date.now(),label:'สัปดาห์นี้'};b={from:s-7*D,to:s-1,label:'สัปดาห์ที่แล้ว'}}
+ else if(/เดือน/.test(q)){const d=new Date();a={from:new Date(d.getFullYear(),d.getMonth(),1).getTime(),to:Date.now(),label:'เดือนนี้'};b={from:new Date(d.getFullYear(),d.getMonth()-1,1).getTime(),to:new Date(d.getFullYear(),d.getMonth(),1).getTime()-1,label:'เดือนที่แล้ว'}}
+ else{a={from:dayStart(0),to:Date.now(),label:'วันนี้'};b={from:dayStart(-1),to:dayStart(0)-1,label:'เมื่อวาน'}}
+ const f=r=>{const l=filterLogs(c,{range:r,type:null});const s={in:0,out:0,n:l.length};l.forEach(x=>{if(x.type==='in')s.in++;if(x.type==='out')s.out++});return s},A=f(a),B=f(b),diff=(x,y)=>y?`${x>=y?'▲':'▼'} ${Math.abs(Math.round((x-y)/y*100))}%`:'—';
+ return{text:`เทียบ ${a.label} กับ ${b.label}${c.products.length?' ของ '+name(c.products[0]):''}\n\n• รายการทั้งหมด: ${A.n} vs ${B.n} ${diff(A.n,B.n)}\n• รับเข้า: ${A.in} vs ${B.in} ครั้ง ${diff(A.in,B.in)}\n• เบิกจ่าย: ${A.out} vs ${B.out} ครั้ง ${diff(A.out,B.out)}\n\n${a.label==='วันนี้'?'(วันนี้ยังไม่จบวัน ตัวเลขอาจเพิ่มได้อีก)':''}`,chips:['สรุปวันนี้','ของอะไรเบิกบ่อยที่สุด']}};
+H.category=c=>{
+ if(c.cat){const l=prods().filter(p=>p.cat===c.cat).sort((a,b)=>({out:0,low:1,ok:2,high:3})[stat(a)]-({out:0,low:1,ok:2,high:3})[stat(b)]),ic={out:'🔴',low:'🟠',ok:'🟢',high:'🔵'};
+  return{text:`หมวด **${c.cat}** มี ${l.length} รายการ\n\n${list(l,p=>`${ic[stat(p)]} ${line(p)}`,25)}\n\n🔴 หมด ${l.filter(p=>stat(p)==='out').length} · 🟠 ใกล้หมด ${l.filter(p=>stat(p)==='low').length}`,chips:[`หมวด${c.cat} ใกล้หมดอะไรบ้าง`,'หมวดหมู่ทั้งหมด']}}
+ const m={};prods().forEach(p=>{const k=p.cat||'ไม่ระบุหมวด';(m[k]??={n:0,low:0,out:0});m[k].n++;if(stat(p)==='low')m[k].low++;if(stat(p)==='out')m[k].out++});
+ return{text:`มี **${Object.keys(m).length} หมวดหมู่** ครับ\n\n${Object.entries(m).sort((a,b)=>b[1].n-a[1].n).map(([k,v])=>`• ${k} — ${v.n} รายการ${v.out?` · หมด ${v.out}`:''}${v.low?` · ใกล้หมด ${v.low}`:''}`).join('\n')}\n\nพิมพ์ชื่อหมวดมาได้เลยถ้าอยากดูรายละเอียดครับ`,chips:Object.keys(m).slice(0,3).map(k=>'หมวด'+k)}};
+H.supplier=c=>{
+ if(c.sup){const l=prods().filter(p=>p.loc===c.sup);return{text:`จาก **${c.sup}** มี ${l.length} รายการ\n\n${list(l,p=>`${line(p)}${['low','out'].includes(stat(p))?' ⚠️':''}`,25)}`,chips:['ขอรายการสั่งซื้อ']}}
+ if(c.products.length){return{text:c.products.slice(0,6).map(p=>`${name(p)} → ${p.loc?'ซื้อจาก **'+p.loc+'**':'ยังไม่ได้ระบุแหล่งซื้อ'}`).join('\n')}}
+ const m={};prods().forEach(p=>{const k=p.loc||'ยังไม่ระบุ';(m[k]??=[]).push(p)});
+ return{text:`มี **${Object.keys(m).filter(k=>k!=='ยังไม่ระบุ').length} แหล่งซื้อ/ซัพพลายเออร์** ครับ\n\n${Object.entries(m).sort((a,b)=>b[1].length-a[1].length).map(([k,v])=>`• ${k} — ${v.length} รายการ${v.filter(p=>['low','out'].includes(stat(p))).length?` (ต้องเติม ${v.filter(p=>['low','out'].includes(stat(p))).length})`:''}`).join('\n')}`,chips:['ขอรายการสั่งซื้อ']}};
+H.count=c=>{const ps=prods(),cats=new Set(ps.map(p=>p.cat).filter(Boolean)),us=new Set(ps.map(p=>p.unit).filter(Boolean)),ss=new Set(ps.map(p=>p.loc).filter(Boolean));
+ return{text:`ตัวเลขรวมของสาขานี้ครับ\n• วัตถุดิบ ${number(ps.length)} รายการ\n• ${cats.size} หมวดหมู่\n• ${us.size} หน่วยนับ\n• ${ss.size} แหล่งซื้อ\n• ประวัติที่โหลดอยู่ ${number(logs().length)} รายการ`,chips:['หมวดหมู่ทั้งหมด','สรุปภาพรวมสต็อก']}};
+H.quality=c=>{const ps=prods(),neg=ps.filter(p=>Number(p.qty)<0),nomin=ps.filter(p=>!(Number(p.min)>0)),nosup=ps.filter(p=>!p.loc),nocat=ps.filter(p=>!p.cat),dup={};ps.forEach(p=>{const k=lc(name(p)).trim();dup[k]=(dup[k]||0)+1});const d=Object.entries(dup).filter(([,n])=>n>1);
+ const issues=[[neg,'ยอดติดลบ'],[nomin,'ยังไม่ตั้งจุดขั้นต่ำ'],[nosup,'ยังไม่ระบุแหล่งซื้อ'],[nocat,'ยังไม่ระบุหมวดหมู่']].filter(([a])=>a.length);
+ if(!issues.length&&!d.length)return{text:'ตรวจข้อมูลแล้ว สะอาดดีครับ ไม่พบยอดติดลบ ชื่อซ้ำ หรือช่องที่ว่างสำคัญ ✅'};
+ return{text:`ผลตรวจคุณภาพข้อมูล 🔍\n\n${issues.map(([a,t])=>`• ${t}: ${a.length} รายการ (เช่น ${a.slice(0,3).map(name).join(', ')})`).join('\n')}${d.length?`\n• ชื่อซ้ำ: ${d.slice(0,5).map(([k,n])=>`${k} ×${n}`).join(', ')}`:''}\n\nการตั้งขั้นต่ำให้ครบจะทำให้การแจ้งเตือนและรายการสั่งซื้อแม่นขึ้นครับ`,chips:['สรุปภาพรวมสต็อก']}};
+H.overview=c=>{const ps=prods(),n=ps.length,st={out:0,low:0,ok:0,high:0};ps.forEach(p=>st[stat(p)]++);const health=n?Math.round((st.ok+st.high)/n*100):0,t=filterLogs(c,{range:{from:dayStart(0),to:Date.now()},product:false,type:null,user:false,cat:false});
+ const verdict=health>=90?'สต็อกอยู่ในสภาพดีมากครับ 👏':health>=75?'โดยรวมโอเค มีบางรายการต้องจับตา 👀':health>=50?'เริ่มน่าห่วง ควรรีบเติมของหลายรายการ ⚠️':'สต็อกค่อนข้างวิกฤต ควรสั่งของด่วนครับ 🚨';
+ return{text:`ภาพรวมสต็อก 📊\n• วัตถุดิบทั้งหมด **${number(n)}** รายการ\n• 🟢 ปกติ ${st.ok} · 🔵 มากเกิน ${st.high}\n• 🟠 ใกล้หมด ${st.low} · 🔴 หมด ${st.out}\n• ความพร้อมของสต็อก **${health}%**\n• วันนี้ทำรายการแล้ว ${t.length} ครั้ง\n\n${verdict}${st.low+st.out?`\nรายการที่ควรดูก่อน: ${ps.filter(p=>['out','low'].includes(stat(p))).sort((a,b)=>(Number(a.qty)||0)-(Number(b.qty)||0)).slice(0,5).map(name).join(', ')}`:''}`,chips:st.low+st.out?['ขอรายการสั่งซื้อ','จะหมดอีกกี่วัน','สรุปวันนี้']:['สรุปวันนี้','ตรวจสอบคุณภาพข้อมูล']}};
+H.product=c=>{const ps=c.products.slice(0,c.products.length>6?6:c.products.length),U30=usage(30);
+ const card=p=>{const lg=logs().filter(x=>String(x.pid)===String(p.id)||x.pname===name(p)).sort((a,b)=>nts(b.ts)-nts(a.ts)),li=lg.find(x=>x.type==='in'),lo=lg.find(x=>x.type==='out');
+  return `**${name(p)}** ${({out:'🔴 หมดสต็อก',low:'🟠 ใกล้หมด',ok:'🟢 ปกติ',high:'🔵 มีเกินจำเป็น'})[stat(p)]}\nคงเหลือ ${number(p.qty)} ${un(p)} · ขั้นต่ำ ${number(p.min)}\nหมวด: ${p.cat||'ไม่ระบุ'} · ซื้อจาก: ${p.loc||'ไม่ระบุ'}\nรับเข้าล่าสุด: ${li?`${fmtTs(li.ts)} (${number(li.amt)} ${li.unit||''} โดย ${li.user||'—'})`:'ไม่พบในประวัติที่โหลด'}\nเบิกล่าสุด: ${lo?`${fmtTs(lo.ts)} (${number(Math.abs(lo.amt))} ${lo.unit||''} โดย ${lo.user||'—'})`:'ไม่พบในประวัติที่โหลด'}\nใช้เฉลี่ย ${number(daily(p,U30))}/วัน → ${dl(daysLeft(p,U30))}`};
+ const f=ps[0];return{text:(ps.length>1?`พบ ${c.products.length} รายการที่เกี่ยวข้องครับ\n\n`:'')+ps.map(card).join('\n\n─────\n\n'),chips:[`ประวัติ ${name(f)}`,`ใครเบิก ${name(f)} ล่าสุด`,ps.length>1?`เทียบ ${name(ps[0])} กับ ${name(ps[1])}`:'ขอรายการสั่งซื้อ']}};
+H.howto=c=>{const q=c.q;
+ const g=/เพิ่ม(?:วัตถุดิบ|สินค้า|ของ)/.test(q)?'การเพิ่มวัตถุดิบใหม่: กดปุ่ม + ที่มุมหน้าสต็อก → กรอกชื่อ หมวด หน่วย จำนวนเริ่มต้น และขั้นต่ำ → กด "เพิ่มวัตถุดิบ"':/ส่งออก|export|ดาวน์โหลด|excel|csv|สำรอง|backup/.test(q)?'การส่งออก/สำรองข้อมูล: ไปที่หน้าตั้งค่า มีปุ่มส่งออก CSV/Excel และสำรองไฟล์ JSON ให้เลือกครับ':/นำเข้า|import|อัปโหลด/.test(q)?'การนำเข้าข้อมูล: หน้าตั้งค่ามีปุ่ม "นำเข้าข้อมูล" รองรับไฟล์ที่ส่งออกจากระบบนี้ (CSV/Excel) ครับ':/เบิก|รับเข้า|ปรับยอด/.test(q)?'การรับเข้า/เบิก/ปรับยอด: แตะที่รายการวัตถุดิบในหน้าสต็อกเพื่อเปิดรายละเอียด แล้วเลือกทำรายการที่ต้องการ ระบบจะบันทึกประวัติให้อัตโนมัติครับ':null;
+ return{text:g||'ผมช่วยอธิบายวิธีใช้งานเบื้องต้นได้ เช่น เพิ่มวัตถุดิบ, เบิก/รับเข้า/ปรับยอด, ส่งออกข้อมูล, นำเข้าข้อมูล ลองถามเป็นเรื่องๆ ได้เลยครับ',chips:['เพิ่มวัตถุดิบทำยังไง','ส่งออกข้อมูลยังไง','นำเข้าข้อมูลยังไง']}};
+H.list=c=>{const l=prods().filter(p=>(!c.cat||p.cat===c.cat)).slice().sort((a,b)=>name(a).localeCompare(name(b),'th'));return{text:`วัตถุดิบทั้งหมด ${l.length} รายการ\n\n${list(l,line,40)}`,chips:['หมวดหมู่ทั้งหมด','สรุปภาพรวมสต็อก']}};
+H.userinfo=c=>{const l=filterLogs(c,{range:c.range,product:false}),cnt={};l.forEach(x=>cnt[x.type]=(cnt[x.type]||0)+1);if(!l.length)return{text:`ไม่พบประวัติของ ${c.user}${c.range?' '+c.range.label:''} ครับ`};
+ return{text:`**${c.user}** ทำรายการ ${l.length} ครั้ง${c.range?' '+c.range.label:''}\n${Object.entries(cnt).map(([t,n])=>`• ${TYPE[t]||t} ${n}`).join('\n')}\n\nล่าสุด:\n${l.slice(0,5).map(logRow).join('\n')}`,chips:['ใครทำรายการเยอะที่สุด','สรุปวันนี้']}};
+
+const bar=(v,max,w=10)=>max>0?'█'.repeat(Math.max(v>0?1:0,Math.round(v/max*w))):'';
+const med=a=>{const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length?(s.length%2?s[m]:(s[m-1]+s[m])/2):0};
+const dlabel=t=>new Date(t).toLocaleDateString('th-TH',{day:'numeric',month:'short'});
+function anoms(){const since=Date.now()-30*D,g={};logs().forEach(x=>{if(x.type==='out'&&nts(x.ts)>=since)(g[x.pid??x.pname]??=[]).push(x)});const f=[];
+ Object.values(g).forEach(a=>{if(a.length<3)return;const m=med(a.map(x=>Math.abs(Number(x.amt)||0)));if(m<=0)return;a.forEach(x=>{const v=Math.abs(Number(x.amt)||0);if(v>=m*2.5&&v-m>=1)f.push({x,v,m})})});
+ const big=logs().filter(x=>x.type==='adjust'&&nts(x.ts)>=since&&x.pid!=null&&Number(x.before)>0&&x.after!=null&&Math.abs(Number(x.after)-Number(x.before))>=Number(x.before)*0.5);
+ return{f:f.sort((a,b)=>nts(b.x.ts)-nts(a.x.ts)),big,neg:prods().filter(p=>Number(p.qty)<0)}}
+H.anomaly=c=>{const a=anoms();
+ if(!a.f.length&&!a.big.length&&!a.neg.length)return{text:'ตรวจย้อนหลัง 30 วันแล้ว ไม่พบการเบิกหรือการปรับยอดที่ผิดปกติชัดเจนครับ ✅\n(เกณฑ์: เบิกเกิน 2.5 เท่าของปกติ / ปรับยอดเกินครึ่ง / ยอดติดลบ)',chips:['สรุปภาพรวมสต็อก','มีอะไรน่าห่วงบ้าง']};
+ const t=[];if(a.f.length)t.push(`🚨 เบิกมากกว่าปกติ ${a.f.length} ครั้ง\n`+list(a.f,x=>`${fmtTs(x.x.ts)} · ${x.x.pname} เบิก ${number(x.v)} ${x.x.unit||''} (ปกติราว ${number(x.m)}) โดย ${x.x.user||'—'}`,8,'ครั้ง'));
+ if(a.big.length)t.push(`⚠️ ปรับยอดเกินครึ่งของยอดเดิม ${a.big.length} ครั้ง\n`+list(a.big.slice().sort((p,q)=>nts(q.ts)-nts(p.ts)),x=>`${fmtTs(x.ts)} · ${x.pname} ${number(x.before)} → ${number(x.after)} โดย ${x.user||'—'}`,6,'ครั้ง'));
+ if(a.neg.length)t.push(`❌ ยอดติดลบ ${a.neg.length} รายการ: ${a.neg.slice(0,5).map(line).join(', ')}`);
+ return{text:`ผลตรวจความผิดปกติ (30 วันล่าสุด) 🔎\n\n${t.join('\n\n')}\n\nข้อมูลเหล่านี้เป็นข้อสังเกตจากสถิติ อาจมีเหตุผลปกติ (เช่น งานเลี้ยง/ล็อตใหญ่) ลองสอบถามผู้ทำรายการก่อนครับ`,chips:['ประวัติ 3 วัน','ใครทำรายการเยอะที่สุด']}};
+H.trend=c=>{const n=c.range&&/ย้อนหลัง/.test(c.range.label)?Math.min(30,Math.max(3,Math.round((c.range.to-c.range.from)/D))):/เดือน/.test(c.q)?30:7,type=c.type||'out',days=[];
+ for(let i=n-1;i>=0;i--){const f=dayStart(-i);days.push({f,t:f+D-1,v:0,k:0})}
+ filterLogs(c,{type,range:{from:days[0].f,to:Date.now()}}).forEach(x=>{const d=days.find(d=>nts(x.ts)>=d.f&&nts(x.ts)<=d.t);if(d){d.v+=Math.abs(Number(x.amt)||0);d.k++}});
+ const useAmt=c.products.length===1,key=useAmt?'v':'k',tot=days.reduce((a,d)=>a+d[key],0);
+ if(!tot)return{text:`ไม่มี${TYPE[type]||'รายการ'}ใน ${n} วันล่าสุด${c.products.length?' ของ '+name(c.products[0]):''}ครับ`,chips:['ขอประวัติย้อนหลัง 30 วัน']};
+ const step=n>14?7:1,rows=[];for(let i=0;i<days.length;i+=step){const g=days.slice(i,i+step);rows.push({lab:step>1?dlabel(g[0].f)+'–'+dlabel(g[g.length-1].f):dlabel(g[0].f),v:g.reduce((s,d)=>s+d[key],0)})}
+ const max=Math.max(...rows.map(r=>r.v)),h=Math.ceil(n/2),a=days.slice(0,n-h).reduce((s,d)=>s+d[key],0)/(n-h),b=days.slice(n-h).reduce((s,d)=>s+d[key],0)/h,u=useAmt?' '+un(c.products[0]):' ครั้ง';
+ const dir=a===0?'':b>a*1.2?'📈 ช่วงหลังมีแนวโน้มเพิ่มขึ้น':b<a*0.8?'📉 ช่วงหลังมีแนวโน้มลดลง':'➡️ ค่อนข้างคงที่';
+ return{text:`แนวโน้ม${TYPE[type]||''}${c.products.length?' '+name(c.products[0]):''} ย้อนหลัง ${n} วัน\n\n${rows.map(r=>`${r.lab}  ${bar(r.v,max)||'·'} ${number(r.v)}`).join('\n')}\n\nรวม ${number(tot)}${u} · เฉลี่ย ${number(tot/n)}/วัน\n${dir}`,chips:c.products.length?['จะหมดอีกกี่วัน',`ทำไม${name(c.products[0])}หมดเร็ว`]:['ช่วงไหนเบิกเยอะที่สุด','เบิกผิดปกติไหม']}};
+H.peak=c=>{const r=c.range||{from:Date.now()-30*D,to:Date.now(),label:'ย้อนหลัง 30 วัน (ค่าเริ่มต้น)'},l=filterLogs(c,{range:r,type:c.type||null}).filter(x=>['in','out','adjust'].includes(x.type));
+ if(l.length<3)return{text:`ข้อมูล${r.label}ยังน้อยเกินไปที่จะวิเคราะห์ช่วงเวลาครับ`,chips:['ขอประวัติย้อนหลัง 30 วัน']};
+ const wd=['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัส','ศุกร์','เสาร์'],W=Array(7).fill(0),K=['ดึก 00-05','เช้า 05-11','กลางวัน 11-15','บ่าย 15-18','เย็น-ค่ำ 18-24'],P2=Array(5).fill(0);
+ l.forEach(x=>{const d=new Date(nts(x.ts)),h=d.getHours();W[d.getDay()]++;P2[h<5?0:h<11?1:h<15?2:h<18?3:4]++});
+ const mw=Math.max(...W),mp=Math.max(...P2),bw=W.indexOf(mw),bp=P2.indexOf(mp);
+ return{text:`วิเคราะห์ช่วงเวลาทำรายการ ${r.label} (${l.length} รายการ)\n\nรายวัน\n${W.map((v,i)=>`${wd[i]} ${bar(v,mw)||'·'} ${v}`).join('\n')}\n\nรายช่วงเวลา\n${P2.map((v,i)=>`${K[i]} ${bar(v,mp)||'·'} ${v}`).join('\n')}\n\n💡 คึกคักสุดคือวัน${wd[bw]} และช่วง${K[bp].split(' ')[0]} จัดคนและของให้พร้อมช่วงนี้ได้ครับ`,chips:['แนวโน้มการเบิก 7 วัน','ใครทำรายการเยอะที่สุด']}};
+H.report=c=>{const ps=prods(),br=(typeof currentBranch!=='undefined'&&currentBranch&&currentBranch.name)||'',r=c.range||{from:dayStart(0),to:Date.now(),label:'วันนี้'},l=filterLogs(c,{range:r,product:false,type:null,user:false,cat:false}),cnt={in:0,out:0,adjust:0};l.forEach(x=>{if(cnt[x.type]!=null)cnt[x.type]++});
+ const out=ps.filter(p=>stat(p)==='out'),low=ps.filter(p=>stat(p)==='low'),t=[`📋 รายงานสต็อก${br?' สาขา '+br:''}`,`วันที่ ${new Date().toLocaleDateString('th-TH',{day:'numeric',month:'long',year:'numeric'})}`,'',`• วัตถุดิบทั้งหมด ${ps.length} รายการ`,`• หมด ${out.length} · ใกล้หมด ${low.length}`,`• ${r.label}: รับเข้า ${cnt.in} · เบิก ${cnt.out} · ปรับยอด ${cnt.adjust} ครั้ง`];
+ if(out.length)t.push('','🔴 หมดสต็อก',...out.slice(0,15).map(p=>'- '+name(p)));
+ if(low.length)t.push('','🟠 ใกล้หมด',...low.slice(0,15).map(p=>`- ${name(p)} เหลือ ${number(p.qty)} ${un(p)} (ขั้นต่ำ ${number(p.min)})`));
+ if(out.length||low.length)t.push('','🛒 ควรสั่งเพิ่ม',...[...out,...low].slice(0,20).map(p=>`- ${name(p)} ${number(need(p))} ${un(p)}${p.loc?' ('+p.loc+')':''}`));
+ const txt=t.join('\n');return{text:'จัดรายงานให้แล้วครับ กดคัดลอกแล้วส่งเข้าไลน์ได้เลย 👇\n\n'+txt,copy:txt,chips:['รายงานสัปดาห์นี้ส่งไลน์','ขอรายการสั่งซื้อ']}};
+H.checklist=c=>{const ps=prods().filter(p=>!c.cat||p.cat===c.cat),g={};ps.forEach(p=>(g[p.cat||'ไม่ระบุหมวด']??=[]).push(p));if(!ps.length)return{text:'ยังไม่มีรายการให้จัดใบนับครับ'};
+ const rows=[];Object.keys(g).forEach(k=>{rows.push(`【${k}】`);g[k].sort((a,b)=>name(a).localeCompare(name(b),'th')).forEach(p=>rows.push(`☐ ${name(p)} — ระบบ ${number(p.qty)} ${un(p)} / นับได้ ____`));rows.push('')});
+ const txt=rows.join('\n').trim();return{text:`ใบนับสต็อก ${ps.length} รายการ${c.cat?' (หมวด '+c.cat+')':''}\n\n${rows.slice(0,45).join('\n')}${rows.length>45?'\n… (ตัดแสดงบางส่วน กดคัดลอกเพื่อรับทั้งหมด)':''}`,copy:txt,chips:['ขอรายงานส่งไลน์','ตรวจสอบคุณภาพข้อมูล']}};
+H.qtyfilter=c=>{const m=c.q.match(/(น้อยกว่า|ต่ำกว่า|ไม่เกิน|มากกว่า|สูงกว่า|ไม่ต่ำกว่า|เกิน|ตั้งแต่)\s*(\d+(?:\.\d+)?)/);if(!m)return H.overview(c);
+ const v=Number(m[2]),lt=/น้อยกว่า|ต่ำกว่า|ไม่เกิน/.test(m[1]),eq=/ไม่เกิน|ไม่ต่ำกว่า|ตั้งแต่/.test(m[1]),um=[...new Set(prods().map(p=>p.unit).filter(Boolean))].find(u=>c.q.includes(lc(u))||(/กิโล/.test(u)&&/กิโล|กก/.test(c.q)));
+ let l=prods().filter(p=>{const q=Number(p.qty)||0;return lt?(eq?q<=v:q<v):(eq?q>=v:q>v)});if(c.cat)l=l.filter(p=>p.cat===c.cat);if(um)l=l.filter(p=>p.unit===um);if(c.sup)l=l.filter(p=>p.loc===c.sup);l.sort((a,b)=>lt?a.qty-b.qty:b.qty-a.qty);
+ const lab=`${m[1]} ${number(v)}${um?' '+um:''}`;
+ return l.length?{text:`รายการที่คงเหลือ${lab} มี **${l.length} รายการ**\n\n${list(l,line,25)}`,chips:['ขอรายการสั่งซื้อ','สรุปภาพรวมสต็อก']}:{text:`ไม่พบรายการที่คงเหลือ${lab}ครับ`,chips:['สินค้าอะไรใกล้หมด']}};
+H.insight=c=>{const ps=prods(),U30=usage(30),tips=[],out=ps.filter(p=>stat(p)==='out'),low=ps.filter(p=>stat(p)==='low'),hi=ps.filter(p=>stat(p)==='high'),A=anoms();
+ if(out.length)tips.push(`🔴 หมดสต็อก ${out.length} รายการ (${out.slice(0,3).map(name).join(', ')}) → ควรสั่งก่อน`);
+ const soon=ps.map(p=>({p,d:daysLeft(p,U30)})).filter(x=>x.d!=null&&x.d<=3&&(Number(x.p.qty)||0)>0).sort((a,b)=>a.d-b.d);
+ if(soon.length)tips.push(`⏳ ใช้หมดภายในราว 3 วัน: ${soon.slice(0,4).map(x=>`${name(x.p)} (${dl(x.d).replace('ประมาณ ','')})`).join(', ')}`);
+ if(low.length)tips.push(`🟠 ถึงจุดขั้นต่ำ ${low.length} รายการ → เตรียมสั่งรอบถัดไป`);
+ const used=new Set(logs().filter(x=>x.type==='out'&&nts(x.ts)>=Date.now()-30*D).map(x=>String(x.pid))),dead=ps.filter(p=>(Number(p.qty)||0)>0&&!used.has(String(p.id)));
+ if(dead.length)tips.push(`💤 ไม่ถูกเบิกเกิน 30 วัน ${dead.length} รายการ → ชะลอการสั่งซื้อ/เช็กวันหมดอายุ`);
+ if(hi.length)tips.push(`🔵 สต็อกสูงเกิน 4 เท่าของขั้นต่ำ ${hi.length} รายการ`);
+ if(A.f.length)tips.push(`🚨 พบการเบิกมากกว่าปกติ ${A.f.length} ครั้ง ใน 30 วัน → ลองตรวจสอบ`);
+ if(A.neg.length)tips.push(`❌ ยอดติดลบ ${A.neg.length} รายการ → ควรปรับยอดให้ถูกต้อง`);
+ const nomin=ps.filter(p=>!(Number(p.min)>0)).length;if(nomin)tips.push(`🛠️ ยังไม่ได้ตั้งจุดขั้นต่ำ ${nomin} รายการ → ตั้งแล้วระบบเตือนแม่นขึ้น`);
+ if(!tips.length)return{text:'ตอนนี้ไม่มีอะไรน่าห่วงเลยครับ สต็อกนิ่งและข้อมูลเรียบร้อยดี 👏',chips:['สรุปภาพรวมสต็อก','แนวโน้มการเบิก 7 วัน']};
+ return{text:`ข้อสังเกตและสิ่งที่ควรทำตอนนี้ 💡\n\n${tips.map((t,i)=>`${i+1}. ${t}`).join('\n')}`,chips:out.length+low.length?['ขอรายการสั่งซื้อ','เบิกผิดปกติไหม','สินค้าไหนไม่ถูกเบิกเลย']:['เบิกผิดปกติไหม','สินค้าไหนไม่ถูกเบิกเลย']}};
+H.why=c=>{if(!c.products.length)return{text:'อยากให้วิเคราะห์สินค้าตัวไหนครับ? พิมพ์ชื่อมาได้เลย เช่น "ทำไมปลาแซลมอนหมดเร็ว"',chips:['สินค้าอะไรหมดสต็อก','สินค้าอะไรใกล้หมด']};
+ const p=c.products[0],U30=usage(30),lg=logs().filter(x=>String(x.pid)===String(p.id)||x.pname===name(p)).sort((a,b)=>nts(b.ts)-nts(a.ts)),li=lg.find(x=>x.type==='in'),a=daily(p,U30),pts=[];
+ pts.push(`ตอนนี้ **${name(p)}** เหลือ ${number(p.qty)} ${un(p)} (ขั้นต่ำ ${number(p.min)})`);
+ if(a>0){pts.push(`• อัตราใช้เฉลี่ย ${number(a)} ${un(p)}/วัน → ของที่เหลือใช้ได้ ${dl(daysLeft(p,U30))}`);if(Number(p.min)<a*2)pts.push(`• จุดขั้นต่ำ (${number(p.min)}) ต่ำกว่าปริมาณที่ใช้ใน 2 วัน เตือนจึงมาช้าไป ลองตั้งขั้นต่ำราว ${number(Math.ceil(a*3))} ${un(p)}`)}
+ else pts.push('• ยังไม่มีประวัติเบิกในช่วงล่าสุด จึงประเมินอัตราใช้ไม่ได้');
+ if(li){const dd=Math.floor((Date.now()-nts(li.ts))/D);pts.push(`• รับเข้าล่าสุด ${number(li.amt)} ${li.unit||''} เมื่อ ${dd} วันที่แล้ว${a>0?` (ใช้หมดได้ราว ${number(Math.round(Math.abs(li.amt)/a))} วัน)`:''}`)}else pts.push('• ไม่พบประวัติรับเข้าในข้อมูลที่โหลด');
+ return{text:pts.join('\n')+(lg.length?`\n\nความเคลื่อนไหวล่าสุด\n${list(lg,logRow,5)}`:''),chips:[`แนวโน้ม${name(p)} 14 วัน`,'ขอรายการสั่งซื้อ']}};
+
+const CAPS=`ผมช่วยได้หลายอย่างเลยครับ 🙌\n\n📦 **เช็กสต็อก** — เหลือเท่าไหร่ ใกล้หมด/หมด ของเกิน ของนิ่ง\n🛒 **วางแผนซื้อ** — รายการสั่งซื้อจัดกลุ่มตามร้าน + คัดลอกได้\n🔮 **คาดการณ์** — ของจะหมดอีกกี่วัน จากอัตราการเบิก\n🕘 **ประวัติ** — รับเข้า/เบิก/ปรับยอด กรองตามวัน สินค้า คน\n👥 **พนักงาน** — ใครทำรายการล่าสุด ใครเยอะสุด\n📊 **สรุป/เปรียบเทียบ** — สรุปวันนี้ เทียบสัปดาห์ เทียบสินค้า\n🗂️ **หมวด/ร้านค้า** — แยกตามหมวดหรือแหล่งซื้อ\n🔍 **ตรวจข้อมูล** — ติดลบ ไม่มีขั้นต่ำ ชื่อซ้ำ\n🧮 **คิดเลข/บอกเวลา** และอธิบายวิธีใช้งานเบื้องต้น\n\nพิมพ์ภาษาธรรมดาได้เลย และถามต่อเนื่องได้ เช่น "แล้วเมื่อวานล่ะ" ครับ (ผมอ่านข้อมูลได้อย่างเดียว ไม่แก้ไขข้อมูลให้)`;
+function smalltalk(q){
+ const hr=new Date().getHours(),tod=hr<11?'สวัสดีตอนเช้าครับ ☀️':hr<17?'สวัสดีตอนบ่ายครับ 🌤️':'สวัสดีตอนเย็นครับ 🌙';
+ if(/^(สวัสดี|หวัดดี|ดีครับ|ดีค่ะ|ดีจ้า|hello|hi\b|hey|เฮ้|โย่|อรุณสวัสดิ์|good (morning|evening|afternoon))/.test(q)){const ps=prods(),w=ps.filter(p=>['low','out'].includes(stat(p))).length;return{text:`${tod} วันนี้ให้ช่วยเช็กอะไรดี?${w?`\nตอนนี้มี ${w} รายการที่เหลือน้อยหรือหมด ถ้าอยากดูบอกได้เลยครับ`:'\nสต็อกตอนนี้ยังปกติดีครับ'}`,chips:w?['สินค้าอะไรใกล้หมด','สรุปภาพรวมสต็อก','ทำอะไรได้บ้าง']:['สรุปภาพรวมสต็อก','สรุปวันนี้','ทำอะไรได้บ้าง']}}
+ if(/(ขอบคุณ|ขอบใจ|thanks|thank you|เก่งมาก|ดีมาก|สุดยอด|เยี่ยม|ขอบคุน)/.test(q))return{text:pick(['ยินดีครับ 😊 มีอะไรให้ช่วยอีกบอกได้เลย','ด้วยความยินดีครับ ถามต่อได้ตลอดนะ','ได้เลยครับ ถ้าจะให้เช็กอะไรเพิ่มพิมพ์มาได้เลย 🙌']),chips:['สรุปภาพรวมสต็อก','ขอรายการสั่งซื้อ']};
+ if(/^(บาย|ลาก่อน|bye|แล้วเจอกัน|ไปก่อน|พอแล้ว)/.test(q))return{text:'โอเคครับ แล้วเจอกันนะ ขอให้วันนี้ราบรื่น 👋'};
+ if(/(คือใคร|เป็นใคร|ชื่ออะไร|ใครสร้าง|who are you|เป็นอะไร)/.test(q))return{text:'ผมคือ Stock AI Assistant ผู้ช่วยประจำระบบสต็อกนี้ครับ ผมอ่านข้อมูลสต็อกและประวัติของสาขาที่เปิดอยู่แล้วตอบเป็นภาษาคนให้ ไม่แก้ไขข้อมูลใดๆ',chips:['ทำอะไรได้บ้าง','สรุปภาพรวมสต็อก']};
+ if(/(ทำอะไรได้|ช่วยอะไรได้|มีฟังก์ชัน|ความสามารถ|ช่วยอะไร|^help|คำสั่ง|ใช้ยังไง|ถามอะไรได้|แนะนำตัว|เมนู)/.test(q))return{text:CAPS,chips:['สรุปภาพรวมสต็อก','ขอรายการสั่งซื้อ','จะหมดอีกกี่วัน','สรุปวันนี้']};
+ if(/(เหนื่อย|เบื่อ|ท้อ|ง่วง)/.test(q)&&!/สต็อก/.test(q))return{text:'สู้ๆ นะครับ 💪 งานสต็อกเยอะก็จริง แต่ถ้ามีอะไรให้ผมเช็กหรือสรุปแทน บอกได้เลย จะได้ประหยัดเวลาไปพักบ้าง',chips:['สรุปภาพรวมสต็อก']};
+ if(/(เล่าเรื่องตลก|มุข|ตลก|joke)/.test(q))return{text:pick(['ทำไมสต็อกไม่เคยโกหก? เพราะตัวเลขมันเป๊ะอยู่แล้วครับ… ยกเว้นตอนลืมบันทึกเบิก 😄','ผมนับของไม่เคยพลาดนะครับ แต่ถ้าคนลืมกดบันทึก ผมก็นับไม่ถูกเหมือนกัน 😅']),chips:['ตรวจสอบคุณภาพข้อมูล']};
+ if(/(กี่โมง|เวลาเท่าไร|เวลาเท่าไหร่|วันนี้วันอะไร|วันที่เท่าไร|วันที่เท่าไหร่|วันอะไร)/.test(q)&&!/(ประวัติ|เบิก|รับ|สต็อก|ทำรายการ)/.test(q)){const d=new Date();return{text:`ตอนนี้ ${d.toLocaleString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'})} ครับ 🕐`}}
+ const MU={'กิโลกรัม':['m',1000],'กิโล':['m',1000],'กก':['m',1000],'กรัม':['m',1],'ขีด':['m',100],'ลิตร':['v',1000],'มิลลิลิตร':['v',1],'มล':['v',1],'โหล':['c',12],'ชิ้น':['c',1],'อัน':['c',1]},
+ cm=q.match(/(\d+(?:\.\d+)?)\s*(กิโลกรัม|กิโล|กก|กรัม|ขีด|ลิตร|มิลลิลิตร|มล|โหล|ชิ้น|อัน)\.?\s*(?:เท่ากับ|เป็น|=)?\s*(?:กี่|เท่าไร|เท่าไหร่)\s*(กิโลกรัม|กิโล|กก|กรัม|ขีด|ลิตร|มิลลิลิตร|มล|ชิ้น|อัน|โหล)?/);
+ if(cm&&MU[cm[2]]){const[f,k]=MU[cm[2]],base=Number(cm[1])*k,T={m:[['กรัม',1],['ขีด',100],['กิโลกรัม',1000]],v:[['มิลลิลิตร',1],['ลิตร',1000]],c:[['ชิ้น',1],['โหล',12]]}[f],tg=cm[3]&&MU[cm[3]]&&MU[cm[3]][0]===f?T.filter(t=>t[1]===MU[cm[3]][1]):T.filter(t=>t[0]!==cm[2]);
+  if(tg.length)return{text:`${number(cm[1])} ${cm[2]} เท่ากับ\n${tg.map(t=>`• ${number(base/t[1])} ${t[0]}`).join('\n')}`}}
+ const calc=q.replace(/^(คำนวณ|คิดเลข|คิด|บวก|ช่วยคิด)\s*/,'').replace(/[x×]/g,'*').replace(/÷/g,'/').replace(/,/g,'').replace(/เท่าไร|เท่าไหร่|เท่ากับ|=|\?/g,'').trim();
+ if(/^[\d\s+\-*/().%]+$/.test(calc)&&/\d\s*[+\-*/%]\s*\d/.test(calc)&&calc.length<60){try{const v=Function('"use strict";return ('+calc.replace(/(\d+(?:\.\d+)?)%/g,'($1/100)')+')')();if(Number.isFinite(v))return{text:`${calc} = **${number(v)}** ครับ 🧮`}}catch(e){}}
+ if(/(ช่วย|ขอให้|ให้ผม|ให้หน่อย).*(เบิก|รับเข้า|ปรับยอด|ลบ|แก้ไข|เพิ่ม)/.test(q)&&/\d/.test(q)&&!/ประวัติ|ย้อนหลัง/.test(q))return{text:'เรื่องนี้ผมทำให้ไม่ได้ครับ เพราะผมเป็นโหมดอ่านอย่างเดียว (กันข้อมูลคลาดเคลื่อน) ต้องบันทึกรายการเองในหน้าสต็อกนะครับ แต่ถ้าอยากรู้ยอดคงเหลือก่อนทำ ถามผมได้เลย',chips:['สรุปภาพรวมสต็อก','ทำอะไรได้บ้าง']};
+ return null;
+}
+const RULES=[
+ ['howto',/(ยังไง|อย่างไร|วิธี|ทำไง|ขั้นตอน|สอน)/],
+ ['why',/(ทำไม|เพราะอะไร|สาเหตุ)/],
+ ['reorder',/(ควรสั่ง|สั่งซื้อ|ต้องซื้อ|ต้องเติม|รายการซื้อ|ใบสั่ง|ซื้อของ|เติมของ|จัดซื้อ|shopping|ไปซื้อ|ต้องสั่ง|สั่งอะไร)/],
+ ['report',/(รายงาน.*(ไลน์|line|ส่ง|ประจำ)|ส่งไลน์|สรุปส่ง|ขอรายงาน|ออกรายงาน|รายงานสต็อก)/],
+ ['checklist',/(เช็กลิสต์|เช็คลิสต์|checklist|ใบนับ|รายการนับ|ช่วยนับ|ตรวจนับ)/],
+ ['peak',/((ช่วงไหน|ช่วงเวลา|วันไหน|เวลาไหน|ตอนไหน).*(เบิก|รับ|ทำรายการ|วุ่น|ยุ่ง|เยอะ|คึก|ขนของ)|(วุ่น|ยุ่ง|คึกคัก)ที่สุด|ชั่วโมงเร่งด่วน|\bpeak\b)/],
+ ['insight',/(น่าสนใจ|ควรทำอะไร|ต้องทำอะไร|ช่วยวิเคราะห์|วิเคราะห์|ข้อสังเกต|น่าห่วง|แนะนำ|มีปัญหา|ปัญหาอะไร|ต้องรีบ|อะไรสำคัญ)/],
+ ['anomaly',/(ผิดปกติ|เบิกเกิน|แปลกๆ|แปลก|น่าสงสัย|หายไป)/],
+ ['qtyfilter',/(น้อยกว่า|ต่ำกว่า|ไม่เกิน|มากกว่า|สูงกว่า|ไม่ต่ำกว่า|เกิน|ตั้งแต่)\s*\d+(?:\.\d+)?(?!\s*(วัน|ชั่วโมง|ชม|สัปดาห์|อาทิตย์|เดือน|ปี|เปอร์เซ็นต์|%))/],
+ ['forecast',/(อีกกี่วัน|พอกี่วัน|พอใช้|จะหมด|หมดเมื่อ|คาดการณ์|พยากรณ์|ใช้ได้อีก|เหลือใช้)/],
+ ['dead',/(ไม่เคลื่อนไหว|ไม่ถูกเบิก|ไม่มีการเบิก|ไม่ถูกใช้|ค้างนาน|ของนิ่ง|ไม่ถูกเบิกเลย|ไม่มีใครเบิก|dead stock)/],
+ ['overstock',/(สต็อกล้น|เกินจำเป็น|ค้างสต็อก|เยอะเกิน|มากเกิน|สต็อกเยอะ|ล้นสต็อก|ของเกิน)/],
+ ['out',/(หมดสต็อก|หมดแล้ว|ของหมด|ไม่มีเหลือ|เป็นศูนย์|สต็อกศูนย์|ขาดสต็อก|หมดเกลี้ยง|อะไรหมด)/],
+ ['low',/(ใกล้หมด|เหลือน้อย|ขั้นต่ำ|ต่ำกว่า|ใกล้ขาด|ต้องระวัง|ใกล้จะหมด|เตือน|แจ้งเตือน)/],
+ ['userrank',/(ใคร.*(ทำรายการ|ขยัน|active)|อันดับพนักงาน|พนักงานที่ทำ|(พนักงาน|ผู้ใช้).*(เยอะ|มากที่สุด|สถิติ|อันดับ)|ทำรายการ(เยอะ|มาก)(ที่สุด|สุด))/],
+ ['who',/ใคร/],
+ ['trend',/(แนวโน้ม|เทรนด์|\btrend\b|กราฟ|รายวัน|ทีละวัน)/],
+ ['usage',/((เบิก|ใช้|ถอน|ขาย).*(บ่อย|มาก|สูง|เยอะ|ที่สุด|ดี)|ขายดี|หมุนเวียน|ยอดนิยม|ท็อป|\btop\b)/],
+ ['compare',/(เทียบ|เปรียบเทียบ|\bvs\b|ต่างกัน|แตกต่าง)/],
+ ['quality',/(ตรวจสอบ(ข้อมูล|คุณภาพ)|คุณภาพข้อมูล|ข้อมูลผิด|ข้อมูลไม่ครบ|ติดลบ|ชื่อซ้ำ|ข้อมูลซ้ำ)/],
+ ['period',/((สรุป|รายงาน|ทำอะไร|มีอะไรเกิดขึ้น|ความเคลื่อนไหว|กิจกรรม).*(วันนี้|เมื่อวาน|สัปดาห์|อาทิตย์|เดือน|ปี)|(วันนี้|เมื่อวาน).*(สรุป|ทำอะไร|มีอะไร))/],
+ ['history',/(ประวัติ|ย้อนหลัง|รายการเคลื่อนไหว|เคลื่อนไหว|\blog\b|ล่าสุด|รับเข้า|เบิก|ปรับยอด|ปรับสต็อก)/],
+ ['category',/(หมวด|ประเภท)/],
+ ['supplier',/(ซัพพลายเออร์|ผู้จำหน่าย|ซื้อจาก|สั่งจาก|แหล่งซื้อ|แหล่งจัดซื้อ|ร้านค้า|supplier)/],
+ ['count',/(กี่รายการ|กี่ชนิด|กี่หมวด|กี่หน่วย|กี่แหล่ง|มีทั้งหมดกี่|จำนวนรายการ)/],
+ ['extreme',/(มากที่สุด|เยอะที่สุด|เหลือมาก|จำนวนมาก|น้อยที่สุด|ต่ำที่สุด|เหลือน้อยสุด|มากสุด|น้อยสุด)/],
+ ['overview',/(สรุป|ภาพรวม|เป็นไง|สถานการณ์|สุขภาพ|รายงาน|สถานะ|ทั้งระบบ|โดยรวม)/],
+ ['list',/(รายการทั้งหมด|ทั้งหมดมีอะไร|ลิสต์|list|มีอะไรบ้าง|มีของอะไร)/]
+];
+function analyze(raw){
+ const q=cleanQ(raw),note=`สาขา ${typeof currentBranch!=='undefined'&&currentBranch?(currentBranch.name||'ปัจจุบัน'):'ปัจจุบัน'} · ข้อมูลที่โหลด ${prods().length} รายการ / ${logs().length} ประวัติ`;
+ const st=smalltalk(q);if(st)return{...st,note:st.note||''};
+ if(!prods().length&&!logs().length)return{text:'ตอนนี้ยังไม่มีข้อมูลที่โหลดอยู่ครับ ลองเข้าสู่ระบบและรอให้ข้อมูลสาขาโหลดเสร็จก่อน แล้วถามผมใหม่นะ',note};
+ let c=parse(q),intent=null;
+ for(const[k,re]of RULES){if(!re.test(q))continue;if(k==='who'&&!/(เบิก|รับ|ปรับ|แก้|ลบ|เพิ่ม|ทำรายการ|ล่าสุด|ใช้)/.test(q))continue;intent=k;break}
+ if(intent==='who'&&c.range)intent='history';
+ if(intent==='forecast'&&/ใกล้(จะ)?หมด/.test(q)&&!/(อีกกี่วัน|พอกี่วัน|พอใช้)/.test(q))intent='low';
+ if(intent==='history'&&c.products.length&&/(ใกล้|ขั้นต่ำ)/.test(q))intent='low';
+ if(intent==='low'&&c.products.length&&!/(ใกล้หมด|ขั้นต่ำ|เหลือน้อย)/.test(q))intent='product';
+ const hasNew=c.range||c.products.length||c.user||c.cat||c.sup||c.type;
+ const followUp=/^(แล้ว|ส่วน|งั้น|และ|อีก)|(ล่ะ|ละ|หล่ะ)$/.test(q);
+ if(!intent&&hasNew&&ctx.intent&&!c.products.length&&(followUp||(!c.cat&&!c.sup&&q.length<25))){c={...ctx.c,...Object.fromEntries(Object.entries(c).filter(([k,v])=>k!=='q'&&v!=null&&!(Array.isArray(v)&&!v.length))),q};intent=ctx.intent}
+ else if(!intent&&c.products.length&&ctx.intent&&/^(แล้ว|ส่วน|งั้น|ของ|ตัว|และ)/.test(q)){c={...ctx.c,products:c.products,q};intent=ctx.intent}
+ if(!intent&&c.products.length)intent='product';
+ if(intent==='why'&&!c.products.length&&ctx.c&&ctx.c.products&&ctx.c.products.length)c.products=ctx.c.products;
+ if(!intent&&c.user)intent='userinfo';
+ if(!intent&&c.cat)intent='category';
+ if(!intent&&c.sup)intent='supplier';
+ if(!intent&&c.range)intent='period';
+ if(!intent&&/^(ต่อ|ต่อไป|อีก|เพิ่มเติม|รายละเอียด|ละเอียดกว่านี้)/.test(q)&&ctx.intent){intent=ctx.intent;c=ctx.c}
+ if(!intent){
+  const ps=prods(),cands=ps.filter(p=>{const n=lc(name(p));return n.length>=3&&q.length>=3&&(n.includes(q)||q.includes(n.slice(0,3)))}).slice(0,5);
+  if(cands.length){c.products=cands;intent='product'}
+ }
+ if(!intent)return{text:pick(['ขอโทษครับ ผมยังจับใจความคำถามนี้ไม่ได้ ลองพิมพ์ชื่อสินค้า หรือถามแนวนี้ดูนะครับ','อันนี้ผมยังไม่แน่ใจว่าหมายถึงอะไร ลองเลือกจากตัวอย่างข้างล่างได้เลยครับ'])+`\n\n• "ปลาแซลมอนเหลือเท่าไหร่"\n• "วันนี้มีใครเบิกอะไรบ้าง"\n• "ของอะไรจะหมดใน 3 วัน"\n• "ขอรายการสั่งซื้อ"\n• "สรุปสัปดาห์นี้เทียบสัปดาห์ที่แล้ว"`,note,chips:['ทำอะไรได้บ้าง','สรุปภาพรวมสต็อก','สินค้าอะไรใกล้หมด']};
+ const fn=H[intent]||H.overview;let out;try{out=fn(c)}catch(e){console.error('AI engine',e);return{text:'ขอโทษครับ ประมวลผลคำถามนี้ไม่สำเร็จ ลองถามใหม่แบบสั้นๆ ดูนะครับ',note}}
+ ctx.intent=intent;ctx.c=c;ctx.turns++;
+ return{...out,note};
+}
+/*AI-ENGINE-END*/
+/*AI-UI-START*/
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition,mic=panel.querySelector('.sai-mic'),spk=panel.querySelector('.sai-speak');
+let hist=[],restoring=false,speakOn=false;
+const store={get(){try{return JSON.parse(sessionStorage.getItem('stockAiChat')||'null')}catch(e){return null}},set(){try{sessionStorage.setItem('stockAiChat',JSON.stringify(hist.slice(-40)))}catch(e){}}};
+function plain(s){return String(s).replace(/\*\*/g,'').replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF\u2B00-\u2BFF█·☐【】]/gu,' ').replace(/\s+/g,' ').trim()}
+function speak(text){if(!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(plain(text).slice(0,400));u.lang='th-TH';u.rate=1.02;speechSynthesis.speak(u)}catch(e){}}
+function onAdd(text,who,note,chips,copy){if(restoring)return;hist.push({text,who,note,chips,copy});store.set();if(who==='bot'&&speakOn)speak(text)}
+form.addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q||busy)return;add(q,'user');input.value='';input.style.height='';busy=true;send.disabled=true;messages.querySelectorAll('.sai-chips').forEach(x=>x.remove());const typing=showTyping(),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;let a;try{a=analyze(q)}catch(err){console.error(err);a={text:'เกิดข้อผิดพลาดขณะอ่านข้อมูล กรุณาลองใหม่ครับ'}}
+const wait=reduced?200:Math.min(900,300+a.text.length*0.6);setTimeout(()=>{typing.remove();add(a.text,'bot',a.note,a.chips,a.copy);busy=false;send.disabled=false;if(matchMedia('(hover:hover) and (pointer:fine)').matches)input.focus({preventScroll:true})},wait)});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();form.requestSubmit()}});
+input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(96,input.scrollHeight)+'px'});
+panel.querySelector('.sai-clear').onclick=()=>{if(window.speechSynthesis)speechSynthesis.cancel();messages.innerHTML='';hist=[];ctx.intent=null;ctx.c=null;ctx.turns=0;add('เริ่มคุยใหม่แล้วครับ 😊 อยากให้ช่วยเช็กอะไรดี?','bot','',['สรุปภาพรวมสต็อก','มีอะไรน่าห่วงบ้าง','ทำอะไรได้บ้าง'])};
+if(!window.speechSynthesis)spk.remove();else spk.onclick=()=>{speakOn=!speakOn;spk.classList.toggle('on',speakOn);spk.textContent=speakOn?'🔊':'🔈';if(!speakOn)speechSynthesis.cancel();else{const last=[...hist].reverse().find(m=>m.who==='bot');if(last)speak(last.text)}};
+if(!SR){mic.remove()}else{let rec=null,on=false;mic.onclick=()=>{if(on){try{rec.stop()}catch(e){}return}try{rec=new SR();rec.lang='th-TH';rec.interimResults=true;rec.continuous=false;rec.onstart=()=>{on=true;mic.classList.add('on')};rec.onresult=ev=>{input.value=Array.from(ev.results).map(r=>r[0].transcript).join('')};rec.onend=()=>{on=false;mic.classList.remove('on');if(input.value.trim())form.requestSubmit()};rec.onerror=()=>{on=false;mic.classList.remove('on')};rec.start()}catch(e){}}}
+/* ลากการ์ดลงเพื่อปิด (ลื่นตามนิ้ว) */
+(function(){const head=panel.querySelector('.sai-head');let y0=0,dy=0,t0=0,drag=false,pid=null;
+head.addEventListener('pointerdown',e=>{if(e.pointerType==='mouse'||e.target.closest('button'))return;drag=true;pid=e.pointerId;y0=e.clientY;dy=0;t0=performance.now();panel.classList.add('dragging');try{head.setPointerCapture(pid)}catch(_){}});
+head.addEventListener('pointermove',e=>{if(!drag||e.pointerId!==pid)return;dy=Math.max(0,e.clientY-y0);panel.style.transform=`translate3d(-50%,${dy}px,0)`;backdrop.style.opacity=String(Math.max(0,1-dy/(panel.offsetHeight||500)))});
+const end=e=>{if(!drag||(e&&e.pointerId!==pid))return;drag=false;panel.classList.remove('dragging');const v=dy/Math.max(1,performance.now()-t0);if(dy>110||v>0.6){hide()}else{panel.style.transform='';backdrop.style.opacity=''}};
+head.addEventListener('pointerup',end);head.addEventListener('pointercancel',end)})();
+/* คืนบทสนทนาเดิมในเซสชันนี้ */
+(function(){const s=store.get();if(!Array.isArray(s)||!s.length)return;restoring=true;messages.innerHTML='';s.forEach((m,i)=>add(m.text,m.who,m.note,i===s.length-1?m.chips:null,m.copy));restoring=false;hist=s.slice()})();
+/*AI-UI-END*/
 function visibility(){const app=document.querySelector('#app'),logged=app&&!app.classList.contains('hide'),allowed=!!(me&&(fullAccessUser(me)||(me.permissions?.aiAssistant??defaultPermissions(me.role).aiAssistant)));fab.hidden=!logged||!allowed||innerWidth>=1100;if(!logged||!allowed)hide()}
 visibility();new MutationObserver(visibility).observe(document.querySelector('#app'),{attributes:true,attributeFilter:['class']});document.addEventListener('stock-ai-permission-change',visibility);addEventListener('resize',visibility,{passive:true});
 })();
