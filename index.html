@@ -2232,11 +2232,11 @@ const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || Strin
 const globalAdminDirectoryUser = Object.freeze({ name: 'kiangkai', role: 'admin', active: true, owner: true, globalAdmin: true });
 const isGlobalBranchAdmin = user => !!user?.owner && !user?.branchManagerAccess;
 const defaultPermissions = role => role === 'admin'
-? { eggFeed: true, editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true }
+? { eggFeed: true, editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
 : role === 'supervisor'
-? { eggFeed: false, editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true }
-: role === 'staff' ? { eggFeed: false, editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false }
-: { eggFeed: false, editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false };
+? { eggFeed: false, editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
+: role === 'staff' ? { eggFeed: false, editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false, aiAssistant: true }
+: { eggFeed: false, editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false, aiAssistant: true };
 const I = {
 plus: '<path d="M12 5v14M5 12h14"/>',
 up: '<path d="M12 20V9m-4 4 4-4 4 4M5 4h14"/>',
@@ -4116,8 +4116,8 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน'], ['eggFeed', 'ใช้งานฟีด ไข่หวาน']
-        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || (key === 'sideMenu' || key === 'manageJobs' ? (user.permissions?.[key] ?? defaultPermissions(user.role)[key]) : user.permissions?.[key]) ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน'], ['eggFeed', 'ใช้งานฟีด ไข่หวาน'], ['aiAssistant', 'ใช้งานผู้ช่วย AI']
+        ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || (key === 'sideMenu' || key === 'manageJobs' || key === 'aiAssistant' ? (user.permissions?.[key] ?? defaultPermissions(user.role)[key]) : user.permissions?.[key]) ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div></div></div>
     </div>` : ''}
     ${can.reset() || can.permissions() ? '</div>' : ''}
@@ -4599,8 +4599,10 @@ if (!user || user.owner) return;
 user.permissions = { ...defaultPermissions(user.role), ...(user.permissions || {}), [input.dataset.permission]: input.checked };
 save();
 if (user.name === me.name) {
+me = user;
 $('#meRole').textContent = ROLE[me.role] || me.role;
 build();
+window.dispatchEvent(new Event('stock-ai-permission-change'));
 toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
 } else toast('บันทึกสิทธิ์ผู้ใช้งานแล้ว');
 };
@@ -5542,7 +5544,107 @@ if(window.scrollY>0)window.scrollTo({top:0,behavior});
 });
 queue();
 })();
-// ===== เมนูด้านข้าง + จ๊อบพนักงาน =====
+
+/* Stock AI Assistant: local read-only prototype, no AI service or Supabase calls */
+(function installStockAssistant(){
+if(document.getElementById('stockAiFab'))return;
+const style=document.createElement('style');style.textContent=`
+#stockAiFab{position:fixed;left:max(14px,calc((100vw - 460px)/2 + 14px));bottom:calc(92px + env(safe-area-inset-bottom,0px));z-index:39;width:44px;height:44px;display:grid;place-items:center;border:1.5px solid color-mix(in srgb,var(--acc-hover,var(--acc)) 38%,transparent);border-radius:13px;background:color-mix(in srgb,var(--acc) 58%,transparent);color:#fff;font:800 14px var(--font);box-shadow:none}
+#stockAiFab[hidden],#stockAiPanel[hidden],#stockAiBackdrop[hidden]{display:none!important}
+#stockAiBackdrop{position:fixed;inset:0;z-index:60;background:rgba(12,10,14,.48);-webkit-backdrop-filter:blur(6px) brightness(.72);backdrop-filter:blur(6px) brightness(.72);opacity:0;transition:opacity .42s ease;touch-action:none}
+#stockAiBackdrop.open{opacity:1}
+#stockAiPanel{position:fixed;z-index:70;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translate(-50%,110%);width:min(100vw,520px);height:min(78dvh,720px);min-height:360px;max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px));display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--card-bg);color:var(--ink);box-shadow:0 18px 60px rgba(0,0,0,.28);opacity:0;pointer-events:none;transition:opacity .38s ease,transform .54s cubic-bezier(.22,.72,.18,1)}
+#stockAiPanel.open{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.sai-head{display:flex;align-items:center;gap:10px;padding:10px 13px;background:var(--theme-soft,var(--acc-light));border-bottom:1px solid var(--line)}
+.sai-mark{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:var(--acc);color:white;font-weight:800}
+.sai-heading{flex:1}.sai-heading b,.sai-heading small{display:block}.sai-heading b{font-size:14px}.sai-heading small{font-size:10px;color:var(--mute)}
+.sai-close{min-height:34px;padding:0 12px;border-radius:10px;background:var(--card-bg);border:1px solid var(--line);font:700 11px var(--font);color:var(--ink);white-space:nowrap}
+.sai-intro{margin:6px 12px 4px;padding:6px 9px;border-radius:9px;background:var(--theme-wash,var(--acc-light));font-size:10px;line-height:1.35;color:var(--mute)}
+.sai-intro b{display:inline;margin-right:5px;color:var(--ink)}
+.sai-examples{display:flex;gap:6px;overflow-x:auto;padding:2px 12px 7px;scrollbar-width:none}.sai-examples::-webkit-scrollbar{display:none}
+.sai-example{white-space:nowrap;padding:6px 9px;border:1px solid var(--line);border-radius:99px;background:var(--card-bg);color:var(--acc-hover,var(--ink));font-size:10px}
+.sai-messages{flex:1;min-height:0;overflow-y:auto;padding:8px 13px 12px;display:flex;flex-direction:column;gap:8px}
+.sai-msg{max-width:92%;padding:9px 10px;border-radius:13px;font-size:11.5px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.sai-msg.bot{align-self:flex-start;background:var(--theme-soft,var(--acc-light));border:1px solid var(--line);border-bottom-left-radius:4px}
+.sai-msg.user{align-self:flex-end;background:var(--acc);color:white;border-bottom-right-radius:4px}
+.sai-msg small{display:block;margin-top:4px;font-size:9px;opacity:.72}
+.sai-typing{display:flex;align-items:center;gap:5px;min-width:54px;min-height:30px}
+.sai-typing span{width:6px;height:6px;border-radius:50%;background:var(--mute);animation:saiTyping 1s infinite ease-in-out}
+.sai-typing span:nth-child(2){animation-delay:.15s}.sai-typing span:nth-child(3){animation-delay:.3s}
+@keyframes saiTyping{0%,60%,100%{opacity:.35;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.sai-compose{display:flex;gap:7px;padding:9px 12px calc(10px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line)}
+.sai-input{flex:1;min-width:0;min-height:42px;max-height:85px;resize:none;padding:9px 10px;border:1px solid var(--line);border-radius:11px;background:var(--theme-input,var(--card-bg));color:var(--ink);font:inherit;font-size:12px}
+.sai-send{width:42px;border-radius:11px;background:var(--acc);color:#fff;font-size:18px}
+@media(min-width:1100px){#stockAiFab{display:none!important}#stockAiPanel{width:min(520px,calc(100vw - 32px));height:min(78dvh,720px)}}
+@media(max-width:380px){#stockAiPanel{width:calc(100vw - 14px);height:min(80dvh,720px);min-height:320px;border-radius:21px}.sai-intro{font-size:9.5px}.sai-msg{font-size:11px}.sai-example{font-size:9px;padding:5px 8px}}
+@media(prefers-reduced-motion:reduce){#stockAiPanel,#stockAiBackdrop{transition:none}.sai-typing span{animation:none;opacity:.8}}`;
+document.head.appendChild(style);
+const fab=document.createElement('button');fab.id='stockAiFab';fab.type='button';fab.textContent='AI';fab.setAttribute('aria-label','เปิดผู้ช่วย AI');fab.hidden=true;
+const backdrop=document.createElement('div');backdrop.id='stockAiBackdrop';backdrop.hidden=true;backdrop.setAttribute('aria-hidden','true');
+const panel=document.createElement('section');panel.id='stockAiPanel';panel.hidden=true;panel.setAttribute('role','dialog');panel.setAttribute('aria-modal','true');panel.setAttribute('aria-label','Stock AI Assistant');
+panel.innerHTML=`<header class="sai-head"><div class="sai-mark">AI</div><div class="sai-heading"><b>Stock AI Assistant</b><small>ผู้ช่วยตอบคำถามจากข้อมูลในหน้านี้</small></div><button class="sai-close" type="button" aria-label="ปิดแท็บ">ปิดแท็บ</button></header>
+<div class="sai-intro"><b>ถามได้เลย</b>ค้นหาสต็อกและประวัติย้อนหลัง · อ่านอย่างเดียว</div>
+<div class="sai-examples"><button class="sai-example">สินค้าอะไรใกล้หมด?</button><button class="sai-example">มีสินค้าอะไรหมดสต็อก?</button><button class="sai-example">ใครเบิกล่าสุด?</button><button class="sai-example">สรุปภาพรวมสต็อก</button></div>
+<div class="sai-messages" aria-live="polite"><div class="sai-msg bot">สวัสดีครับ 👋 ผมช่วยค้นหาสต็อก สรุปยอด และตรวจประวัติย้อนหลังตามวันที่ได้ครับ</div></div>
+<form class="sai-compose"><textarea class="sai-input" rows="1" placeholder="พิมพ์คำถามเกี่ยวกับสต็อก..." aria-label="พิมพ์คำถาม"></textarea><button class="sai-send" type="submit" aria-label="ส่ง">➤</button></form>`;
+document.body.append(backdrop,fab,panel);
+const messages=panel.querySelector('.sai-messages'),form=panel.querySelector('form'),input=panel.querySelector('.sai-input'),send=panel.querySelector('.sai-send');let busy=false;
+function add(text,who='bot',note=''){const el=document.createElement('div');el.className='sai-msg '+who;el.textContent=text;if(note){const sm=document.createElement('small');sm.textContent=note;el.append(sm)}messages.append(el);messages.scrollTop=messages.scrollHeight;return el;}
+function showTyping(){const el=document.createElement('div');el.className='sai-msg bot sai-typing';el.setAttribute('aria-label','AI กำลังพิมพ์');el.innerHTML='<span></span><span></span><span></span>';messages.append(el);messages.scrollTop=messages.scrollHeight;return el;}
+let previousBodyOverflow='';
+function show(){backdrop.hidden=false;panel.hidden=false;previousBodyOverflow=document.body.style.overflow;document.body.style.overflow='hidden';requestAnimationFrame(()=>{backdrop.classList.add('open');panel.classList.add('open')});fab.setAttribute('aria-expanded','true');setTimeout(()=>input.focus(),180)}
+function hide(){if(panel.hidden)return;panel.classList.remove('open');backdrop.classList.remove('open');fab.setAttribute('aria-expanded','false');document.body.style.overflow=previousBodyOverflow;const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;setTimeout(()=>{if(!panel.classList.contains('open')){panel.hidden=true;backdrop.hidden=true}},reduced?0:560)}
+fab.addEventListener('click',()=>panel.classList.contains('open')?hide():show());panel.querySelector('.sai-close').onclick=hide;backdrop.addEventListener('click',hide);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&panel.classList.contains('open'))hide()});
+panel.querySelectorAll('.sai-example').forEach(b=>b.onclick=()=>{input.value=b.textContent;form.requestSubmit()});
+const number=n=>Number(n||0).toLocaleString('th-TH'),name=p=>p.name||p.pname||'ไม่ระบุชื่อ';
+function analyze(question){
+const q=question.toLocaleLowerCase('th-TH'),products=Array.isArray(P)?P:[],logs=Array.isArray(L)?L:[],branch=typeof currentBranch!=='undefined'?(currentBranch?.name||'สาขาปัจจุบัน'):'สาขาปัจจุบัน',now=Date.now();
+const note=`สาขา ${branch} · ข้อมูลที่โหลด ${logs.length.toLocaleString('th-TH')} ประวัติ`;
+const normTs=x=>{const n=typeof x==='number'?x:Date.parse(x);return Number.isFinite(n)?n:0};
+const fmtTs=x=>normTs(x)?new Date(normTs(x)).toLocaleString('th-TH',{dateStyle:'short',timeStyle:'short'}):'ไม่ระบุเวลา';
+const qty=x=>number(x);
+const matched=products.filter(p=>{const n=name(p).toLocaleLowerCase('th-TH');return n.length>1&&(q.includes(n)||n.split(/[\s/()-]+/).some(w=>w.length>2&&q.includes(w)))});
+if(!products.length&&!logs.length)return{text:'ยังไม่พบข้อมูลที่โหลดอยู่ กรุณาเข้าสู่ระบบและรอให้ข้อมูลสาขาโหลดเสร็จก่อนครับ',note};
+// ช่วงเวลาที่ผู้ใช้ระบุ: รองรับย้อนหลัง N วัน/ชั่วโมง/สัปดาห์/เดือน และคำว่า วันนี้/เมื่อวาน
+let spanMs=0,rangeLabel='';
+let m=q.match(/ย้อนหลัง\s*(\d+)\s*(วัน|ชั่วโมง|ชม\.?|สัปดาห์|อาทิตย์|เดือน)/)||q.match(/(\d+)\s*(วัน|ชั่วโมง|ชม\.?|สัปดาห์|อาทิตย์|เดือน)\s*(ที่ผ่านมา|ย้อนหลัง)/);
+if(m){const n=Math.max(1,Math.min(365,Number(m[1]))),u=m[2];spanMs=n*(/ชั่วโมง|ชม/.test(u)?3600000:/สัปดาห์|อาทิตย์/.test(u)?604800000:/เดือน/.test(u)?2592000000:86400000);rangeLabel=`ย้อนหลัง ${n} ${u}`;}
+else if(/วันนี้/.test(q)){const d=new Date();d.setHours(0,0,0,0);spanMs=now-d.getTime();rangeLabel='วันนี้';}
+else if(/เมื่อวาน/.test(q)){const d=new Date();d.setHours(0,0,0,0);spanMs=now-(d.getTime()-86400000);rangeLabel='เมื่อวาน';}
+else if(/สัปดาห์นี้|อาทิตย์นี้/.test(q)){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-d.getDay());spanMs=now-d.getTime();rangeLabel='สัปดาห์นี้';}
+else if(/ประวัติ|ย้อนหลัง|รายการเคลื่อนไหว/.test(q)){spanMs=7*86400000;rangeLabel='ย้อนหลัง 7 วัน (ค่าเริ่มต้น)';}
+const hasHistoryIntent=/(ประวัติ|ย้อนหลัง|รายการเคลื่อนไหว|รับเข้า|เบิก|ปรับยอด|เคลื่อนไหว)/.test(q);
+if(hasHistoryIntent){
+ let list=logs.filter(x=>normTs(x.ts)>0);
+ if(spanMs)list=list.filter(x=>normTs(x.ts)>=now-spanMs&&normTs(x.ts)<=now+60000);
+ if(matched.length)list=list.filter(x=>matched.some(p=>String(x.pid)===String(p.id)||String(x.pname||'')===name(p)));
+ const userMatch=q.match(/(?:ของ|โดย|พนักงาน|คนชื่อ)\s*([ก-๙a-zA-Z][ก-๙a-zA-Z ._-]{1,24})/);
+ if(userMatch){const who=userMatch[1].trim();list=list.filter(x=>String(x.user||'').toLocaleLowerCase('th-TH').includes(who.toLocaleLowerCase('th-TH')));}
+ if(/รับเข้า/.test(q)&&!/ไม่รับเข้า/.test(q))list=list.filter(x=>x.type==='in');
+ else if(/เบิก|นำออก/.test(q))list=list.filter(x=>x.type==='out');
+ else if(/ปรับยอด|ปรับสต็อก/.test(q))list=list.filter(x=>x.type==='adjust');
+ list.sort((a,b)=>normTs(b.ts)-normTs(a.ts));
+ if(!list.length)return{text:`ไม่พบประวัติ${rangeLabel?' '+rangeLabel:''}${matched.length?' ของ '+matched.map(name).join(', '):''} ในข้อมูลที่โหลดอยู่ครับ\n\nหมายเหตุ: ระบบแสดงได้เฉพาะประวัติที่ถูกโหลดมาในหน้านี้`,note};
+ const totals={in:0,out:0,adjust:0},counts={in:0,out:0,adjust:0},byUnit={};
+ list.forEach(x=>{const t=['in','out','adjust'].includes(x.type)?x.type:'other';if(t!=='other'){counts[t]++;const u=x.unit||'หน่วยไม่ระบุ';byUnit[u]??={in:0,out:0};if(t==='in')byUnit[u].in+=Math.abs(Number(x.amt)||0);if(t==='out')byUnit[u].out+=Math.abs(Number(x.amt)||0);}});
+ const rows=list.slice(0,35).map((x,i)=>`${i+1}. ${fmtTs(x.ts)}\n${x.type==='in'?'รับเข้า':x.type==='out'?'เบิกจ่าย':x.type==='adjust'?'ปรับยอด':x.type==='import'?'นำเข้าข้อมูล':x.type||'รายการ'} · ${x.pname||'ไม่ระบุสินค้า'}\nจำนวน ${qty(x.amt)} ${x.unit||''} · ผู้ทำรายการ ${x.user||'ไม่ระบุ'}${x.after!=null?' · คงเหลือ '+qty(x.after):''}`).join('\n\n');
+ const summary=Object.entries(byUnit).map(([u,v])=>`${u}: รับเข้า ${qty(v.in)} / เบิก ${qty(v.out)}`).join('\n');
+ return{text:`ประวัติ${rangeLabel?' '+rangeLabel:''}\nพบทั้งหมด ${list.length} รายการ${list.length>35?' (แสดง 35 รายการล่าสุด)':''}\n• รับเข้า ${counts.in} ครั้ง\n• เบิกจ่าย ${counts.out} ครั้ง\n• ปรับยอด ${counts.adjust} ครั้ง${summary?'\n\nสรุปปริมาณแยกตามหน่วย\n'+summary:''}\n\nรายละเอียด\n${rows}`,note:`${note} · ช่วงเวลา ${rangeLabel||'ทั้งหมดที่มี'}`};
+}
+if(/(สรุป|ภาพรวม|ทั้งหมด|กี่รายการ)/.test(q)){const low=products.filter(p=>Number(p.qty)<=Number(p.min||0)&&Number(p.qty)>0),out=products.filter(p=>Number(p.qty)<=0);return{text:`ภาพรวมสต็อก\n• วัตถุดิบ ${number(products.length)} รายการ\n• ถึง/ต่ำกว่าขั้นต่ำ ${number(low.length)} รายการ\n• หมดสต็อก ${number(out.length)} รายการ\n\n${low.length?'รายการที่ควรตรวจสอบ: '+low.slice(0,10).map(p=>`${name(p)} (${number(p.qty)} ${p.unit||''})`).join(', '):'ไม่พบรายการถึงจุดขั้นต่ำ'}`,note}}
+if(/(ใกล้หมด|เหลือน้อย|ต่ำสุด|ขั้นต่ำ|ต้องเติม|ควรสั่ง)/.test(q)){const low=products.filter(p=>Number(p.qty)<=Number(p.min||0)).sort((a,b)=>Number(a.qty)-Number(b.qty));return{text:low.length?`พบ ${low.length} รายการที่ถึง/ต่ำกว่าจุดขั้นต่ำ\n`+low.slice(0,25).map((p,i)=>`${i+1}. ${name(p)} — ${number(p.qty)} ${p.unit||''} (ขั้นต่ำ ${number(p.min)} ${p.unit||''})`).join('\n'):'ไม่พบรายการที่ถึงหรือต่ำกว่าจุดขั้นต่ำครับ',note}}
+if(/(หมดสต็อก|ไม่มีเหลือ|เป็นศูนย์)/.test(q)){const out=products.filter(p=>Number(p.qty)<=0);return{text:out.length?'รายการหมดสต็อก\n'+out.slice(0,25).map((p,i)=>`${i+1}. ${name(p)}`).join('\n'):'ไม่พบรายการหมดสต็อกครับ',note}}
+if(/(มากที่สุด|เยอะที่สุด|เหลือมาก|จำนวนมาก)/.test(q)){const top=products.slice().sort((a,b)=>Number(b.qty)-Number(a.qty)).slice(0,10);return{text:top.map((p,i)=>`${i+1}. ${name(p)} — ${number(p.qty)} ${p.unit||''}`).join('\n')||'ยังไม่มีรายการสินค้า',note}}
+if(/(เบิก|ใช้|ถอน).*(บ่อย|มาก|สูง)|ผิดปกติ/.test(q)){const totals={};logs.filter(x=>x.type==='out'&&x.pid).forEach(x=>totals[x.pid]=(totals[x.pid]||0)+Number(x.amt||0));const top=products.map(p=>({...p,used:totals[p.id]||0})).sort((a,b)=>b.used-a.used).filter(p=>p.used>0).slice(0,8);return{text:top.length?'ปริมาณเบิกสะสมสูงสุดจากประวัติที่โหลด\n'+top.map((p,i)=>`${i+1}. ${name(p)} — ${number(p.used)} ${p.unit||''}`).join('\n'):'ไม่มีประวัติการเบิกเพียงพอสำหรับวิเคราะห์',note}}
+if(matched.length)return{text:matched.slice(0,15).map(p=>`${name(p)}\nคงเหลือ ${number(p.qty)} ${p.unit||''} · ขั้นต่ำ ${number(p.min)} ${p.unit||''}\nหมวดหมู่: ${p.cat||'ไม่ระบุ'}`).join('\n\n'),note};
+return{text:'ผมยังไม่เข้าใจคำถามนี้ครับ ลองถามได้ เช่น\n• ขอประวัติย้อนหลัง 3 วัน\n• วันนี้มีใครเบิกอะไรบ้าง?\n• ขอประวัติรับเข้าย้อนหลัง 7 วัน\n• ใครเบิกสินค้า [ชื่อสินค้า] ล่าสุด?\n• สินค้า [ชื่อ] เหลือเท่าไหร่?\n• สินค้าอะไรใกล้หมดหรือหมดสต็อก?\n• สรุปภาพรวมสต็อก\n\nหมายเหตุ: ผลลัพธ์อ้างอิงข้อมูลสาขาปัจจุบันที่โหลดอยู่ ไม่สามารถแสดงข้อมูลที่ไม่ได้ถูกส่งมาให้หน้านี้',note};
+}
+form.addEventListener('submit',e=>{e.preventDefault();const q=input.value.trim();if(!q||busy)return;add(q,'user');input.value='';busy=true;send.disabled=true;const typing=showTyping();const wait=matchMedia('(prefers-reduced-motion: reduce)').matches?850:1450;setTimeout(()=>{try{const a=analyze(q);typing.remove();add(a.text,'bot',a.note)}catch(err){typing.remove();add('เกิดข้อผิดพลาดขณะอ่านข้อมูล กรุณาลองใหม่ครับ')}finally{busy=false;send.disabled=false;input.focus()}},wait)});
+input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();form.requestSubmit()}});
+function visibility(){const app=document.querySelector('#app'),logged=app&&!app.classList.contains('hide'),allowed=!!(me&&(fullAccessUser(me)||(me.permissions?.aiAssistant??defaultPermissions(me.role).aiAssistant)));fab.hidden=!logged||!allowed||innerWidth>=1100;if(!logged||!allowed)hide()}
+visibility();new MutationObserver(visibility).observe(document.querySelector('#app'),{attributes:true,attributeFilter:['class']});document.addEventListener('stock-ai-permission-change',visibility);addEventListener('resize',visibility,{passive:true});
+})();
+ // ===== เมนูด้านข้าง + จ๊อบพนักงาน =====
 var JOBS_CLOUD = true; // ฐานข้อมูล api_sync รองรับฟิลด์ jobs และสรุปรอบวีคแล้ว
 var J = null;
 const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '📝' }, late: { l: 'สาย', e: '⏰' }, absent: { l: 'ขาด', e: '❌' } };
