@@ -3289,9 +3289,13 @@ category: byCategory, 'category-desc': (a, b) => byCategory(b, a),
 return list.sort(sorters[F.sort] || sorters.name);
 }
 function stockView() {
-const inStock = P.filter(p => p.qty > 0).length;
-const low = P.filter(p => status(p) === 'low').length;
-const out = P.filter(p => status(p) === 'out').length;
+let inStock = 0, low = 0, out = 0;
+for (const p of P) {
+  if (p.qty > 0) inStock++;
+  const state = status(p);
+  if (state === 'low') low++;
+  else if (state === 'out') out++;
+}
 return `<div class="stats">
    <div class="st" data-stock-filter="all" role="button" tabindex="0" aria-label="แสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${P.length}</b><small>รายการวัตถุดิบ</small></div>
    <div class="st" data-stock-filter="stock-in" role="button" tabindex="0" aria-label="แสดงวัตถุดิบที่มีในคลัง"><small>มีวัตถุดิบในคลัง</small><b>${inStock}</b><small>รายการพร้อมใช้</small></div>
@@ -3700,9 +3704,18 @@ return { added, updated };
 }
 function dashboardView() {
 const totalItems = P.length;
-const readyCount = P.filter(p => status(p) === 'ok').length;
-const lowCount = P.filter(p => status(p) === 'low').length;
-const outCountItems = P.filter(p => status(p) === 'out').length;
+let readyCount = 0, lowCount = 0, outCountItems = 0;
+const categoryCounts = new Map();
+const needsAttention = [];
+for (const p of P) {
+const state = status(p);
+if (state === 'ok') readyCount++;
+else if (state === 'low') lowCount++;
+else outCountItems++;
+const category = p.cat || 'ไม่ระบุหมวดหมู่';
+categoryCounts.set(category, (categoryCounts.get(category) || 0) + 1);
+if (state !== 'ok') needsAttention.push(p);
+}
 const params = new URLSearchParams(location.search), today = new Date(); today.setHours(0,0,0,0);
 const dayKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const fromDefault = new Date(today); fromDefault.setDate(fromDefault.getDate()-6);
@@ -3727,7 +3740,7 @@ const inLogs = inRange.filter(x => x.type === 'in'), outLogs = inRange.filter(x 
 const activeNames = [...new Set(inRange.map(x => x.user).filter(Boolean))];
 const quantityText = rows => { const units=new Map(); rows.forEach(x=>{const unit=x.unit||'หน่วย';units.set(unit,(units.get(unit)||0)+Math.abs(Number(x.amt)||0));}); return [...units].map(([unit,qty])=>`${num(qty)} ${esc(unit)}`).join(' · ')||'0'; };
 const activityDays = new Set(inRange.map(x => dayKey(new Date(x.ts)))).size;
-const categoryRows = [...new Set(P.map(p => p.cat || 'ไม่ระบุหมวดหมู่'))].map(name => ({name,count:P.filter(p => (p.cat || 'ไม่ระบุหมวดหมู่') === name).length})).sort((a,b)=>b.count-a.count).slice(0,5);
+const categoryRows = [...categoryCounts].map(([name, count]) => ({ name, count })).sort((a,b)=>b.count-a.count).slice(0,5);
 const rankItems = (type, source = inRange) => {
 const grouped = new Map();
 for (const x of source.filter(row => row.type === type)) {
@@ -3737,7 +3750,8 @@ current.qty += Math.abs(Number(x.amt)||0); current.count++; grouped.set(key,curr
 return [...grouped.values()].sort((a,b)=>b.qty-a.qty);
 };
 const topOut = rankItems('out', outRankRange.logs), topIn = rankItems('in', inRankRange.logs);
-const needsAttention = P.filter(p => status(p) !== 'ok').sort((a,b) => (status(a)==='out'?-1:0)-(status(b)==='out'?-1:0) || a.qty-b.qty).slice(0,5);
+needsAttention.sort((a,b) => (status(a)==='out'?-1:0)-(status(b)==='out'?-1:0) || a.qty-b.qty);
+needsAttention.splice(5);
 const spanDays = Math.max(1,Math.ceil((endDate-fromDate)/86400000));
 const bucketMode = spanDays <= 14 ? 'day' : spanDays <= 90 ? 'week' : 'month';
 const buckets = [];
