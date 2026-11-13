@@ -3193,12 +3193,12 @@ if (keepScroll && renderCache.tab === tab && renderCache.wide === wide && render
 let restoreEntry = null;
 if (renderedPageKey && renderedPageKey !== pageKey && main.childNodes.length) {
   const old = pageDomCache.get(renderedPageKey) || { fragment: document.createDocumentFragment(), html: renderCache.html, scrollY: window.scrollY, panelScroll: 0, historyScroll: 0 };
+  old.panelScroll = main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? 0;
+  old.historyScroll = main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? 0;
+  old.scrollY = window.scrollY;
   old.fragment = document.createDocumentFragment();
   while (main.firstChild) old.fragment.appendChild(main.firstChild);
   old.html = renderCache.html;
-  old.scrollY = window.scrollY;
-  old.panelScroll = main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? 0;
-  old.historyScroll = main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? 0;
   pageDomCache.set(renderedPageKey, old);
 }
 const cached = pageDomCache.get(pageKey);
