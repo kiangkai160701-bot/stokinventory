@@ -2993,8 +2993,7 @@ try { render(true); }
 finally { if (leaving) { try { leaving.cancel(); } catch (err) {} } }
 };
 // mobile: remove the old page in one frame (page is already invisible), build the new one in the next
-if (!isWideDesktop() && main && !document.querySelector('#ov[data-closing]')) { main.replaceChildren(); requestAnimationFrame(run); }
-else run();
+run();
 };
 if (matchMedia('(prefers-reduced-motion: reduce)').matches || !main || typeof main.animate !== 'function') {
 requestAnimationFrame(go);
@@ -3027,7 +3026,6 @@ els.forEach(el => { if (el && el.scrollTop) el.scrollTop = 0; });
 window.scrollTo(0, 0);
 }
 function goTab(target) {
-if (target !== tab) resetScrollTopMobile();
 historyCardFilter = null;
 const availableTabs = tabs().map(item => item[0]);
 pageDirection = availableTabs.indexOf(target) >= availableTabs.indexOf(tab) ? 'next' : 'prev';
@@ -3177,54 +3175,75 @@ deferredRender = null;
 render(animate);
 }
 let renderCache = { tab: '', wide: null, html: '' };
+// Keep recently visited pages mounted in detached fragments. This preserves DOM state,
+// input focus values, and scroll position when users switch between tabs.
+const pageDomCache = new Map();
+let renderedPageKey = null;
 function render(animatePage = false, keepScroll = false) {
 if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
 if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
 const main = $('#main');
-const makeHtml = () => tab === 'stock' ? (isWideDesktop() ? desktopStockDashboardView() : stockView()) : tab === 'dashboard' ? dashboardView() : tab === 'log' ? logView() : tab === 'users' ? usersView() : tab === 'settings' ? settingsView() : '';
-let preHtml = null;
+const wide = isWideDesktop();
+const pageKey = `${tab}:${wide ? 'wide' : 'normal'}`;
+const makeHtml = () => tab === 'stock' ? (wide ? desktopStockDashboardView() : stockView()) : tab === 'dashboard' ? dashboardView() : tab === 'log' ? logView() : tab === 'users' ? usersView() : tab === 'settings' ? settingsView() : '';
+let preHtml = keepScroll ? makeHtml() : null;
 const scrollEls = [document.scrollingElement, document.documentElement, document.body, document.querySelector('#app'), main];
 const keepPos = keepScroll ? scrollEls.map(el => (el ? el.scrollTop : 0)) : [];
-if (keepScroll) {
-  // Background sync: if nothing visible changed, leave the page exactly as it is.
-  preHtml = makeHtml();
-  if (renderCache.tab === tab && renderCache.wide === isWideDesktop() && renderCache.html === preHtml && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
+if (keepScroll && renderCache.tab === tab && renderCache.wide === wide && renderCache.html === preHtml && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
+let restoreEntry = null;
+if (renderedPageKey && renderedPageKey !== pageKey && main.childNodes.length) {
+  const old = pageDomCache.get(renderedPageKey) || { fragment: document.createDocumentFragment(), html: renderCache.html, scrollY: window.scrollY, panelScroll: 0, historyScroll: 0 };
+  old.fragment = document.createDocumentFragment();
+  while (main.firstChild) old.fragment.appendChild(main.firstChild);
+  old.html = renderCache.html;
+  old.scrollY = window.scrollY;
+  old.panelScroll = main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? 0;
+  old.historyScroll = main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? 0;
+  pageDomCache.set(renderedPageKey, old);
 }
-const desktopPanelScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? null : null;
-const desktopHistoryScroll = isWideDesktop() && tab === 'stock' ? main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? null : null;
+const cached = pageDomCache.get(pageKey);
+if (cached && cached.fragment && cached.fragment.childNodes.length) restoreEntry = cached;
+const desiredHtml = preHtml !== null ? preHtml : makeHtml();
+const canReuseDom = !!(restoreEntry && restoreEntry.html === desiredHtml);
 if (pageAnimation) { pageAnimation.cancel(); pageAnimation = null; main.style.willChange = ''; }
 if (textScaleObserver) textScaleObserver.disconnect();
 syncNav();
-const paintPage = () => {
-const html = preHtml !== null ? preHtml : makeHtml();
-main.innerHTML = html;
-renderCache = { tab, wide: isWideDesktop(), html };
-if (isWideDesktop()) updatePageMascots();
-else if (animatePage) { clearTimeout(mascotTimer); mascotTimer = setTimeout(() => { if (main.isConnected) updatePageMascots(); }, 360); }
-else requestAnimationFrame(updatePageMascots);
-};
-const finishRender = () => {
+if (canReuseDom) {
+  main.replaceChildren(restoreEntry.fragment);
+} else {
+  main.innerHTML = desiredHtml;
+  if (restoreEntry) pageDomCache.delete(pageKey);
+}
+renderCache = { tab, wide, html: desiredHtml };
+renderedPageKey = pageKey;
+if (wide) updatePageMascots();
+else if (animatePage && !canReuseDom) { clearTimeout(mascotTimer); mascotTimer = setTimeout(() => { if (main.isConnected) updatePageMascots(); }, 360); }
+else if (!canReuseDom) requestAnimationFrame(updatePageMascots);
 if (tab === 'stock') bindStock();
 if (tab === 'settings') bindSettings();
 if (tab === 'users') refreshPresence();
 watchTextScale();
 applyTextScaleNew(main);
 resumeTextScaleWatch();
-};
-if (animatePage) window.scrollTo(0, 0);
-paintPage();
-if (desktopPanelScroll !== null) main.querySelector('.desktop-dashboard-panel').scrollTop = desktopPanelScroll;
-if (desktopHistoryScroll !== null) main.querySelector('.desktop-history-panel>.history-list').scrollTop = desktopHistoryScroll;
-finishRender();
-if (keepScroll) {
+if (canReuseDom && restoreEntry) {
+  requestAnimationFrame(() => {
+    if (wide) {
+      const panel = main.querySelector('.desktop-dashboard-panel');
+      const history = main.querySelector('.desktop-history-panel>.history-list');
+      if (panel) panel.scrollTop = restoreEntry.panelScroll || 0;
+      if (history) history.scrollTop = restoreEntry.historyScroll || 0;
+    } else window.scrollTo(0, restoreEntry.scrollY || 0);
+  });
+  pageDomCache.delete(pageKey);
+} else if (keepScroll) {
   const back = () => scrollEls.forEach((el, i) => { if (el && Math.abs(el.scrollTop - keepPos[i]) > 1) el.scrollTop = keepPos[i]; });
   back(); requestAnimationFrame(back); setTimeout(back, 380);
 } else {
-  if (!(animatePage && !isWideDesktop())) resetScrollTopMobile();
-  requestAnimationFrame(resetScrollTopMobile);
+  if (!(animatePage && !wide)) resetScrollTopMobile();
+  requestAnimationFrame(() => { if (!canReuseDom) resetScrollTopMobile(); });
 }
-if (!animatePage) { if (!keepScroll) window.scrollTo(0, 0); }
-else if (!matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
+if (!animatePage && !keepScroll && !canReuseDom) window.scrollTo(0, 0);
+else if (animatePage && !matchMedia('(prefers-reduced-motion: reduce)').matches && typeof main.animate === 'function') {
 const offset = (pageDirection === 'prev' ? -1 : 1) * (IS_MOBILE_BROWSER ? 14 : 22);
 main.style.willChange = 'transform, opacity';
 pageAnimation = main.animate(
