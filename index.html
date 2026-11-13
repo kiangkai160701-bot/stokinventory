@@ -7,8 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--bg: #0f172a;--bg-app: #fff7f8;--card-bg: #ffffff;--card-border: #e2e8f0;--ink: #0f172a;--mute: #64748b;--line: #e2e8f0;--acc: #0d9488;--acc-hover: #0f766e;--acc-light: #f0fdfa;--acc-glow: rgba(13,148,136,0.15);--warn: #d97706;--warn-bg: #fffbeb;--bad: #e11d48;--bad-bg: #fff1f2;--ok: #10b981;--ok-bg: #ecfdf5;--r: 16px;--shadow-sm: 0 2px 8px rgba(0,0,0,0.02);--shadow-md: 0 8px 20px -4px rgba(0,0,0,0.04);--font: 'Prompt',-apple-system,BlinkMacSystemFont,sans-serif}
+<style>:root{--bg: #0f172a;--bg-app: #fff7f8;--card-bg: #ffffff;--card-border: #e2e8f0;--ink: #0f172a;--mute: #64748b;--line: #e2e8f0;--acc: #0d9488;--acc-hover: #0f766e;--acc-light: #f0fdfa;--acc-glow: rgba(13,148,136,0.15);--warn: #d97706;--warn-bg: #fffbeb;--bad: #e11d48;--bad-bg: #fff1f2;--ok: #10b981;--ok-bg: #ecfdf5;--r: 16px;--shadow-sm: 0 2px 8px rgba(0,0,0,0.02);--shadow-md: 0 8px 20px -4px rgba(0,0,0,0.04);--font: 'Prompt',-apple-system,BlinkMacSystemFont,sans-serif}
 body[data-theme="indigo"]{--acc: #4f46e5;--acc-hover: #4338ca;--acc-light: #e0e7ff;--acc-glow: rgba(79,70,229,0.15)}
 body[data-theme="emerald"]{--acc: #059669;--acc-hover: #047857;--acc-light: #ecfdf5;--acc-glow: rgba(5,150,105,0.15)}
 body[data-theme="ruby"]{--acc: #be123c;--acc-hover: #9f1239;--acc-light: #fff1f2;--acc-glow: rgba(190,18,60,0.15)}
@@ -719,7 +718,6 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .disclosure-summary:hover{background:var(--theme-soft)}
 .disclosure-summary:focus-visible{outline:2px solid var(--acc);outline-offset:-3px}
 .disclosure-count{margin-left:auto;color:var(--mute);font-size:11px;font-weight:500}
-
 /* Device notification preferences */
 .notification-settings-list{display:grid;gap:7px;max-height:min(52vh,440px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:2px 3px 2px 0;scrollbar-width:thin}
 .notification-setting-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:58px;padding:9px 11px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}
@@ -742,7 +740,6 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:18px
 .notification-test-copy small{font-size:11px;color:var(--mute);line-height:1.4}
 #notificationTestPush:disabled{opacity:.48;cursor:not-allowed}
 @media(max-width:680px){.notification-settings-list{max-height:46vh}.notification-setting-row{min-height:56px}}
-
 .disclosure-chevron{width:10px;height:10px;flex:none;border-right:2px solid var(--acc-hover);border-bottom:2px solid var(--acc-hover);transform:rotate(45deg) translateY(-2px);transition:transform .32s cubic-bezier(.22,.78,.22,1)}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron{transform:rotate(225deg) translate(-1px,-1px)}
 .disclosure-panel{display:grid;grid-template-rows:0fr;transition:grid-template-rows .36s cubic-bezier(.22,.78,.22,1)}
@@ -857,7 +854,6 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 @media(max-width:1099px){.history-filter .history-quick{display:inline-flex!important;align-items:center;justify-content:center;padding:4px 11px;font-weight:700;white-space:nowrap;color:var(--acc-hover);background:var(--acc-light);border:1px solid color-mix(in srgb,var(--acc) 55%,transparent)}.history-filter .history-quick:active{background:color-mix(in srgb,var(--acc) 22%,var(--acc-light))}.history-filter .history-quick.on{color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc-hover));border-color:var(--acc-hover);box-shadow:0 3px 9px var(--acc-glow)}}
 .hist-more{display:flex;flex-direction:column;gap:6px;align-items:stretch;margin:14px 0 24px}.hist-more small{text-align:center;color:var(--mute);font-size:12px}.hist-more .ih-more{width:100%}
 @media(max-width:1099px){.history-item,.ih-item{content-visibility:auto;contain-intrinsic-size:auto 92px}}
-
 .backup-admin-card{grid-column:1/-1}.backup-admin-card .disclosure-inner{display:grid;gap:10px}.backup-admin-summary{display:grid;gap:5px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--theme-wash)}.backup-admin-summary small,.backup-version-info small{color:var(--mute);font-size:12px}.backup-admin-actions{display:flex;gap:8px;flex-wrap:wrap}.backup-admin-list{display:grid;gap:9px;max-height:430px;overflow-y:auto;overscroll-behavior:contain;padding:2px 5px 2px 0;scrollbar-gutter:stable}.backup-version-row{display:grid;gap:9px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg)}.backup-version-info{display:grid;gap:4px;min-width:0}.backup-version-info b{font-size:13px}.backup-version-info small{overflow-wrap:anywhere}.backup-branch-actions{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}.backup-branch-action-row{display:flex;align-items:center;gap:10px;min-width:0}.backup-branch-action-row .backup-restore-branch{flex:1 1 auto;min-width:0;justify-content:flex-start;text-align:left;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px}.backup-branch-action-row .backup-restore-branch .backup-branch-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.backup-branch-action-row .backup-download-branch{flex:0 0 auto;width:auto;min-width:0;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px;background:var(--theme-soft);border-color:var(--theme-border-strong);color:var(--acc)}.backup-branch-action-row .backup-download-branch .backup-download-label{display:inline}@media(max-width:360px){.backup-branch-action-row{gap:6px}.backup-branch-action-row .backup-restore-branch,.backup-branch-action-row .backup-download-branch{padding:8px 9px;font-size:12px}}.settings-grid>.about-site-card{grid-column:1/-1}
 .about-site-content{display:grid;gap:16px;line-height:1.7}
 .about-site-intro{padding:16px;border:1px solid color-mix(in srgb,var(--acc) 24%,var(--line));border-radius:15px;background:linear-gradient(135deg,var(--theme-wash),var(--card-bg))}
@@ -873,7 +869,6 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 .about-site-note{padding:13px 14px;border-left:3px solid var(--acc);border-radius:9px;background:var(--theme-wash)}
 .about-site-note b{display:block;margin-bottom:4px;color:var(--ink);font-size:12.5px}
 @media(max-width:640px){.about-site-grid{grid-template-columns:minmax(0,1fr)}.about-site-intro{padding:13px}.about-site-intro h3{font-size:16px}.about-site-section{padding:12px}.about-site-section ul{font-size:11.5px}}
-
 /* ===== ฟีด ไข่หวาน ===== */
 .ef-page{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:var(--bg-app);transform:translateX(105%);transition:transform .24s ease;overflow:hidden}
 .ef-page.open{transform:none}
@@ -897,10 +892,8 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 .ef-empty{text-align:center;color:var(--mute);padding:28px 12px;font-size:13px}
 .ef-preview{max-width:100%;max-height:150px;border-radius:10px;margin-top:8px}
 @media(min-width:1100px){.ef-page{inset:10px 10px 10px auto;width:min(760px,96vw);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 40px rgba(0,0,0,.18)}}
-
 </style>
-<style id="smooth-motion">
-html{-webkit-text-size-adjust:100%}
+<style id="smooth-motion">html{-webkit-text-size-adjust:100%}
 button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 #nav.nav{transform:translate3d(0,0,0);backface-visibility:hidden}
 #nav .nav-pill{position:absolute;left:0;top:0;width:0;height:0;box-sizing:border-box;border-radius:12px;background:var(--acc);border:1px solid color-mix(in srgb,var(--acc-hover) 55%,transparent);box-shadow:0 3px 10px var(--acc-glow);pointer-events:none;z-index:0;opacity:0;transform:translate3d(0,0,0);will-change:transform;backface-visibility:hidden}
@@ -1334,7 +1327,6 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 @media(hover:none){.dash-action-card:hover{transform:none!important;border-color:var(--line)!important;box-shadow:var(--shadow-sm)!important}}
 .dash-action-card{position:relative;z-index:2;-webkit-tap-highlight-color:transparent}
 .dash-action-card:active{transform:scale(.97)}
-
 /* ===== Quick-withdraw bar (mobile) ===== */
 .qb{margin:0 0 9px}
 .qb-title{font-size:11.5px;font-weight:800;color:var(--mute);margin:0 2px 5px;letter-spacing:.2px}
@@ -1347,10 +1339,8 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .qb-chip.low small{color:var(--warn);font-weight:700}
 .qb-chip.out{background:var(--line);border-color:var(--line);opacity:.6;cursor:not-allowed}
 @media(min-width:1100px){.qb{display:none}}
-
 .pin-remember{display:flex;align-items:center;gap:8px;margin:2px 0 12px;font-size:13px;color:var(--mute);cursor:pointer;-webkit-user-select:none;user-select:none}
 .pin-remember input{width:18px;height:18px;margin:0;accent-color:var(--acc);flex:none}
-
 /* ===== Settings drop-down: full-width panel + new chevron badge ===== */
 .disclosure-panel.open .disclosure-inner,.disclosure-inner{padding-right:14px!important}
 .disclosure-chevron{display:grid;place-items:center;width:30px;height:30px;margin-left:auto;border:1px solid color-mix(in srgb,var(--acc) 34%,var(--card-bg));border-radius:10px;background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--acc-hover);transform:none;transition:background-color .25s ease,border-color .25s ease,color .25s ease!important}
@@ -1377,7 +1367,6 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .sd-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .28s cubic-bezier(.32,.72,0,1)}
 .sd-dock.open .sd-tab svg{transform:rotate(180deg)}
 @media(min-width:1100px){.sd-dock,.sd-scrim,.jp{display:none!important}}
-
 .jp{--j-off:#a99be0;--j-leave:#6fc08f;--j-late:#eeaa5d;--j-absent:#e9808b;--j-closed:#7db7e6;position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;contain:layout paint style}
 .jp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
 .jp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
@@ -1463,7 +1452,6 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .jp-wk{display:flex;gap:4px;margin-top:5px}
 .jp-wk button{flex:1;min-height:36px;border:1px solid var(--line);border-radius:10px;background:var(--card-bg);color:var(--mute);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
 .jp-wk button.on{border-color:var(--acc);background:var(--acc);color:#fff}
-
 /* ===== ปุ่มปิดแท็บของแผ่นสไลด์ทุกหน้า ===== */
 .sheet-bar{position:sticky;top:-6px;z-index:6;height:0;display:flex;justify-content:flex-end;overflow:visible}
 .sheet-close{position:relative;top:-6px;right:-4px;flex:none;height:32px;padding:0 13px;display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line,#f1d9e0);border-radius:999px;background:var(--theme-wash,#fff0f4);color:var(--acc-hover,#a24c68);font:inherit;font-size:12.5px;font-weight:700;white-space:nowrap;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);touch-action:manipulation}
@@ -1476,7 +1464,6 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .ov,.sheet,.item-stage1{overscroll-behavior:contain}
 #nav .nav-pill,#nav.nav{will-change:transform;transform:translateZ(0)}
 .sheet,.ov-backdrop,.theme-picker,.theme-page{backface-visibility:hidden;-webkit-backface-visibility:hidden}
-
 /* ===== Dropdown: size changes instantly, motion is compositor-only ===== */
 .disclosure-panel.disc-instant,.disclosure-panel.disc-instant .disclosure-inner{transition:none!important}
 .disclosure-card{contain:layout paint}
@@ -1550,7 +1537,6 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .btn.chat-btn .chat-dot{position:absolute;top:4px;right:4px}
 .chat-rooms-btn{position:relative;gap:6px}
 .chat-rooms-btn .chat-dot{position:absolute;top:3px;right:3px}
-
 .chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
 .chp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
 .chp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
@@ -1578,7 +1564,6 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .cr-badge{min-width:20px;padding:1px 6px;border-radius:99px;background:#ef4444;color:#fff;font-size:11px;font-weight:700;text-align:center}
 .cr-off{opacity:.62}
 .cr-empty{padding:30px 10px;color:var(--mute);text-align:center;font-size:13px}
-
 .chp-msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:5px;padding:12px 12px 10px}
 .cb-day{align-self:center;margin:8px 0 4px;padding:2px 11px;border-radius:99px;background:color-mix(in srgb,var(--mute) 16%,var(--card-bg));color:var(--mute);font-size:11px}
 .cb{max-width:80%;padding:7px 11px 5px;border-radius:17px;font-size:14px;line-height:1.42;overflow-wrap:anywhere;position:relative}
@@ -1609,10 +1594,8 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .chp-zoom img{max-width:100%;max-height:100%;border-radius:8px}
 @media(min-width:1100px){.chp{inset:12px 12px 12px auto;width:min(460px,92vw);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.22)}}
 @media(prefers-reduced-motion:reduce){.chp{transition:none!important}.chat-dot.show{animation:none}}
-
 /* เว้นระยะระหว่างปุ่มในเมนูด้านข้าง */
 #sdItems{display:flex;flex-direction:column;gap:10px}
-
 /* ===== แชท: สติ๊กเกอร์การ์ตูนตามธีม + จุดแจ้งเตือนกลม ===== */
 .chp{contain:paint}
 .chp::before,.chp::after{position:absolute;z-index:0;pointer-events:none;font-size:92px;line-height:1;opacity:.07}
@@ -1639,12 +1622,9 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 #nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{display:block;animation:chatRingPulse 1.8s ease-out infinite}
 @keyframes chatRingPulse{0%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 2px rgba(239,68,68,.55)}70%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}}
 @media(prefers-reduced-motion:reduce){#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{animation:none}}
-
 .ann-item-btns{display:flex;gap:6px;margin-left:auto}
-
 /* Stock list: skip layout+paint of rows that are off-screen (mobile layout only) */
 @media(max-width:1099px){#list .row{content-visibility:auto;contain-intrinsic-size:auto 84px}}
-
 /* ปุ่ม + เพิ่มวัตถุดิบ: สีเรียบตามธีม ไม่ไล่เฉด ไม่มีเงา */
 #app .btn.fab,#app .fab,.btn.fab{background:var(--acc)!important;background-image:none!important;border:0!important;box-shadow:none!important;text-shadow:none!important;color:#fff}
 #app .btn.fab:active{transform:scale(.94)}
@@ -1713,7 +1693,6 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
   .history-filter.range-filter:not(.dashboard-range)>.range-field input,.history-filter.range-filter:not(.dashboard-range)>.range-field select{width:100%;min-width:0}
   .history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}
 }
-
 .jp{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s .6s!important;will-change:transform}
 .jp.open{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s!important}
 .chp{transition:transform .6s cubic-bezier(.22,.8,.22,1),visibility 0s .6s!important;will-change:transform;contain:layout paint style}
@@ -1724,8 +1703,7 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .sticker-level-presets .text-scale-option{padding-left:0;padding-right:0}
 @media(prefers-reduced-motion:reduce){.jp,.jp.open,.chp,.chp.open{transition-duration:.01ms!important}}
 </style>
-<style id="topRunnerStyle">
-/* ตัวการ์ตูนตัวเล็กวิ่งบนขอบบนของแถบเมนูด้านล่าง (ไม่รับการกด ไม่ดันปุ่ม) */
+<style id="topRunnerStyle">/* ตัวการ์ตูนตัวเล็กวิ่งบนขอบบนของแถบเมนูด้านล่าง (ไม่รับการกด ไม่ดันปุ่ม) */
 .top-runway{position:fixed;left:30px;right:30px;top:auto;bottom:calc(12px + 44px + env(safe-area-inset-bottom,0px));width:auto;height:20px;overflow:hidden;pointer-events:none!important;z-index:41;--rn-dist:0px;--rn-dur:12s;contain:layout paint style;will-change:transform;transform:translateZ(0)}
 .top-runway[hidden]{display:none}
 .top-runway *{pointer-events:none!important}
@@ -2034,6 +2012,7 @@ return Number.isFinite(ts) && ts >= cutoff;
 }
 const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset, ...(JOBS_CLOUD && J ? { jobs: J } : {}) });
 function applyCloudState(state) {
+invalidatePageRenderCache();
 U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
 P = state.products || [];
 const sourceLog = Array.isArray(state.log) ? state.log : [];
@@ -2498,6 +2477,7 @@ async function dispatchPendingPushEvents() {
   try { await pushApi({ action: 'dispatch', token: cloudToken }); } catch {}
 }
 const save = () => {
+invalidatePageRenderCache();
 syncQueue = syncQueue.then(async () => {
 if (!cloudToken || !syncSnapshot) return;
 L = pruneActivityLog(L);
@@ -2667,11 +2647,17 @@ try {
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
 if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
 if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
-if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
+const branchChanged = !!(result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name));
+if (branchChanged) setCurrentBranch(result.branch);
 if (result.version !== syncVersion) {
-applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+const previousState = JSON.stringify(safeState());
+applyCloudState(result.state);
+const stateChanged = previousState !== JSON.stringify(safeState());
+syncSnapshot = cloneData(result.state); syncVersion = result.version;
 me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-build(true); showSyncUpdateStatus(); if (logNeedsPrune) save();
+if (stateChanged || branchChanged) build(true);
+else { renderedRevision = pageRenderRevision; syncNav(); }
+showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
 } catch {} finally { cloudRefreshBusy = false; }
 }
@@ -3175,21 +3161,23 @@ deferredRender = null;
 render(animate);
 }
 let renderCache = { tab: '', wide: null, html: '' };
+let pageRenderRevision = 0, renderedRevision = -1;
 // Keep recently visited pages mounted in detached fragments. This preserves DOM state,
 // input focus values, and scroll position when users switch between tabs.
 const pageDomCache = new Map();
+function invalidatePageRenderCache() { pageRenderRevision++; pageDomCache.clear(); }
 let renderedPageKey = null;
 function render(animatePage = false, keepScroll = false) {
 if (document.querySelector('#ov[data-closing]')) { deferredRender = deferredRender === true || animatePage === true; return; }
 if (tab !== 'settings' && storageUsageTimer) { clearInterval(storageUsageTimer); storageUsageTimer = null; }
 const main = $('#main');
 const wide = isWideDesktop();
-const pageKey = `${tab}:${wide ? 'wide' : 'normal'}`;
+const pageKey = `${currentBranch?.id || 'no-branch'}:${me?.name || 'guest'}:${tab}:${wide ? 'wide' : 'normal'}`;
 const makeHtml = () => tab === 'stock' ? (wide ? desktopStockDashboardView() : stockView()) : tab === 'dashboard' ? dashboardView() : tab === 'log' ? logView() : tab === 'users' ? usersView() : tab === 'settings' ? settingsView() : '';
+if (keepScroll && renderCache.tab === tab && renderCache.wide === wide && renderedRevision === pageRenderRevision && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
 let preHtml = keepScroll ? makeHtml() : null;
 const scrollEls = [document.scrollingElement, document.documentElement, document.body, document.querySelector('#app'), main];
 const keepPos = keepScroll ? scrollEls.map(el => (el ? el.scrollTop : 0)) : [];
-if (keepScroll && renderCache.tab === tab && renderCache.wide === wide && renderCache.html === preHtml && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
 let restoreEntry = null;
 if (renderedPageKey && renderedPageKey !== pageKey && main.childNodes.length) {
   if (tab === 'stock') { stockAppendToken++; stockAppendBusy = false; if (stockObs) { stockObs.disconnect(); stockObs = null; } }
@@ -3216,6 +3204,7 @@ if (canReuseDom) {
   if (restoreEntry) pageDomCache.delete(pageKey);
 }
 renderCache = { tab, wide, html: desiredHtml };
+renderedRevision = pageRenderRevision;
 renderedPageKey = pageKey;
 if (wide) updatePageMascots();
 else if (animatePage && !canReuseDom) { clearTimeout(mascotTimer); mascotTimer = setTimeout(() => { if (main.isConnected) updatePageMascots(); }, 360); }
@@ -6925,8 +6914,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
 
 
 <!-- Performance tuning: native high-refresh-rate scrolling and off-screen rendering -->
-<style id="smooth-scroll-performance">
-/*
+<style id="smooth-scroll-performance">/*
  * Keep the document on the browser's native scroll pipeline.
  * Do not animate scrollTop with JavaScript: the browser can use the
  * device's available refresh rate (90/120/144Hz when supported).
@@ -6947,7 +6935,6 @@ body {
   overscroll-behavior-y: contain;
   touch-action: pan-y pinch-zoom;
 }
-
 /* Keep momentum scrolling enabled in independently scrollable panels. */
 .sheet,
 .ov-product .sheet,
@@ -6963,7 +6950,6 @@ body {
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
-
 /*
  * Skip layout/paint work for off-screen rows. The intrinsic size estimate
  * prevents large layout jumps while the browser brings rows into view.
@@ -6981,7 +6967,6 @@ body {
   content-visibility: auto;
   contain-intrinsic-size: auto 40px;
 }
-
 /* Avoid expensive hover movement on touch devices while preserving desktop hover. */
 @media (hover: none), (pointer: coarse) {
   .row:hover,
@@ -6992,7 +6977,6 @@ body {
     transform: none;
   }
 }
-
 /* Restrict animated transitions to properties that do not trigger layout. */
 @media (hover: none), (pointer: coarse) {
   .row,
@@ -7006,7 +6990,6 @@ body {
     transition-property: background-color, color, border-color, box-shadow, opacity !important;
   }
 }
-
 /* Keep accessibility preference authoritative. */
 @media (prefers-reduced-motion: reduce) {
   html, body, #app main,
@@ -7020,8 +7003,7 @@ body {
 </style>
 
 
-<style id="smooth-settings-dropdown-v2">
-/* Smooth, interruptible settings dropdowns: native grid interpolation, no JS layout loop. */
+<style id="smooth-settings-dropdown-v2">/* Smooth, interruptible settings dropdowns: native grid interpolation, no JS layout loop. */
 .disclosure-card{contain:layout paint;}
 .disclosure-panel{
   display:grid;
@@ -7053,8 +7035,7 @@ body {
 }
 </style>
 
-<style id="smooth-settings-dropdown-transform-v3">
-/* Settings accordion: change layout once, then animate only transforms/opacity. */
+<style id="smooth-settings-dropdown-transform-v3">/* Settings accordion: change layout once, then animate only transforms/opacity. */
 @media (max-width:1099px) {
   .disclosure-card { position:relative; }
   .disclosure-panel {
@@ -7105,8 +7086,7 @@ body {
 </style>
 
 
-<style id="mobile-scroll-performance-v4">
-/* Mobile: preserve native document scrolling; avoid promoting the whole long page. */
+<style id="mobile-scroll-performance-v4">/* Mobile: preserve native document scrolling; avoid promoting the whole long page. */
 @media (max-width:1099px) and (hover:none) and (pointer:coarse) {
   html, body { overscroll-behavior-y:auto !important; }
   #main { backface-visibility:visible !important; -webkit-backface-visibility:visible !important; }
@@ -7135,7 +7115,6 @@ body {
   .ih-list > .ih-item { contain-intrinsic-size:auto 86px; }
   .dash-rank-scroll > .dash-rank-row { contain-intrinsic-size:auto 42px; }
 }
-
 /* Compact mobile job calendar: keep date and staff labels grouped at the top. */
 @media(max-width:680px){
   .jp-grid{
@@ -7180,8 +7159,7 @@ body {
 </style>
 
 
-<style id="panda-grove-theme-art">
-/* Panda Grove: extra bamboo-garden atmosphere and cheerful panda stickers. */
+<style id="panda-grove-theme-art">/* Panda Grove: extra bamboo-garden atmosphere and cheerful panda stickers. */
 body[data-theme="panda"] #app{
   background:
     radial-gradient(ellipse at 4% 8%,rgba(180,211,161,.28),transparent 32%),
