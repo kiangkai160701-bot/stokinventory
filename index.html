@@ -2647,11 +2647,17 @@ try {
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
 if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
 if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
-if (result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name)) setCurrentBranch(result.branch);
+const branchChanged = !!(result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name));
+if (branchChanged) setCurrentBranch(result.branch);
 if (result.version !== syncVersion) {
-applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+const previousState = JSON.stringify(safeState());
+applyCloudState(result.state);
+const stateChanged = previousState !== JSON.stringify(safeState());
+syncSnapshot = cloneData(result.state); syncVersion = result.version;
 me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-build(true); showSyncUpdateStatus(); if (logNeedsPrune) save();
+if (stateChanged || branchChanged) build(true);
+else { renderedRevision = pageRenderRevision; syncNav(); }
+showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
 } catch {} finally { cloudRefreshBusy = false; }
 }
