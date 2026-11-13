@@ -2577,7 +2577,7 @@ if (oldToken) {
   if (deviceId) pushApi({ action: 'unregister', token: oldToken, deviceId }).catch(() => {});
   cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
 }
-sess.set(null); syncSnapshot = null; me = null; renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
+sess.set(null); syncSnapshot = null; me = null; if (typeof pageDomCache !== 'undefined') { pageDomCache.clear(); renderedPageKey = null; renderCache = { tab: '', wide: null, html: '' }; } renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
 let onlineUsers = new Set(), lastOnlineByUser = new Map(), presenceTimer = null, presenceBusy = false;
 function updateOnlineUsers(users = [], lastOnline = {}) {
@@ -3192,6 +3192,7 @@ const keepPos = keepScroll ? scrollEls.map(el => (el ? el.scrollTop : 0)) : [];
 if (keepScroll && renderCache.tab === tab && renderCache.wide === wide && renderCache.html === preHtml && main.childElementCount) { syncNav(); if (tab === 'users') refreshPresence(); return; }
 let restoreEntry = null;
 if (renderedPageKey && renderedPageKey !== pageKey && main.childNodes.length) {
+  if (tab === 'stock') { stockAppendToken++; stockAppendBusy = false; if (stockObs) { stockObs.disconnect(); stockObs = null; } }
   const old = pageDomCache.get(renderedPageKey) || { fragment: document.createDocumentFragment(), html: renderCache.html, scrollY: window.scrollY, panelScroll: 0, historyScroll: 0 };
   old.panelScroll = main.querySelector('.desktop-dashboard-panel')?.scrollTop ?? 0;
   old.historyScroll = main.querySelector('.desktop-history-panel>.history-list')?.scrollTop ?? 0;
