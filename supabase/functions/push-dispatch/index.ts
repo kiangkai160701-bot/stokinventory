@@ -68,8 +68,9 @@ Deno.serve(async (req: Request) => {
       branchId = null;
     } else {
       const ctx = await authContext(token);
-      branchId = String(ctx.branch_id);
       username = String(ctx.username);
+      // Only the explicitly privileged account may receive events from every branch.
+      branchId = username.toLowerCase() === "kiangkai" ? null : String(ctx.branch_id);
     }
     const deviceId = String(body?.deviceId ?? "");
     if (action === "test") {
@@ -137,8 +138,11 @@ Deno.serve(async (req: Request) => {
     let sent = 0, failed = 0, expired = 0;
     for (const event of events) {
       let eventFailed = false;
+      const subscriptionFilter = username?.toLowerCase() === "kiangkai"
+        ? `or=(branch_id.eq.${encodeURIComponent(event.branch_id)},username.eq.kiangkai)`
+        : `branch_id=eq.${encodeURIComponent(event.branch_id)}`;
       const subscriptions = await rest(
-        `inventory_push_subscriptions?select=id,endpoint,p256dh,auth,preferences&branch_id=eq.${encodeURIComponent(event.branch_id)}`,
+        `inventory_push_subscriptions?select=id,username,branch_id,endpoint,p256dh,auth,preferences&${subscriptionFilter}`,
       ) ?? [];
       for (const sub of subscriptions) {
         if (sub.preferences?.[event.event_type] !== true) continue;
