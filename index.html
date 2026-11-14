@@ -1751,14 +1751,7 @@ html.formal-theme .top-runway{display:none!important}
 <body data-theme="teal">
 <div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
 <script>
-/* Restore the uploaded logo before the startup screen is first painted. */
-try {
-  const cachedLogo = localStorage.getItem('inv_site_logo_cache');
-  if (cachedLogo && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(cachedLogo) && cachedLogo.length <= 2500000) {
-    const bootLogo = document.getElementById('siteBootLogo');
-    if (bootLogo) bootLogo.innerHTML = '<img src="' + cachedLogo + '" alt="" class="site-brand-image">';
-  }
-} catch {}
+/* The correct branch logo is applied after the user selects a branch. */
 </script>
 <!-- LOGIN SCREEN -->
 <section id="login" class="hide">
@@ -1824,7 +1817,6 @@ function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
 const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 2500000 ? data.logoData : null;
 siteBrand = { siteName: name, logoData: logo };
-try { if (logo) localStorage.setItem('inv_site_logo_cache', logo); else localStorage.removeItem('inv_site_logo_cache'); } catch {}
 document.title = name + ' | ระบบจัดการสต็อกวัตถุดิบ';
 const setText = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value; };
 setText('siteStoryName', name);
@@ -1836,6 +1828,8 @@ const preview = document.getElementById('siteLogoPreview');
 if (preview) { preview.hidden = !logo; if (logo) preview.src = logo; else preview.removeAttribute('src'); }
 const nameInput = document.getElementById('siteNameInput');
 if (nameInput && document.activeElement !== nameInput) nameInput.value = name;
+const branchNameInput = document.getElementById('siteBranchNameInput');
+if (branchNameInput && document.activeElement !== branchNameInput) branchNameInput.value = currentBranch?.name || '';
 siteLogoDraft = logo;
 }
 let appDownloadUrl = '';
@@ -1866,8 +1860,20 @@ toast(appDownloadUrl ? 'บันทึกลิงก์ดาวน์โห�
 } catch (error) { toast(error.message || 'บันทึกลิงก์ไม่สำเร็จ', 1); }
 finally { if (button) { button.disabled = false; button.textContent = 'บันทึกลิงก์'; } }
 }
-async function loadSiteBrand() {
-try { const result = await cloudRpc('api_site_brand_get'); if (result?.ok) applySiteBrand(result); }
+async function loadSiteBrand(branchId = currentBranch?.id) {
+if (!branchId) return;
+try {
+const result = await cloudRpc('api_site_brand_get', { p_branch_id: branchId });
+if (result?.ok && String(currentBranch?.id) === String(branchId)) {
+  if (result.branchName && String(result.branchName) !== String(currentBranch.name)) {
+    currentBranch = { ...currentBranch, name: String(result.branchName) };
+    branchStore.set(currentBranch.id);
+    branches = branches.map(b => String(b.id) === String(branchId) ? { ...b, name: currentBranch.name } : b);
+    if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
+  }
+  applySiteBrand(result);
+}
+}
 catch (error) { console.warn('โหลดข้อมูลแบรนด์เว็บไซต์ไม่สำเร็จ', error); }
 }
 async function readSiteLogo(file) {
@@ -1898,15 +1904,26 @@ throw new Error('รูปภาพมีขนาดใหญ่มากเก
 }
 async function saveSiteBrand(button) {
 if (String(me?.name || '').trim().toLowerCase() !== 'kiangkai' || me?.owner !== true) return toast('ไม่มีสิทธิ์จัดการเว็บไซต์', 1);
-const input = $('#siteNameInput');
-const name = String(input?.value || '').trim();
+const name = String($('#siteNameInput')?.value || '').trim();
+const branchName = String($('#siteBranchNameInput')?.value || '').trim();
 if (!name || name.length > 60) return toast('ชื่อเว็บไซต์ต้องมี 1–60 ตัวอักษร', 1);
+if (branchName.length < 2 || branchName.length > 80) return toast('ชื่อสาขาต้องมี 2–80 ตัวอักษร', 1);
 if (button) { button.disabled = true; button.textContent = 'กำลังบันทึก…'; }
 try {
-const result = await cloudRpc('api_site_brand_update', { p_token: cloudToken, p_site_name: name, p_logo_data: siteLogoDraft });
+const result = await cloudRpc('api_site_brand_update', {
+  p_token: cloudToken,
+  p_branch_id: currentBranch.id,
+  p_site_name: name,
+  p_branch_name: branchName,
+  p_logo_data: siteLogoDraft
+});
 if (!result?.ok) throw new Error(result?.error || 'บันทึกข้อมูลเว็บไซต์ไม่สำเร็จ');
+currentBranch = { ...currentBranch, name: result.branchName || branchName };
+branchStore.set(currentBranch.id);
+branches = branches.map(b => String(b.id) === String(currentBranch.id) ? { ...b, name: currentBranch.name } : b);
+if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
 applySiteBrand(result);
-toast('บันทึกชื่อและโลโก้เว็บไซต์แล้ว ทุกสาขาจะใช้ข้อมูลเดียวกัน');
+toast('บันทึกชื่อเว็บไซต์ ชื่อสาขา และโลโก้สำหรับสาขานี้แล้ว');
 } catch (error) { toast(error.message || 'บันทึกข้อมูลเว็บไซต์ไม่สำเร็จ', 1); }
 finally { if (button) { button.disabled = false; button.textContent = 'บันทึกการเปลี่ยนแปลง'; } }
 }
@@ -1987,6 +2004,9 @@ const label = `สาขา${currentBranch.name}`;
 if ($('#branchName')) $('#branchName').textContent = label;
 if ($('#loginBranchTitle')) $('#loginBranchTitle').textContent = label;
 if ($('#lgBranch')) $('#lgBranch').value = currentBranch.id;
+const branchNameInput = $('#siteBranchNameInput');
+if (branchNameInput && document.activeElement !== branchNameInput) branchNameInput.value = currentBranch.name;
+void loadSiteBrand(currentBranch.id);
 }
 function renderBranchOptions(items = branches) {
 branches = Array.isArray(items) ? items.filter(x => x?.id && x?.name) : [];
@@ -4069,7 +4089,7 @@ const resetAudit = stockResetLog && (!lastReset || Number(stockResetLog.ts) > Nu
 return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>กำหนดค่าการแสดงผลและข้อมูล</small></div>
   <div class="dash-grid settings-grid">
     ${can.manageBranches() ? `<div class="dash-card branch-admin-card bm-card"><div class="bm-head"><h3>🏬 จัดการสาขา<span class="bm-count">${branches.length}</span></h3><button type="button" class="btn sm bm-add" id="createBranchBtn">${ic('plus')} เพิ่มสาขา</button></div><details class="bm-info"><summary>วิธีเข้าถึงสาขา</summary><p class="settings-hint">จัดการสาขาได้เฉพาะบัญชีหลัก kiangkai ผู้ใช้งานสาขาอื่นต้องเข้าสู่ระบบด้วยชื่อผู้ใช้และรหัสของตนเอง และเข้าได้เฉพาะสาขาที่เลือกไว้</p></details><div class="bm-list">${branches.map(b => { const isCurrent = String(b.id)===String(currentBranch.id); return `<div class="bm-row${isCurrent?' is-current':''}"><span class="bm-name-wrap"><span class="bm-name" title="${esc(b.name)}">${esc(b.name)}</span>${branchOnlineHtml(b)}</span>${isCurrent?`<span class="bm-badge">กำลังใช้งาน</span>`:`<span class="bm-actions"><button type="button" class="btn sm bm-btn bm-close" data-deactivate-branch="${esc(b.id)}" aria-label="ปิดสาขา ${esc(b.name)}">ปิด</button><button type="button" class="btn sm bm-btn bm-enter" data-switch-branch="${esc(b.id)}" aria-label="เข้าสาขา ${esc(b.name)}">เข้า</button></span>`}</div>`; }).join('')}</div></div>` : ''}
-    ${canManageSite ? `<div class="dash-card disclosure-card site-admin-card" id="siteAdminCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="siteAdminDisclosurePanel"><span>🌐 จัดการเว็บไซต์</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="siteAdminDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เปลี่ยนชื่อและโลโก้ส่วนกลาง ข้อมูลนี้จะแสดงเหมือนกันในทุกสาขาและหน้าเข้าสู่ระบบ</p><label class="fld"><span>ชื่อเว็บไซต์</span><input class="in" id="siteNameInput" maxlength="60" value="${esc(siteBrand.siteName)}" placeholder="ชื่อเว็บไซต์"></label><label class="fld"><span>โลโก้เว็บไซต์ (PNG, JPG หรือ WEBP)</span><input class="in" type="file" id="siteLogoInput" accept="image/png,image/jpeg,image/webp"></label><div class="site-logo-preview-wrap"><div class="site-logo-preview-frame"><img id="siteLogoPreview" class="site-logo-preview site-brand-image" alt="ตัวอย่างโลโก้" ${siteBrand.logoData ? `src="${esc(siteBrand.logoData)}"` : 'hidden'}></div><small>ตัวอย่างพื้นที่โลโก้บนหัวเว็บไซต์จริง</small></div><div class="site-admin-actions"><button type="button" class="btn sm sec" id="clearSiteLogoBtn">นำโลโก้ออก</button><button type="button" class="btn sm" id="saveSiteBrandBtn">บันทึกการเปลี่ยนแปลง</button></div><small class="settings-hint">รองรับรูปต้นฉบับสูงสุด 20 MB ระบบจะย่อและบีบอัดเป็น WEBP ให้อัตโนมัติ โดยคงสัดส่วนภาพ</small></div></div></div>` : ''}
+    ${canManageSite ? `<div class="dash-card disclosure-card site-admin-card" id="siteAdminCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="siteAdminDisclosurePanel"><span>🌐 จัดการเว็บไซต์</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="siteAdminDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">กำหนดชื่อเว็บไซต์ ชื่อสาขา และโลโก้เฉพาะสาขาที่กำลังใช้งาน การเปลี่ยนแปลงจะไม่กระทบสาขาอื่น</p><label class="fld"><span>ชื่อเว็บไซต์</span><input class="in" id="siteNameInput" maxlength="60" value="${esc(siteBrand.siteName)}" placeholder="ชื่อเว็บไซต์"></label><label class="fld"><span>ชื่อสาขา</span><input class="in" id="siteBranchNameInput" maxlength="80" value="${esc(currentBranch.name)}" placeholder="ชื่อสาขา"></label><label class="fld"><span>โลโก้เว็บไซต์ (PNG, JPG หรือ WEBP)</span><input class="in" type="file" id="siteLogoInput" accept="image/png,image/jpeg,image/webp"></label><div class="site-logo-preview-wrap"><div class="site-logo-preview-frame"><img id="siteLogoPreview" class="site-logo-preview site-brand-image" alt="ตัวอย่างโลโก้" ${siteBrand.logoData ? `src="${esc(siteBrand.logoData)}"` : 'hidden'}></div><small>ตัวอย่างพื้นที่โลโก้บนหัวเว็บไซต์จริง</small></div><div class="site-admin-actions"><button type="button" class="btn sm sec" id="clearSiteLogoBtn">นำโลโก้ออก</button><button type="button" class="btn sm" id="saveSiteBrandBtn">บันทึกการเปลี่ยนแปลง</button></div><small class="settings-hint">รองรับรูปต้นฉบับสูงสุด 20 MB ระบบจะย่อและบีบอัดเป็น WEBP ให้อัตโนมัติ โดยคงสัดส่วนภาพ</small></div></div></div>` : ''}
     ${isAnnouncer() ? `<div class="dash-card disclosure-card announce-card" id="announceCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="announceDisclosurePanel"><span>📢 ประกาศข้อความ</span><span class="disclosure-count" id="announceCount"></span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="announceDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p class="settings-hint">ข้อความจะเลื่อนจากขวาไปซ้ายใต้หัวเว็บไซต์ของผู้ใช้ในสาขาที่เลือก จนครบเวลาที่กำหนด หรือจนกว่าจะยกเลิก</p>
       <label class="fld"><span>ข้อความประกาศ</span><textarea class="in" id="annText" rows="3" maxlength="200" placeholder="พิมพ์ข้อความที่ต้องการประกาศ"></textarea><small class="ann-counter" id="annCounter">0/200</small></label>
@@ -5517,7 +5537,6 @@ if (message) $('#lgMsg').textContent = message;
 }
 (async () => {
 await init();
-await loadSiteBrand();
 setInterval(loadSiteBrand, 120000);
 let startupMessage = '';
 try {
