@@ -1870,6 +1870,8 @@ if (result?.ok && String(currentBranch?.id) === String(branchId)) {
     branchStore.set(currentBranch.id);
     branches = branches.map(b => String(b.id) === String(branchId) ? { ...b, name: currentBranch.name } : b);
     if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
+    const option = Array.from($('#lgBranch')?.options || []).find(item => String(item.value) === String(branchId));
+    if (option) option.textContent = 'สาขา' + currentBranch.name;
   }
   applySiteBrand(result);
 }
@@ -1922,6 +1924,8 @@ currentBranch = { ...currentBranch, name: result.branchName || branchName };
 branchStore.set(currentBranch.id);
 branches = branches.map(b => String(b.id) === String(currentBranch.id) ? { ...b, name: currentBranch.name } : b);
 if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
+const option = Array.from($('#lgBranch')?.options || []).find(item => String(item.value) === String(currentBranch.id));
+if (option) option.textContent = 'สาขา' + currentBranch.name;
 applySiteBrand(result);
 toast('บันทึกชื่อเว็บไซต์ ชื่อสาขา และโลโก้สำหรับสาขานี้แล้ว');
 } catch (error) { toast(error.message || 'บันทึกข้อมูลเว็บไซต์ไม่สำเร็จ', 1); }
@@ -2003,7 +2007,11 @@ currentBranch = { id: String(branch.id), name: String(branch.name) }; branchStor
 const label = `สาขา${currentBranch.name}`;
 if ($('#branchName')) $('#branchName').textContent = label;
 if ($('#loginBranchTitle')) $('#loginBranchTitle').textContent = label;
-if ($('#lgBranch')) $('#lgBranch').value = currentBranch.id;
+if ($('#lgBranch')) {
+  $('#lgBranch').value = currentBranch.id;
+  const option = Array.from($('#lgBranch').options).find(item => String(item.value) === currentBranch.id);
+  if (option) option.textContent = label;
+}
 const branchNameInput = $('#siteBranchNameInput');
 if (branchNameInput && document.activeElement !== branchNameInput) branchNameInput.value = currentBranch.name;
 void loadSiteBrand(currentBranch.id);
