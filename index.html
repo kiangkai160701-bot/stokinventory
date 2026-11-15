@@ -6067,9 +6067,11 @@ function jStat(name, y, m) {
   return s;
 }
 function jCutRange(y, m, week) {
-  const start = week === 'w1' ? new Date(y, m, 11) : new Date(y, m - 1, 26);
-  const end = week === 'w1' ? new Date(y, m, 25) : new Date(y, m, 10);
-  return { key: y + '-' + p2(m + 1) + '-' + week, startKey: dk(start), endKey: dk(end), week: week };
+  const start = week === 'w1' ? new Date(y, m, 11) : new Date(y, m, 26);
+  const end = week === 'w1' ? new Date(y, m, 25) : new Date(y, m + 1, 10);
+  const periodMonth = week === 'w1' ? new Date(y, m, 1) : new Date(y, m + 1, 1);
+  const key = periodMonth.getFullYear() + '-' + p2(periodMonth.getMonth() + 1) + '-' + week;
+  return { key, startKey: dk(start), endKey: dk(end), week: week };
 }
 function jPeriodForDate(k) {
   const d = pk(k), y = d.getFullYear(), m = d.getMonth(), day = d.getDate();
