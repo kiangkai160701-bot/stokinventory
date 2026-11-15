@@ -1749,10 +1749,8 @@ html.formal-theme .top-runway{display:none!important}
 </style>
 </head>
 <body data-theme="teal">
-<div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true">🍣</span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
-<script>
-/* The correct branch logo is applied after the user selects a branch. */
-</script>
+<div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true"></span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
+<!-- The uploaded global brand logo is loaded before branch selection. -->
 <!-- LOGIN SCREEN -->
 <section id="login" class="hide">
   <div class="login-wrap">
@@ -1823,7 +1821,7 @@ setText('siteStoryName', name);
 setText('siteHeaderName', name);
 setText('siteLoginHeading', 'สต็อกวัตถุดิบ' + name);
 const marks = ['siteStoryLogo', 'siteLoginLogo', 'siteHeaderLogo', 'siteBootLogo'];
-marks.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = logo ? '<img src="' + esc(logo) + '" alt="" class="site-brand-image">' : '🍣'; });
+marks.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = logo ? '<img src="' + esc(logo) + '" alt="" class="site-brand-image">' : (id === 'siteBootLogo' ? '' : '🍣'); });
 const preview = document.getElementById('siteLogoPreview');
 if (preview) { preview.hidden = !logo; if (logo) preview.src = logo; else preview.removeAttribute('src'); }
 const nameInput = document.getElementById('siteNameInput');
@@ -1859,6 +1857,13 @@ appDownloadUrl = normalizeAppDownloadUrl(r.url) || ''; syncAppDownloadUi();
 toast(appDownloadUrl ? 'บันทึกลิงก์ดาวน์โหลดแล้ว' : 'ล้างลิงก์ดาวน์โหลดแล้ว');
 } catch (error) { toast(error.message || 'บันทึกลิงก์ไม่สำเร็จ', 1); }
 finally { if (button) { button.disabled = false; button.textContent = 'บันทึกลิงก์'; } }
+}
+async function loadGlobalSiteBrand() {
+try {
+const result = await cloudRpc('api_site_brand_get');
+if (result?.ok) applySiteBrand(result);
+}
+catch (error) { console.warn('โหลดโลโก้เว็บไซต์เริ่มต้นไม่สำเร็จ', error); }
 }
 async function loadSiteBrand(branchId = currentBranch?.id) {
 if (!branchId) return;
@@ -2450,7 +2455,7 @@ document.documentElement.classList.toggle('dark-theme', !!theme.dark);
 ['--warn','--warn-bg'].forEach(k => document.documentElement.style.removeProperty(k));
 Object.entries(theme.colors).forEach(([key, value]) => document.documentElement.style.setProperty(key, value));
 if (theme.friends.length) document.querySelectorAll('.sushi-friend').forEach((friend, index) => { const first = friend.childNodes[0]; if (first?.nodeType === Node.TEXT_NODE) first.nodeValue = theme.friends[index % theme.friends.length]; });
-document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.classList.contains('theme-emoji') || mark.querySelector('.site-brand-image')) return; mark.textContent = theme.mascot; });
+document.querySelectorAll('.story-mark,.brand-badge,.boot-mascot,.lg-icon,.theme-emoji').forEach(mark => { if (mark.id === 'siteBootLogo' || mark.classList.contains('theme-emoji') || mark.querySelector('.site-brand-image')) return; mark.textContent = theme.mascot; });
 try { renderTopRunners(); } catch {}
 }
 applyTheme(currentTheme);
@@ -5545,6 +5550,7 @@ if (message) $('#lgMsg').textContent = message;
 }
 (async () => {
 await init();
+await loadGlobalSiteBrand();
 setInterval(loadSiteBrand, 120000);
 let startupMessage = '';
 try {
