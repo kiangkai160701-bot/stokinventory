@@ -7272,5 +7272,492 @@ body[data-theme="panda"] .btn:not(.sec),body[data-theme="panda"] .fab{box-shadow
   body[data-theme="panda"] #app::after{bottom:100px;left:4px;font-size:25px}
 }
 </style>
+<style id="kui-style">
+/* ===== KUI: ปุ่ม dropdown / ปฏิทิน ที่ออกแบบเอง (ใช้สีตามธีมของแอปทุกธีม) ===== */
+.kui-native{display:none!important}
+html body button.kui-trigger{position:relative;display:flex;align-items:center;gap:6px;box-sizing:border-box;width:100%;min-width:0;margin:0;text-align:left;font-family:inherit;line-height:1.25;letter-spacing:normal;text-transform:none;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation;user-select:none;-webkit-user-select:none;overflow:hidden;
+  padding-right:38px!important;border-style:solid!important;border-color:var(--line)!important;background:var(--theme-input,var(--card-bg))!important;color:var(--ink)!important;
+  transition:border-color .22s ease,box-shadow .22s ease,background-color .22s ease,transform .22s ease}
+html body button.kui-trigger .kui-val{display:block;line-height:1.7;font-style:normal;font-size:inherit;font-weight:inherit;color:inherit;flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body button.kui-trigger.ph .kui-val{color:var(--mute);font-weight:400}
+html body button.kui-trigger .kui-chev{position:absolute;right:13px;top:50%;width:15px;height:15px;margin-top:-7.5px;fill:none;stroke:#877987;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:transform .26s cubic-bezier(.2,.8,.2,1),stroke .2s}
+html body button.kui-trigger:hover{border-color:var(--theme-border-strong,var(--acc))!important}
+html body button.kui-trigger:focus-visible,html body button.kui-trigger[aria-expanded="true"]{outline:none;border-color:var(--acc)!important;box-shadow:0 0 0 3px var(--acc-glow)}
+html body button.kui-trigger[aria-expanded="true"] .kui-chev{transform:rotate(180deg);stroke:var(--acc)}
+html body button.kui-trigger:active{transform:scale(.985)}
+/* ช่องที่อยู่ในกล่องมีขอบอยู่แล้ว (ประวัติรายไอเทม) */
+html body button.kui-trigger.kui-bare{border-color:transparent!important;background:transparent!important;padding-right:22px!important;box-shadow:none}
+html body button.kui-trigger.kui-bare .kui-chev{right:3px}
+html body button.kui-trigger.kui-bare:focus-visible,html body button.kui-trigger.kui-bare[aria-expanded="true"]{box-shadow:none}
+.ih-filter button.kui-trigger:not(.kui-bare){border-color:var(--theme-border-strong,var(--line))!important;background:var(--card-bg)!important}
+.dash-rank-date button.kui-trigger,.dash-rank-date button.kui-trigger.kui-date{padding-right:26px!important}
+.dash-rank-date button.kui-trigger .kui-chev{right:8px;width:13px;height:13px;margin-top:-6.5px}
+.range-filter .range-field>button.kui-trigger,.dash-rank-date>button.kui-trigger{flex:none}
+
+/* ===== ป๊อปอัป ===== */
+.kui-pop{position:fixed;z-index:9999;left:0;top:0;box-sizing:border-box;max-width:calc(100vw - 16px);background:linear-gradient(var(--card-bg),var(--card-bg)),var(--bg-app,#fff);color:var(--ink);font-family:inherit;border:1px solid var(--theme-border-strong,var(--line));border-radius:16px;box-shadow:0 16px 40px var(--theme-shadow,rgba(60,30,50,.18)),0 2px 8px rgba(60,30,50,.08);opacity:0;transform:translateY(-8px) scaleY(.94);transform-origin:50% 0;pointer-events:none;transition:opacity .16s ease,transform .24s cubic-bezier(.2,.85,.25,1);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.kui-pop.up{transform:translateY(8px) scaleY(.94);transform-origin:50% 100%}
+.kui-pop.in{opacity:1;transform:none;pointer-events:auto}
+.kui-pop *{box-sizing:border-box}
+.kui-pop button{font-family:inherit;color:inherit;border:0;background:none;margin:0;padding:0;cursor:pointer;-webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent}
+
+/* รายการตัวเลือก */
+.kui-list{padding:6px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;scrollbar-color:var(--theme-border-strong,var(--line)) transparent}
+.kui-list::-webkit-scrollbar{width:4px}
+.kui-list::-webkit-scrollbar-thumb{background:var(--theme-border-strong,var(--line));border-radius:99px}
+.kui-opt{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:42px;padding:8px 12px;border-radius:11px;font-size:14px;line-height:1.3;text-align:left;transition:background-color .14s ease}
+.kui-opt+.kui-opt{margin-top:2px}
+.kui-opt .kui-opt-t{flex:1;min-width:0;overflow-wrap:anywhere}
+.kui-opt .kui-ck{flex:none;width:17px;height:17px;fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.6);transition:opacity .16s,transform .2s}
+.kui-opt:hover,.kui-opt.hl{background:var(--theme-soft,var(--acc-light))}
+.kui-opt.on{background:color-mix(in srgb,var(--acc) 15%,transparent);color:var(--acc-hover,var(--ink));font-weight:700}
+.kui-opt.on .kui-ck{opacity:1;transform:none}
+.kui-opt.dis{opacity:.4;pointer-events:none}
+
+/* ปฏิทิน */
+.kui-cal{padding:12px 12px 10px;overflow-y:auto;overscroll-behavior:contain}
+.kui-cal-h{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:8px}
+.kui-nav{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%!important;border:1px solid var(--line)!important;background:var(--theme-input,var(--card-bg))!important;transition:background-color .15s,border-color .15s,transform .15s}
+.kui-nav svg{width:16px;height:16px;fill:none;stroke:#877987;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.kui-nav:hover{background:var(--theme-soft,var(--acc-light))!important;border-color:var(--theme-border-strong,var(--acc))!important}
+.kui-nav:active{transform:scale(.92)}
+.kui-title{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;min-height:36px;padding:0 10px!important;border-radius:11px!important;font-size:15px;font-weight:800;color:var(--ink);transition:background-color .15s}
+.kui-title svg{width:13px;height:13px;fill:none;stroke:var(--acc);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .22s}
+.kui-title:hover{background:var(--theme-soft,var(--acc-light))!important}
+.kui-title.alt svg{transform:rotate(180deg)}
+.kui-cal-body{min-height:258px}
+.kui-wd{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-bottom:2px}
+.kui-wd span{display:grid;place-items:center;height:28px;font-size:11.5px;font-weight:700;color:var(--mute)}
+.kui-wd span:first-child{color:#d46a7e}
+.kui-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));row-gap:2px}
+.kui-d{position:relative;display:grid;place-items:center;height:38px;margin:0;font-size:14px;font-weight:600;border-radius:12px;font-variant-numeric:tabular-nums;transition:background-color .14s,transform .14s,color .14s}
+.kui-d:hover{background:var(--theme-soft,var(--acc-light))}
+.kui-d:active{transform:scale(.9)}
+.kui-d.out{opacity:.38}
+.kui-d.today{box-shadow:inset 0 0 0 1.6px var(--acc);color:var(--acc-hover,var(--ink))}
+.kui-d.inr{background:color-mix(in srgb,var(--acc) 14%,transparent);border-radius:0}
+.kui-d.rs{border-radius:12px 0 0 12px}
+.kui-d.re{border-radius:0 12px 12px 0}
+.kui-d.rs.re{border-radius:12px}
+.kui-d.sel,.kui-d.sel:hover{background:var(--acc);color:#fff;border-radius:12px;box-shadow:0 4px 12px var(--acc-glow);opacity:1;font-weight:800}
+.kui-d.dis{opacity:.22;pointer-events:none}
+.kui-d.hl:not(.sel){box-shadow:inset 0 0 0 1.6px var(--theme-border-strong,var(--acc))}
+.kui-mg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:6px}
+.kui-m{display:grid;place-items:center;height:56px;border-radius:14px;font-size:14.5px;font-weight:700;border:1px solid var(--line)!important;background:var(--theme-input,var(--card-bg))!important;transition:background-color .15s,transform .15s,border-color .15s}
+.kui-m:hover{background:var(--theme-soft,var(--acc-light))!important;border-color:var(--theme-border-strong,var(--acc))!important}
+.kui-m:active{transform:scale(.94)}
+.kui-m.on{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff;box-shadow:0 4px 12px var(--acc-glow)}
+.kui-m.today:not(.on){border-color:var(--acc)!important;color:var(--acc-hover,var(--ink))}
+.kui-m.dis{opacity:.25;pointer-events:none}
+.kui-cal-f{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:9px;border-top:1px dashed var(--theme-border-strong,var(--line))}
+.kui-fb{min-height:36px;padding:0 16px!important;border-radius:11px!important;border:1px solid var(--line)!important;background:var(--theme-input,var(--card-bg))!important;font-size:13px;font-weight:700;color:var(--ink);transition:background-color .15s,transform .15s}
+.kui-fb:hover{background:var(--theme-soft,var(--acc-light))!important}
+.kui-fb:active{transform:scale(.95)}
+.kui-fb.pri{background:var(--acc)!important;border-color:var(--acc)!important;color:#fff}
+.kui-fb.pri:hover{background:var(--acc-hover)!important}
+.kui-fb[disabled]{opacity:.4;pointer-events:none}
+.kui-pop button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+@media(max-width:420px){.kui-d{height:36px;font-size:13.5px}.kui-cal-body{min-height:246px}.kui-title{font-size:14.5px}}
+@media(prefers-reduced-motion:reduce){.kui-pop,.kui-pop *,html body button.kui-trigger,html body button.kui-trigger *{transition:none!important}}
+</style>
+<script id="kui-script">
+/* ===== KUI: dropdown / ปฏิทิน ที่ออกแบบเอง =====
+   - แทนที่ <select> และ <input type=date> ของฟิลเตอร์ทุกจุด ด้วยปุ่ม + เมนูที่เลื่อนลงมา
+   - ตัว <select>/<input> เดิมยังอยู่ใน DOM (ซ่อนไว้) โค้ดเดิมจึงอ่านค่า/ฟัง event 'change' ได้เหมือนเดิม */
+(function () {
+  'use strict';
+  if (window.__kui) return;
+  window.__kui = true;
+
+  var SEL_SELECT = '#fc,#fo,#historyTypeFilter,#historyUserFilter,#ihUser';
+  var SEL_DATE = '#historyFrom,#historyTo,#dashboardFrom,#dashboardTo,#dashboardOutFrom,#dashboardOutTo,#dashboardInFrom,#dashboardInTo,#ihFrom,#ihTo';
+  var SEL_ALL = SEL_SELECT + ',' + SEL_DATE;
+
+  var MONTHS = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+  var MSHORT = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+  var WDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+  var SVG_CHEV = '<svg class="kui-chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>';
+  var SVG_CK = '<svg class="kui-ck" viewBox="0 0 20 20" aria-hidden="true"><path d="m4.5 10.5 3.6 3.6 7.4-8"/></svg>';
+  var SVG_L = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m10 3.5-4.5 4.5 4.5 4.5"/></svg>';
+  var SVG_R = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3.5 4.5 4.5-4.5 4.5"/></svg>';
+  var SVG_T = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg>';
+
+  var inputValue = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+  var selectValue = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+
+  /* ---------- วันที่ ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function iso(y, m, d) { return y + '-' + pad(m + 1) + '-' + pad(d); }
+  function parse(s) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
+    return m ? { y: +m[1], m: +m[2] - 1, d: +m[3] } : null;
+  }
+  function todayISO() { var t = new Date(); return iso(t.getFullYear(), t.getMonth(), t.getDate()); }
+  function fmt(s) { var p = parse(s); return p ? p.d + ' ' + MSHORT[p.m] + ' ' + (p.y + 543) : ''; }
+  function daysIn(y, m) { return new Date(y, m + 1, 0).getDate(); }
+  function addDays(s, n) { var p = parse(s); var d = new Date(p.y, p.m, p.d + n); return iso(d.getFullYear(), d.getMonth(), d.getDate()); }
+
+  /* ---------- วัดความกว้างข้อความ ---------- */
+  var cv = document.createElement('canvas').getContext('2d');
+  function textW(txt, cs) {
+    cv.font = (cs.fontWeight || '400') + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+    return cv.measureText(txt).width;
+  }
+
+  /* ---------- สร้างปุ่มแทนตัวเดิม ---------- */
+  var GEO = ['boxSizing', 'width', 'minWidth', 'maxWidth', 'height', 'minHeight', 'maxHeight', 'flexGrow', 'flexShrink', 'flexBasis', 'alignSelf', 'justifySelf',
+    'gridColumnStart', 'gridColumnEnd', 'gridRowStart', 'gridRowEnd', 'marginTop', 'marginRight', 'marginBottom', 'marginLeft',
+    'paddingTop', 'paddingBottom', 'paddingLeft', 'fontSize', 'fontWeight', 'borderRadius', 'borderTopWidth'];
+
+  function applyGeometry(btn, el) {
+    var cs = getComputedStyle(el), i, k;
+    for (i = 0; i < GEO.length; i++) { k = GEO[i]; try { btn.style[k] = cs[k]; } catch (e) {} }
+    var bw = cs.borderTopWidth;
+    btn.style.borderWidth = bw;
+    var bare = parseFloat(bw) === 0;
+    btn.classList.toggle('kui-bare', bare);
+    // เลย์เอาต์ที่ช่องเดิมกว้างตามเนื้อหา (auto) ให้กว้างพอสำหรับข้อความที่ยาวที่สุด
+    if (cs.width === 'auto' && cs.flexGrow === '0') {
+      var longest = 0, padL = parseFloat(cs.paddingLeft) || 10, texts = [];
+      if (el.tagName === 'SELECT') { for (i = 0; i < el.options.length; i++) texts.push(el.options[i].textContent.trim()); }
+      else texts.push('30 ก.ย. 2569', 'เลือกวันที่');
+      for (i = 0; i < texts.length; i++) longest = Math.max(longest, textW(texts[i], cs));
+      var need = Math.ceil(longest + padL + 38 + 8);
+      var mw = parseFloat(cs.minWidth) || 0;
+      btn.style.minWidth = Math.max(mw, need) + 'px';
+    }
+  }
+
+  function sync(btn, el) {
+    var val = btn.firstChild, txt, ph = false;
+    if (btn.dataset.kind === 'date') {
+      txt = fmt(el.value);
+      if (!txt) { txt = 'เลือกวันที่'; ph = true; }
+    } else {
+      var o = el.options[el.selectedIndex];
+      txt = o ? o.textContent.trim() : '';
+    }
+    if (val.textContent !== txt) val.textContent = txt;
+    btn.classList.toggle('ph', ph);
+  }
+
+  function enhance(el, kind) {
+    if (el.dataset.kui || !el.parentNode) return;
+    el.dataset.kui = kind;
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'kui-trigger kui-' + kind;
+    btn.dataset.kind = kind;
+    btn.setAttribute('aria-haspopup', kind === 'date' ? 'dialog' : 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    var lab = el.getAttribute('aria-label');
+    if (lab) btn.setAttribute('aria-label', lab);
+    btn.innerHTML = '<i class="kui-val"></i>' + SVG_CHEV;
+    el.parentNode.insertBefore(btn, el);
+    el.classList.add('kui-native');
+    el.tabIndex = -1;
+    el.setAttribute('aria-hidden', 'true');
+    btn._src = el; el._kui = btn;
+    var desc = kind === 'date' ? inputValue : selectValue;
+    Object.defineProperty(el, 'value', {
+      configurable: true,
+      get: function () { return desc.get.call(el); },
+      set: function (v) { desc.set.call(el, v); sync(btn, el); }
+    });
+    el.addEventListener('change', function () { sync(btn, el); });
+    applyGeometry(btn, el);
+    sync(btn, el);
+    btn.addEventListener('click', function (ev) {
+      ev.preventDefault(); ev.stopPropagation();
+      if (cur && cur.btn === btn) closePop(); else openPop(btn);
+    });
+    btn.addEventListener('keydown', function (ev) {
+      if (!cur && (ev.key === 'ArrowDown' || ev.key === 'ArrowUp')) { ev.preventDefault(); openPop(btn); }
+    });
+  }
+
+  /* ---------- ป๊อปอัป ---------- */
+  var cur = null; // { btn, el, kind, pop, ... }
+
+  function commit(el, v) {
+    if (el.value === v) return;
+    el.value = v;
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+
+  function closePop(now) {
+    if (!cur) return;
+    var c = cur; cur = null;
+    c.btn.setAttribute('aria-expanded', 'false');
+    c.pop.classList.remove('in');
+    if (now) c.pop.remove(); else setTimeout(function () { c.pop.remove(); }, 200);
+  }
+
+  function place() {
+    if (!cur) return;
+    var b = cur.btn;
+    if (!b.isConnected) { closePop(true); return; }
+    var r = b.getBoundingClientRect(), pop = cur.pop;
+    var vw = document.documentElement.clientWidth, vh = window.innerHeight;
+    var w = cur.kind === 'date' ? Math.min(332, vw - 16) : Math.min(Math.max(r.width, 200), vw - 16);
+    pop.style.width = w + 'px';
+    var below = vh - r.bottom - 12, above = r.top - 12;
+    pop.style.maxHeight = 'none';
+    var h = pop.scrollHeight || pop.offsetHeight;
+    var up = h > below && above > below;
+    var room = up ? above : below;
+    var mh = Math.min(room - 6, cur.kind === 'date' ? 520 : 320);
+    if (mh < 160) mh = Math.min(vh - 16, 320);
+    pop.style.maxHeight = mh + 'px';
+    h = Math.min(h, mh);
+    var left = Math.min(Math.max(8, r.left), vw - w - 8);
+    var top = up ? Math.max(8, r.top - 6 - h) : Math.min(r.bottom + 6, Math.max(8, vh - h - 8));
+    top = Math.max(8, Math.min(top, vh - h - 8));
+    pop.style.left = left + 'px';
+    pop.style.top = top + 'px';
+    pop.style.transformOrigin = Math.round(r.left + r.width / 2 - left) + 'px ' + (up ? '100%' : '0');
+    pop.classList.toggle('up', up);
+  }
+
+  function openPop(btn) {
+    closePop(true);
+    var el = btn._src, kind = btn.dataset.kind;
+    var pop = document.createElement('div');
+    pop.className = 'kui-pop ' + (kind === 'date' ? 'kui-cal' : 'kui-list');
+    cur = { btn: btn, el: el, kind: kind, pop: pop };
+    btn.setAttribute('aria-expanded', 'true');
+    if (kind === 'date') buildCal(); else buildList();
+    document.body.appendChild(pop);
+    place();
+    if (kind === 'select') {
+      var on = pop.querySelector('.kui-opt.on');
+      if (on) pop.scrollTop = Math.max(0, on.offsetTop - (pop.clientHeight - on.offsetHeight) / 2);
+    }
+    void pop.offsetWidth;
+    pop.classList.add('in');
+  }
+
+  /* ----- รายการตัวเลือก (select) ----- */
+  function buildList() {
+    var c = cur, el = c.el, pop = c.pop, html = '', i, o;
+    pop.setAttribute('role', 'listbox');
+    for (i = 0; i < el.options.length; i++) {
+      o = el.options[i];
+      html += '<button type="button" role="option" class="kui-opt' + (i === el.selectedIndex ? ' on' : '') + (o.disabled ? ' dis' : '') +
+        '" data-i="' + i + '" aria-selected="' + (i === el.selectedIndex) + '"><span class="kui-opt-t"></span>' + SVG_CK + '</button>';
+    }
+    pop.innerHTML = html;
+    var nodes = pop.querySelectorAll('.kui-opt');
+    for (i = 0; i < nodes.length; i++) nodes[i].firstChild.textContent = el.options[i].textContent.trim();
+    c.hl = el.selectedIndex;
+    pop.addEventListener('click', function (ev) {
+      var b = ev.target.closest('.kui-opt');
+      if (!b) return;
+      var idx = +b.dataset.i;
+      var v = el.options[idx].value;
+      closePop();
+      commit(el, v);
+    });
+  }
+
+  function moveHl(step) {
+    var nodes = cur.pop.querySelectorAll('.kui-opt:not(.dis)');
+    if (!nodes.length) return;
+    var arr = Array.prototype.slice.call(nodes), idx = -1, i;
+    for (i = 0; i < arr.length; i++) if (arr[i].classList.contains('hl')) idx = i;
+    if (idx < 0) for (i = 0; i < arr.length; i++) if (arr[i].classList.contains('on')) idx = i;
+    idx = Math.max(0, Math.min(arr.length - 1, idx + step));
+    for (i = 0; i < arr.length; i++) arr[i].classList.toggle('hl', i === idx);
+    var n = arr[idx];
+    if (n.offsetTop < cur.pop.scrollTop) cur.pop.scrollTop = n.offsetTop - 6;
+    else if (n.offsetTop + n.offsetHeight > cur.pop.scrollTop + cur.pop.clientHeight) cur.pop.scrollTop = n.offsetTop + n.offsetHeight - cur.pop.clientHeight + 6;
+  }
+
+  /* ----- ปฏิทิน (date) ----- */
+  function pairEl(el) {
+    var id = el.id, pid = null;
+    if (/From$/.test(id)) pid = id.replace(/From$/, 'To'); else if (/To$/.test(id)) pid = id.replace(/To$/, 'From');
+    if (!pid) return null;
+    var box = el.closest('.history-filter,.dash-rank-filter,.ih-filter') || document;
+    return box.querySelector('#' + pid) || document.getElementById(pid);
+  }
+
+  function buildCal() {
+    var c = cur, el = c.el, pop = c.pop;
+    var v = parse(el.value), t = parse(todayISO());
+    var other = pairEl(el);
+    c.isFrom = /From$/.test(el.id);
+    c.otherVal = other ? other.value : '';
+    c.min = el.getAttribute('min') || (!c.isFrom && c.otherVal ? c.otherVal : '');
+    c.max = el.getAttribute('max') || (c.isFrom && c.otherVal ? c.otherVal : '');
+    c.view = { y: (v || t).y, m: (v || t).m };
+    c.mode = 'days';
+    c.yb = c.view.y - 4;
+    c.cursor = el.value || todayISO();
+    pop.setAttribute('role', 'dialog');
+    pop.setAttribute('aria-label', 'เลือกวันที่');
+    pop.addEventListener('click', onCalClick);
+    renderCal();
+  }
+
+  function isDis(s) { return !!((cur.min && s < cur.min) || (cur.max && s > cur.max)); }
+
+  function renderCal() {
+    var c = cur, pop = c.pop, V = c.view, html = '', i;
+    var sel = c.el.value, today = todayISO();
+    var title;
+    if (c.mode === 'days') title = MONTHS[V.m] + ' ' + (V.y + 543);
+    else if (c.mode === 'months') title = '' + (V.y + 543);
+    else title = (c.yb + 543) + ' – ' + (c.yb + 11 + 543);
+    html += '<div class="kui-cal-h"><button type="button" class="kui-nav" data-a="prev" aria-label="ก่อนหน้า">' + SVG_L + '</button>' +
+      '<button type="button" class="kui-title' + (c.mode !== 'days' ? ' alt' : '') + '" data-a="title" aria-label="เปลี่ยนมุมมองเดือนและปี">' + title + (c.mode === 'years' ? '' : SVG_T) + '</button>' +
+      '<button type="button" class="kui-nav" data-a="next" aria-label="ถัดไป">' + SVG_R + '</button></div>';
+    html += '<div class="kui-cal-body">';
+    if (c.mode === 'days') {
+      html += '<div class="kui-wd">';
+      for (i = 0; i < 7; i++) html += '<span>' + WDAYS[i] + '</span>';
+      html += '</div><div class="kui-grid">';
+      var first = new Date(V.y, V.m, 1).getDay();
+      var start = new Date(V.y, V.m, 1 - first);
+      var from = c.isFrom ? sel : c.otherVal, to = c.isFrom ? c.otherVal : sel;
+      for (i = 0; i < 42; i++) {
+        var d = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
+        var s = iso(d.getFullYear(), d.getMonth(), d.getDate());
+        var cl = 'kui-d';
+        if (d.getMonth() !== V.m) cl += ' out';
+        if (s === today) cl += ' today';
+        if (from && to && s >= from && s <= to) {
+          cl += ' inr';
+          if (s === from) cl += ' rs';
+          if (s === to) cl += ' re';
+        }
+        if (s === sel) cl += ' sel';
+        if (isDis(s)) cl += ' dis';
+        if (s === c.cursor && c.kbd) cl += ' hl';
+        html += '<button type="button" class="' + cl + '" data-d="' + s + '" aria-label="' + d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + (d.getFullYear() + 543) + '"' + (s === sel ? ' aria-pressed="true"' : '') + '>' + d.getDate() + '</button>';
+      }
+      html += '</div>';
+    } else if (c.mode === 'months') {
+      var sp = parse(sel), tp = parse(today);
+      html += '<div class="kui-mg">';
+      for (i = 0; i < 12; i++) {
+        var mcl = 'kui-m';
+        if (sp && sp.y === V.y && sp.m === i) mcl += ' on';
+        if (tp.y === V.y && tp.m === i) mcl += ' today';
+        var ms = iso(V.y, i, 1), me = iso(V.y, i, daysIn(V.y, i));
+        if ((c.min && me < c.min) || (c.max && ms > c.max)) mcl += ' dis';
+        html += '<button type="button" class="' + mcl + '" data-m="' + i + '">' + MSHORT[i] + '</button>';
+      }
+      html += '</div>';
+    } else {
+      var sp2 = parse(sel), tp2 = parse(today);
+      html += '<div class="kui-mg">';
+      for (i = 0; i < 12; i++) {
+        var y = c.yb + i, ycl = 'kui-m';
+        if (sp2 && sp2.y === y) ycl += ' on';
+        if (tp2.y === y) ycl += ' today';
+        if ((c.min && iso(y, 11, 31) < c.min) || (c.max && iso(y, 0, 1) > c.max)) ycl += ' dis';
+        html += '<button type="button" class="' + ycl + '" data-y="' + y + '">' + (y + 543) + '</button>';
+      }
+      html += '</div>';
+    }
+    html += '</div><div class="kui-cal-f"><button type="button" class="kui-fb" data-a="clear"' + (sel ? '' : ' disabled') + '>ล้าง</button>' +
+      '<button type="button" class="kui-fb pri" data-a="today"' + (isDis(today) ? ' disabled' : '') + '>วันนี้</button></div>';
+    pop.innerHTML = html;
+  }
+
+  function onCalClick(ev) {
+    var c = cur; if (!c) return;
+    var b = ev.target.closest('button'); if (!b || b.disabled) return;
+    var a = b.dataset.a, V = c.view;
+    if (b.dataset.d) { var dv = b.dataset.d; closePop(); commit(c.el, dv); return; }
+    if (b.dataset.m !== undefined) { V.m = +b.dataset.m; c.mode = 'days'; renderCal(); place(); return; }
+    if (b.dataset.y !== undefined) { V.y = +b.dataset.y; c.mode = 'months'; renderCal(); place(); return; }
+    if (a === 'prev' || a === 'next') {
+      var s = a === 'next' ? 1 : -1;
+      if (c.mode === 'days') { V.m += s; if (V.m < 0) { V.m = 11; V.y--; } else if (V.m > 11) { V.m = 0; V.y++; } }
+      else if (c.mode === 'months') V.y += s;
+      else c.yb += s * 12;
+      renderCal(); return;
+    }
+    if (a === 'title') {
+      if (c.mode === 'days') c.mode = 'months';
+      else if (c.mode === 'months') { c.mode = 'years'; c.yb = V.y - 4; }
+      else c.mode = 'days';
+      renderCal(); return;
+    }
+    if (a === 'clear') { closePop(); commit(c.el, ''); return; }
+    if (a === 'today') { var td = todayISO(); closePop(); commit(c.el, td); return; }
+  }
+
+  /* ---------- ตัวฟังระดับเอกสาร ---------- */
+  document.addEventListener('pointerdown', function (ev) {
+    if (!cur) return;
+    var t = ev.target;
+    if (cur.pop.contains(t) || cur.btn.contains(t)) return;
+    var lb = t.closest && t.closest('label');
+    if (lb && lb.contains(cur.btn)) return;
+    closePop();
+  }, true);
+
+  document.addEventListener('keydown', function (ev) {
+    if (!cur) return;
+    var k = ev.key, c = cur;
+    if (k === 'Escape' || k === 'Tab') { var b = c.btn; closePop(); if (k === 'Escape') { ev.preventDefault(); b.focus(); } return; }
+    if (c.kind === 'select') {
+      if (k === 'ArrowDown') { ev.preventDefault(); moveHl(1); }
+      else if (k === 'ArrowUp') { ev.preventDefault(); moveHl(-1); }
+      else if (k === 'Enter' || k === ' ') {
+        var h = c.pop.querySelector('.kui-opt.hl');
+        if (h) { ev.preventDefault(); h.click(); }
+      }
+    } else if (c.mode === 'days') {
+      var step = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -7, ArrowDown: 7 }[k];
+      if (step) {
+        ev.preventDefault();
+        c.kbd = true;
+        var n = addDays(c.cursor, step), p = parse(n);
+        c.cursor = n; c.view = { y: p.y, m: p.m };
+        renderCal();
+      } else if ((k === 'Enter' || k === ' ') && c.kbd && !isDis(c.cursor)) {
+        ev.preventDefault();
+        var dv = c.cursor; closePop(); commit(c.el, dv);
+      }
+    }
+  }, true);
+
+  var raf = 0;
+  function reposition() { if (!cur || raf) return; raf = requestAnimationFrame(function () { raf = 0; place(); }); }
+  window.addEventListener('scroll', function (ev) { if (cur && !cur.pop.contains(ev.target)) reposition(); }, true);
+  window.addEventListener('resize', reposition);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', reposition);
+
+  var rt = 0;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () {
+      var all = document.querySelectorAll('button.kui-trigger'), i;
+      for (i = 0; i < all.length; i++) if (all[i]._src && all[i]._src.isConnected) { all[i].style.minWidth = ''; applyGeometry(all[i], all[i]._src); }
+    }, 160);
+  });
+
+  /* ---------- สแกนหาฟิลเตอร์ (หน้าจอถูก render ใหม่บ่อย) ---------- */
+  var scanQueued = false;
+  function scan() {
+    scanQueued = false;
+    if (cur && !cur.btn.isConnected) closePop(true);
+    var list = document.querySelectorAll(SEL_ALL), i, el;
+    for (i = 0; i < list.length; i++) {
+      el = list[i];
+      if (el.dataset.kui) continue;
+      if (el.tagName === 'SELECT') enhance(el, 'select');
+      else if (el.tagName === 'INPUT' && el.type === 'date') enhance(el, 'date');
+    }
+  }
+  function queue() { if (!scanQueued) { scanQueued = true; requestAnimationFrame(scan); } }
+  new MutationObserver(queue).observe(document.body, { childList: true, subtree: true });
+  scan();
+})();
+</script>
 </body>
 </html>
