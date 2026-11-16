@@ -5001,6 +5001,7 @@ const p = P.find(x => x.id === id);
 if (!p) return;
 const canMove = can.edit();
 const movePin = getMovePin();
+const rememberedMoveNote = (() => { const value = store.get('inv_move_remembered_note_v1', ''); return typeof value === 'string' ? value.slice(0, 500) : ''; })();
 const wideDesktop = isWideDesktop();
 const mobileSheet = !wideDesktop;
 const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name)}</h3>
@@ -5012,7 +5013,8 @@ const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name
   ${canMove ? `<form id="mf">
    <div class="seg">${moveSegHTML(movePin)}</div>
    <label class="fld"><span id="ml">${MOVE_LABELS[movePin || 'out']}</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
-   <label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="2" maxlength="500" placeholder="เช่น ใช้ทำออเดอร์หน้าร้าน หรือปรับยอดจากการตรวจนับ"></textarea></label>
+   <label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="2" maxlength="500" placeholder="เช่น ใช้ทำออเดอร์หน้าร้าน หรือปรับยอดจากการตรวจนับ">${esc(rememberedMoveNote)}</textarea></label>
+   <label class="move-remember-note" style="display:flex;align-items:center;gap:8px;margin:-5px 0 12px;padding:2px 0;color:var(--mute);font-size:calc(12px * var(--ts,1));line-height:1.4;cursor:pointer"><input type="checkbox" name="rememberNote"${rememberedMoveNote ? ' checked' : ''} style="width:15px;height:15px;min-width:15px;margin:0;accent-color:var(--acc);cursor:pointer"><span>จดจำหมายเหตุนี้เพื่อใช้ซ้ำ</span></label>
    <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
   </form>` : ''}
@@ -5032,6 +5034,15 @@ $('#confirmDeleteProduct').onclick = () => { addLog('delete', p, p.qty, p.qty, 0
 };
 if (!canMove) return;
 const labels = MOVE_LABELS;
+const noteField = $('#mf').elements.note;
+const rememberNoteField = $('#mf').elements.rememberNote;
+const syncRememberedMoveNote = () => {
+  const value = noteField.value.trim();
+  if (rememberNoteField.checked && value) store.set('inv_move_remembered_note_v1', value);
+  else { try { localStorage.removeItem('inv_move_remembered_note_v1'); } catch {} }
+};
+rememberNoteField.addEventListener('change', syncRememberedMoveNote);
+noteField.addEventListener('input', () => { if (rememberNoteField.checked) syncRememberedMoveNote(); });
 $('#mf').onchange = e => { if (e.target.name === 't') $('#ml').textContent = labels[e.target.value]; };
 $('#mf').querySelectorAll('.seg-pin').forEach(btn => {
 btn.onclick = e => {
@@ -5062,6 +5073,7 @@ const form = e.target, type = form.elements.t.value, amount = parseInt(form.elem
 if (isNaN(amount) || amount < 0) return toast('จำนวนไม่ถูกต้อง', 1);
 if (type !== 'adjust' && amount === 0) return toast('จำนวนต้องมากกว่า 0', 1);
 if (type === 'out' && amount > p.qty) return toast(`วัตถุดิบไม่พอเบิก (คงเหลือ ${p.qty})`, 1);
+syncRememberedMoveNote();
 const before = p.qty;
 p.qty = type === 'in' ? before + amount : type === 'out' ? before - amount : amount;
 addLog(type, p, type === 'adjust' ? p.qty - before : amount, before, p.qty, fv(form, 'note'));
