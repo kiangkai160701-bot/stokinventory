@@ -1804,6 +1804,18 @@ html.formal-theme .top-runway{display:none!important}
 .ov-history-edit .sheet-bar{justify-content:flex-end;margin:-5px -3px 8px}
 .ov-history-edit .sheet-close{min-height:32px}
 @media(max-width:420px){.ov-history-edit{padding:0 7px 8px}.ov-history-edit .sheet{border-radius:22px;padding:15px 14px calc(18px + env(safe-area-inset-bottom,0px))}}
+
+.history-edit-btn{min-height:27px;margin-top:6px;padding:4px 9px;border-radius:9px;font-size:calc(10px * var(--ts,1));font-weight:700;box-shadow:0 1px 3px rgba(35,45,55,.06)}
+.history-edit-types{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:-7px 0 10px}
+.history-edit-types span{min-height:39px;border-radius:11px;font-size:calc(11px * var(--ts,1))}
+.ov-history-edit .sheet{max-height:82dvh;overflow-y:auto}
+.history-pin-head{display:flex;align-items:center;gap:11px;margin:4px 0 14px}
+.history-pin-head>span{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:var(--theme-soft);font-size:21px}
+.history-pin-head b{display:block;color:var(--ink);font-size:calc(15px * var(--ts,1))}
+.history-pin-head small{display:block;color:var(--mute);font-size:calc(11px * var(--ts,1));margin-top:3px}
+.history-pin-summary{display:grid;gap:5px;padding:11px 12px;margin-bottom:12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);font-size:calc(11px * var(--ts,1));color:var(--mute)}
+.history-pin-summary b{color:var(--ink);font-size:calc(12px * var(--ts,1))}
+.ov-history-edit-pin .sheet{width:min(100%,440px);max-height:75dvh;border-radius:23px}
 </style>
 </head>
 <body data-theme="teal">
@@ -5325,71 +5337,51 @@ document.addEventListener('scroll', e => {
 let historyQuickKey = null;
 let historyCardFilter = null;
 function openHistoryEditSheet(entry) {
-  if (!entry || !['in','out'].includes(entry.type)) return;
+  if (!entry || !['in','out','adjust'].includes(entry.type)) return;
   const isGlobalEditor = String(me?.name || '').trim().toLowerCase() === 'kiangkai';
   const age = Date.now() - Number(entry.ts || 0);
-  if (!isGlobalEditor && (String(entry.user || '').toLowerCase() !== String(me?.name || '').toLowerCase() || age < 0 || age >= 300000)) {
-    toast('รายการนี้หมดเวลาแก้ไขแล้ว หรือคุณไม่มีสิทธิ์แก้ไข', 1); return;
-  }
+  if (!isGlobalEditor && (String(entry.user || '').toLowerCase() !== String(me?.name || '').toLowerCase() || age < 0 || age >= 300000)) { toast('รายการนี้หมดเวลาแก้ไขแล้ว หรือคุณไม่มีสิทธิ์แก้ไข', 1); return; }
   const product = P.find(p => String(p.id) === String(entry.pid));
   if (!product) return toast('ไม่พบวัตถุดิบรายการนี้ในสาขาปัจจุบัน', 1);
   const unit = esc(entry.unit || product.unit || '');
   const note = String(entry.note || '');
-  const html = `
-    <div class="history-edit-head">
-      <div class="history-edit-emoji">📝 🍣</div>
-      <div><h3>แก้ไขประวัติ</h3><small>แก้ไขรายการเดิม · ${esc(entry.pname || product.name)}</small></div>
-    </div>
-    <div class="history-edit-info"><span>📦 วัตถุดิบ</span><b>${esc(entry.pname || product.name)}</b><small>สต็อกปัจจุบัน ${num(product.qty)} ${unit}</small></div>
-    <form id="historyEditForm">
-      <label class="fld"><span>คุณต้องการทำรายการแบบใด?</span></label>
-      <div class="history-edit-types">
-        <label><input type="radio" name="editType" value="out" ${entry.type === 'out' ? 'checked' : ''}><span>📤 เบิกจ่าย</span></label>
-        <label><input type="radio" name="editType" value="in" ${entry.type === 'in' ? 'checked' : ''}><span>📥 รับเข้า</span></label>
-      </div>
-      <label class="fld"><span>จำนวนที่ต้องการ <small>(${unit})</small></span><input class="in" name="amount" type="number" min="1" step="1" inputmode="numeric" required value="${Math.abs(Number(entry.amt) || 0)}"></label>
-      <label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="3" maxlength="500" placeholder="ระบุหมายเหตุของรายการนี้">${esc(note)}</textarea></label>
-      <div class="history-edit-audit">🕘 รายการเดิมทำโดย <b>${esc(entry.user || 'ไม่ทราบ')}</b><br>การแก้ไขจะเก็บข้อมูลเดิมและชื่อผู้แก้ไขไว้ในประวัติ</div>
-      <div class="history-edit-pin"><b>🔐 ยืนยันตัวตนผู้ทำรายการ</b><small>กรอกรหัสผ่านตัวเลข 6 หลักของผู้ทำรายการ ${esc(entry.user || '')}</small><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="current-password" placeholder="••••••" required></div>
-      <div class="acts"><button type="button" class="btn sec" id="cancelHistoryEdit">ยกเลิก</button><button type="submit" class="btn" id="confirmHistoryEdit">ยืนยันการแก้ไข ✨</button></div>
-    </form>`;
+  const labels = {in:'รับเข้า',out:'เบิกจ่าย',adjust:'ปรับยอด'};
+  const initialAmount = entry.type === 'adjust' ? Number(entry.amt || 0) : Math.abs(Number(entry.amt) || 0);
+  const html = '<div class="history-edit-head"><div class="history-edit-emoji">✏️</div><div><h3>แก้ไขประวัติ</h3><small>แก้ไขรายการเดิม · ' + esc(entry.pname || product.name) + '</small></div></div>' +
+    '<div class="history-edit-info"><span>📦 ' + esc(entry.pname || product.name) + '</span><b>สต็อกปัจจุบัน ' + num(product.qty) + ' ' + unit + '</b><small>ผู้ทำรายการเดิม: ' + esc(entry.user || 'ไม่ทราบ') + '</small></div>' +
+    '<form id="historyEditForm"><label class="fld"><span>ประเภทการทำรายการ</span></label><div class="history-edit-types">' +
+    '<label><input type="radio" name="editType" value="out" ' + (entry.type==='out'?'checked':'') + '><span>📤 เบิกจ่าย</span></label>' +
+    '<label><input type="radio" name="editType" value="in" ' + (entry.type==='in'?'checked':'') + '><span>📥 รับเข้า</span></label>' +
+    '<label><input type="radio" name="editType" value="adjust" ' + (entry.type==='adjust'?'checked':'') + '><span>⚖️ ปรับยอด</span></label></div>' +
+    '<label class="fld"><span id="historyEditAmountLabel">' + (entry.type==='adjust'?'จำนวนปรับยอด (ใส่ค่าติดลบได้)':'จำนวน') + ' <small>(' + unit + ')</small></span><input class="in" name="amount" type="number" step="1" inputmode="numeric" required value="' + initialAmount + '"></label>' +
+    '<label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="2" maxlength="500" placeholder="ระบุหมายเหตุของรายการนี้">' + esc(note) + '</textarea></label>' +
+    '<div class="history-edit-audit">การแก้ไขจะเก็บรายละเอียดเดิม ผู้แก้ไข และเวลาที่แก้ไขไว้ในประวัติ</div><div class="acts"><button type="button" class="btn sec" id="cancelHistoryEdit">ยกเลิก</button><button type="submit" class="btn">ตรวจสอบและยืนยัน</button></div></form>';
   openModal(html, 'history-edit');
   const form = document.getElementById('historyEditForm');
   document.getElementById('cancelHistoryEdit').onclick = () => closeModal();
-  form.onsubmit = async e => {
+  form.querySelectorAll('input[name="editType"]').forEach(r => r.addEventListener('change', () => { const adj=form.elements.editType.value==='adjust'; document.getElementById('historyEditAmountLabel').innerHTML=(adj?'จำนวนปรับยอด (ใส่ค่าติดลบได้)':'จำนวน')+' <small>('+unit+')</small>'; if(!adj) form.elements.amount.value=Math.abs(Number(form.elements.amount.value||0)); }));
+  form.onsubmit = e => {
     e.preventDefault();
-    const button = document.getElementById('confirmHistoryEdit');
-    const type = form.elements.editType.value;
-    const amount = Number(form.elements.amount.value);
-    const pin = String(form.elements.pin.value || '');
-    const noteValue = String(form.elements.note.value || '').trim();
-    if (!Number.isSafeInteger(amount) || amount <= 0) return toast('กรุณากรอกจำนวนเป็นจำนวนเต็มที่มากกว่า 0', 1);
-    if (!/^[0-9]{6}$/.test(pin)) return toast('กรุณากรอกรหัสผ่านตัวเลข 6 หลัก', 1);
-    if (!isGlobalEditor && (Date.now() - Number(entry.ts) < 0 || Date.now() - Number(entry.ts) >= 300000)) return toast('หมดเวลาแก้ไขแล้ว (จำกัด 5 นาที)', 1);
-    button.disabled = true; button.textContent = 'กำลังตรวจสอบและบันทึก…';
-    try {
-      const result = await cloudRpc('api_history_edit', {
-        p_token: cloudToken,
-        p_branch_id: currentBranch.id,
-        p_ts: Number(entry.ts),
-        p_pid: String(entry.pid),
-        p_original_type: entry.type,
-        p_new_type: type,
-        p_amount: amount,
-        p_note: noteValue,
-        p_pin_hash: await hash(pin)
-      });
-      if (!result?.ok) throw new Error(result?.error || 'บันทึกการแก้ไขไม่สำเร็จ');
-      applyCloudState(result.state);
-      syncSnapshot = cloneData(result.state);
-      syncVersion = result.version || syncVersion;
-      closeModal();
-      render();
-      toast('บันทึกการแก้ไขประวัติแล้ว พร้อมปรับยอดสต็อกเรียบร้อย');
-    } catch (error) {
-      toast(error.message || 'บันทึกการแก้ไขไม่สำเร็จ', 1);
-      button.disabled = false; button.textContent = 'ยืนยันการแก้ไข ✨';
-    }
+    const type=form.elements.editType.value, amount=Number(form.elements.amount.value), noteValue=String(form.elements.note.value||'').trim();
+    if(!Number.isSafeInteger(amount)||(type==='adjust'?amount===0:amount<=0)) return toast(type==='adjust'?'กรุณากรอกค่าปรับยอดเป็นจำนวนเต็มที่ไม่ใช่ศูนย์':'กรุณากรอกจำนวนเป็นจำนวนเต็มที่มากกว่า 0',1);
+    if(!isGlobalEditor&&(Date.now()-Number(entry.ts)<0||Date.now()-Number(entry.ts)>=300000)) return toast('หมดเวลาแก้ไขแล้ว (จำกัด 5 นาที)',1);
+    const amountToSave=type==='adjust'?amount:Math.abs(amount);
+    const pinHtml='<div class="history-pin-head"><span>🔐</span><div><b>ยืนยันตัวตนผู้ทำรายการ</b><small>กรอกรหัสผ่าน 6 หลักของ '+esc(entry.user||'ผู้ทำรายการเดิม')+'</small></div></div>' +
+      '<div class="history-pin-summary"><b>ตรวจสอบการแก้ไข</b><span>'+labels[entry.type]+' → '+labels[type]+'</span><span>จำนวน: '+amountToSave+' '+unit+'</span><span>หมายเหตุ: '+esc(noteValue||'ไม่มี')+'</span></div>' +
+      '<form id="historyEditPinForm"><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="current-password" placeholder="••••••" required></label><div class="acts"><button type="button" class="btn sec" id="cancelHistoryPin">กลับไปแก้ไข</button><button type="submit" class="btn" id="confirmHistoryEdit">ยืนยันการแก้ไข</button></div></form>';
+    openModal(pinHtml,'history-edit-pin');
+    const pf=document.getElementById('historyEditPinForm');
+    document.getElementById('cancelHistoryPin').onclick=()=>openHistoryEditSheet(entry);
+    pf.onsubmit=async ev=>{
+      ev.preventDefault(); const button=document.getElementById('confirmHistoryEdit'), pin=String(pf.elements.pin.value||'');
+      if(!/^[0-9]{6}$/.test(pin)) return toast('กรุณากรอกรหัสผ่านตัวเลข 6 หลัก',1);
+      if(!isGlobalEditor&&(Date.now()-Number(entry.ts)<0||Date.now()-Number(entry.ts)>=300000)) return toast('หมดเวลาแก้ไขแล้ว (จำกัด 5 นาที)',1);
+      button.disabled=true; button.textContent='กำลังตรวจสอบ…';
+      try { const result=await cloudRpc('api_history_edit',{p_token:cloudToken,p_branch_id:currentBranch.id,p_ts:Number(entry.ts),p_pid:String(entry.pid),p_original_type:entry.type,p_new_type:type,p_amount:amountToSave,p_note:noteValue,p_pin_hash:await hash(pin)});
+        if(!result?.ok) throw new Error(result?.error||'บันทึกการแก้ไขไม่สำเร็จ');
+        applyCloudState(result.state); syncSnapshot=cloneData(result.state); syncVersion=result.version||syncVersion; closeModal(); render(); toast('แก้ไขประวัติและปรับยอดสต็อกเรียบร้อย');
+      } catch(error) { toast(error.message||'บันทึกการแก้ไขไม่สำเร็จ',1); button.disabled=false; button.textContent='ยืนยันการแก้ไข'; }
+    };
   };
 }
 function logView() {
@@ -5433,11 +5425,11 @@ const rowHtml = (x, rowIndex = 0) => {
     const movementIcon = historyIcons[x.type] || historyIcons.adjust;
     const isGlobalEditor = String(me?.name || '').trim().toLowerCase() === 'kiangkai';
     const age = Date.now() - Number(x.ts || 0);
-    const canEditHistory = ['in','out'].includes(x.type) && (isGlobalEditor || (String(x.user || '').toLowerCase() === String(me?.name || '').toLowerCase() && age >= 0 && age < 300000));
+    const canEditHistory = ['in','out','adjust'].includes(x.type) && (isGlobalEditor || (String(x.user || '').toLowerCase() === String(me?.name || '').toLowerCase() && age >= 0 && age < 300000));
     const editButtonId = 'historyEdit-' + Number(x.ts || 0) + '-' + String(x.pid || '').replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + x.type;
     if (canEditHistory && !isGlobalEditor) setTimeout(() => document.getElementById(editButtonId)?.remove(), Math.max(0, 300000 - age));
     const editedMeta = x.editedAt ? `<small class="history-edited">✏️ แก้ไขประวัติแล้ว · โดย ${esc(x.editedBy || 'ไม่ทราบ')} · ${historyDateFormatter.format(new Date(Number(x.editedAt)))}</small>` : '';
-    const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไขประวัติ</button>` : '';
+    const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไข</button>` : '';
     return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editButton}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
 };
 histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
