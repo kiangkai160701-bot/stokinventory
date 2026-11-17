@@ -634,6 +634,7 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 .storage-footer small{font-size:calc(10px * var(--ts,1))}
 
 
+
 .storage-history{margin-top:16px;padding:15px 13px;border:1px solid var(--theme-border-strong);border-radius:18px;background:linear-gradient(150deg,var(--theme-wash),var(--card-bg) 76%);box-shadow:inset 0 1px 0 rgba(255,255,255,.6)}
 .storage-history-heading{display:flex;align-items:center;justify-content:space-between;gap:9px;margin-bottom:15px}
 .storage-history-heading>div{display:grid;gap:3px;min-width:0}
@@ -642,19 +643,23 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 .storage-history-trend{flex:none;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:var(--acc-light);color:var(--acc-hover);font-size:calc(10px * var(--ts,1));font-weight:700;font-variant-numeric:tabular-nums}
 .storage-history-trend.up{background:var(--warn-bg);color:var(--warn)}
 .storage-history-trend.down{background:var(--ok-bg);color:var(--ok)}
-.storage-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:stretch;gap:7px;min-height:0;padding:0}
+.storage-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:stretch;gap:8px;min-height:0;padding:0}
 .storage-chart-loading{grid-column:1/-1;padding:28px 8px;text-align:center;color:var(--mute);font-size:calc(11px * var(--ts,1))}
-.storage-chart-day{min-width:0;min-height:145px;padding:9px 3px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--card-bg) 82%,var(--theme-wash));box-shadow:0 2px 7px color-mix(in srgb,var(--theme-shadow) 24%,transparent)}
-.storage-chart-value{width:100%;min-height:25px;text-align:center;font-size:calc(8.5px * var(--ts,1));line-height:1.25;color:var(--ink);font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.storage-chart-track{width:100%;height:78px;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent}
-.storage-chart-track span{display:block;width:18px;max-width:62%;min-height:0;border-radius:7px 7px 2px 2px;background:linear-gradient(180deg,#eeb1ca 0%,#d98eb6 58%,#b77aa8 100%);box-shadow:0 3px 8px rgba(183,122,168,.2);transition:height .45s cubic-bezier(.22,.8,.22,1)}
+.storage-chart-day{min-width:0;min-height:158px;padding:10px 3px 8px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--card-bg) 82%,var(--theme-wash));box-shadow:0 2px 7px color-mix(in srgb,var(--theme-shadow) 24%,transparent)}
+.storage-chart-total{width:100%;min-height:25px;text-align:center;font-size:calc(8.5px * var(--ts,1));line-height:1.25;color:var(--ink);font-weight:750;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.storage-chart-delta{min-height:19px;max-width:100%;padding:3px 4px;border-radius:7px;background:var(--acc-light);color:var(--acc-hover);font-size:calc(8px * var(--ts,1));line-height:1.2;font-weight:750;text-align:center;white-space:nowrap;font-variant-numeric:tabular-nums}
+.storage-chart-delta.negative{background:var(--ok-bg);color:var(--ok)}
+.storage-chart-delta.unknown{background:var(--theme-soft);color:var(--mute)}
+.storage-chart-track{position:relative;width:100%;height:52px;display:block;overflow:hidden;border:0;border-radius:5px;background:transparent}
+.storage-chart-track:before{content:"";position:absolute;left:10%;right:10%;top:50%;height:1px;background:var(--line)}
+.storage-chart-track span{position:absolute;left:50%;transform:translateX(-50%);display:block;width:15px;max-width:58%;min-height:0;border-radius:6px;background:linear-gradient(180deg,#eeb1ca 0%,#d98eb6 58%,#b77aa8 100%);box-shadow:0 2px 7px rgba(183,122,168,.18);transition:height .45s cubic-bezier(.22,.8,.22,1)}
+.storage-chart-track span.negative{background:linear-gradient(180deg,#8fcdb9,#3b9b87)}
 .storage-chart-day.today{border-color:color-mix(in srgb,var(--acc) 50%,var(--line));background:linear-gradient(180deg,var(--acc-light),var(--card-bg) 75%);box-shadow:0 3px 12px color-mix(in srgb,var(--acc) 12%,transparent)}
-.storage-chart-day.today .storage-chart-track span{background:linear-gradient(180deg,#9bd8c8,#369d89)}
-.storage-chart-day.empty .storage-chart-track{border-bottom:1px dashed var(--line)}
+.storage-chart-day.today .storage-chart-delta{background:var(--acc);color:white}
 .storage-chart-day>small{font-size:calc(9px * var(--ts,1));color:var(--mute);white-space:nowrap}
 .storage-chart-day.today>small{color:var(--acc-hover);font-weight:800}
 .storage-history-note{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);line-height:1.55}
-@media(max-width:520px){.storage-history{padding:12px 8px}.storage-chart{gap:5px}.storage-chart-day{min-height:132px;padding:8px 2px 7px;gap:6px;border-radius:11px}.storage-chart-value{font-size:calc(8px * var(--ts,1));min-height:25px}.storage-chart-track{height:70px}.storage-chart-track span{width:15px}.storage-chart-day>small{font-size:calc(8px * var(--ts,1))}.storage-history-trend{font-size:calc(9px * var(--ts,1));padding:5px 7px}}
+@media(max-width:520px){.storage-history{padding:12px 8px}.storage-chart{gap:5px}.storage-chart-day{min-height:150px;padding:8px 2px 7px;gap:6px;border-radius:11px}.storage-chart-total{font-size:calc(7.7px * var(--ts,1));min-height:24px}.storage-chart-delta{font-size:calc(7.5px * var(--ts,1));padding:3px 2px}.storage-chart-track{height:46px}.storage-chart-track span{width:13px}.storage-chart-day>small{font-size:calc(8px * var(--ts,1))}.storage-history-trend{font-size:calc(9px * var(--ts,1));padding:5px 7px}}
 .storage-error{display:block;margin-top:6px;color:var(--bad);font-size:calc(11px * var(--ts,1))}
 @media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
 @media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:calc(11px * var(--ts,1));line-height:1;white-space:nowrap;opacity:.9}.card-mascot{width:21px;height:21px;right:6px;bottom:6px;font-size:calc(18px * var(--ts,1))}.card-mascot.corner-top{top:5px}.card-mascot.corner-left{left:6px}.stats .st.has-card-mascot{padding-right:36px}.dash-activity-stats>:is(div,button).has-card-mascot{padding-right:36px}.branch-confirm-actions{grid-template-columns:1fr}}
@@ -4695,33 +4700,45 @@ bar.classList.toggle('danger', percent >= 90);
 card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
 
 const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-const history = Array.isArray(result.history) ? result.history.filter(item => /^\d{4}-\d{2}-\d{2}$/.test(item.date)) : [];
+const history = Array.isArray(result.history) ? result.history.filter(item => /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date)) : [];
 const historyByDate = new Map(history.map(item => [item.date, Number(item.usedBytes) || 0]));
 const days = Array.from({ length: 7 }, (_, index) => {
   const date = new Date(`${todayKey}T00:00:00Z`);
   date.setUTCDate(date.getUTCDate() - (6 - index));
   const key = date.toISOString().slice(0, 10);
-  return { key, bytes: historyByDate.has(key) ? historyByDate.get(key) : null, today: key === todayKey };
+  const previous = new Date(`${key}T00:00:00Z`);
+  previous.setUTCDate(previous.getUTCDate() - 1);
+  const previousKey = previous.toISOString().slice(0, 10);
+  const bytes = key === todayKey ? used : (historyByDate.has(key) ? historyByDate.get(key) : null);
+  const previousBytes = historyByDate.has(previousKey) ? historyByDate.get(previousKey) : null;
+  return { key, bytes, delta: bytes !== null && previousBytes !== null ? bytes - previousBytes : null, today: key === todayKey };
 });
-const maxBytes = Math.max(used, ...days.map(day => day.bytes || 0), 1);
+const maxDelta = Math.max(1, ...days.map(day => Math.abs(day.delta || 0)));
 const chart = $('#storageHistoryChart');
 chart.innerHTML = days.map(day => {
-  const hasValue = day.bytes !== null;
-  const height = hasValue ? Math.max(5, day.bytes / maxBytes * 100) : 0;
+  const hasTotal = day.bytes !== null;
+  const hasDelta = day.delta !== null;
+  const delta = day.delta || 0;
+  const height = hasDelta && delta !== 0 ? Math.max(5, Math.abs(delta) / maxDelta * 46) : 0;
   const dateLabel = new Date(`${day.key}T00:00:00Z`).toLocaleDateString('th-TH', { timeZone: 'UTC', day: 'numeric', month: 'short' });
-  const valueLabel = hasValue ? `${mib(day.bytes)} MB` : '—';
-  return `<div class="storage-chart-day ${day.today ? 'today' : ''} ${hasValue ? '' : 'empty'}" title="${dateLabel}: ${hasValue ? valueLabel : 'ยังไม่มีข้อมูล'}"><div class="storage-chart-value">${valueLabel}</div><div class="storage-chart-track"><span style="height:${height}%"></span></div><small>${dateLabel}</small></div>`;
+  const totalLabel = hasTotal ? `${mib(day.bytes)}<br>MB` : '—';
+  const deltaLabel = !hasDelta ? 'รอข้อมูล' : delta > 0 ? `+${mib(delta)} MB` : delta < 0 ? `−${mib(Math.abs(delta))} MB` : '0.00 MB';
+  const barStyle = !hasDelta || delta === 0 ? '' : delta > 0 ? `height:${height}%;bottom:50%` : `height:${height}%;top:50%`;
+  return `<div class="storage-chart-day ${day.today ? 'today' : ''}" title="${dateLabel} · ใช้สะสม ${hasTotal ? mib(day.bytes) + ' MB' : 'ไม่มีข้อมูล'} · ส่วนต่าง ${hasDelta ? (delta > 0 ? '+' : '') + mib(delta) + ' MB' : 'ยังคำนวณไม่ได้'}"><div class="storage-chart-total">${totalLabel}</div><div class="storage-chart-delta ${!hasDelta ? 'unknown' : delta < 0 ? 'negative' : ''}">${deltaLabel}</div><div class="storage-chart-track">${hasDelta && delta !== 0 ? `<span class="${delta < 0 ? 'negative' : ''}" style="${barStyle}"></span>` : ''}</div><small>${dateLabel}</small></div>`;
 }).join('');
 const trend = $('#storageHistoryTrend');
-const available = days.filter(day => day.bytes !== null);
+const available = days.filter(day => day.delta !== null);
 trend.classList.remove('up', 'down');
-if (available.length >= 2) {
-  const delta = used - available[0].bytes;
-  trend.textContent = `${delta > 0 ? '↑ +' : delta < 0 ? '↓ ' : '↔ '}${mib(Math.abs(delta))} MB`;
-  if (delta > 0) trend.classList.add('up');
-  else if (delta < 0) trend.classList.add('down');
+if (available.length) {
+  const delta = days[days.length - 1].delta;
+  if (delta === null) trend.textContent = 'รอข้อมูลวันก่อน';
+  else {
+    trend.textContent = `${delta > 0 ? '↑ +' : delta < 0 ? '↓ −' : '↔ '}${mib(Math.abs(delta))} MB วันนี้`;
+    if (delta > 0) trend.classList.add('up');
+    else if (delta < 0) trend.classList.add('down');
+  }
 } else trend.textContent = 'เริ่มเก็บข้อมูลแล้ว';
-$('#storageHistoryNote').textContent = `บันทึกอัตโนมัติทุกวัน เวลา 00:05 น. (เวลาไทย) · มีข้อมูลแล้ว ${available.length}/7 วัน · วันที่ยังไม่มีข้อมูลจะแสดงเป็น —`;
+$('#storageHistoryNote').textContent = `แท่งกราฟ = ส่วนต่างรายวัน · ตัวเลขด้านบน = พื้นที่สะสม ณ วันนั้น · บันทึกทุกวัน 23:55 น. (เวลาไทย) · มีข้อมูลคำนวณส่วนต่างได้ ${available.length}/7 วัน`;
 } catch (e) {
 error.textContent = e.message || 'อ่านข้อมูลไม่ได้ กรุณาลองใหม่อีกครั้ง';
 $('#storageCheckedAt').textContent = 'ตรวจไม่สำเร็จ';
