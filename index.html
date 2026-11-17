@@ -5434,7 +5434,7 @@ const rowHtml = (x, rowIndex = 0) => {
     const isGlobalEditor = String(me?.name || '').trim().toLowerCase() === 'kiangkai';
     const age = Date.now() - Number(x.ts || 0);
     const canEditHistory = ['in','out'].includes(x.type) && (isGlobalEditor || (String(x.user || '').toLowerCase() === String(me?.name || '').toLowerCase() && age >= 0 && age < 300000));
-    const editButtonId = 'historyEdit-' + rowIndex + '-' + Number(x.ts || 0);
+    const editButtonId = 'historyEdit-' + Number(x.ts || 0) + '-' + String(x.pid || '').replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + x.type;
     if (canEditHistory && !isGlobalEditor) setTimeout(() => document.getElementById(editButtonId)?.remove(), Math.max(0, 300000 - age));
     const editedMeta = x.editedAt ? `<small class="history-edited">✏️ แก้ไขประวัติแล้ว · โดย ${esc(x.editedBy || 'ไม่ทราบ')} · ${historyDateFormatter.format(new Date(Number(x.editedAt)))}</small>` : '';
     const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไขประวัติ</button>` : '';
