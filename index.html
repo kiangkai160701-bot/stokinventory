@@ -1816,6 +1816,9 @@ html.formal-theme .top-runway{display:none!important}
 .history-pin-summary{display:grid;gap:5px;padding:11px 12px;margin-bottom:12px;border:1px solid var(--line);border-radius:13px;background:var(--theme-wash);font-size:calc(11px * var(--ts,1));color:var(--mute)}
 .history-pin-summary b{color:var(--ink);font-size:calc(12px * var(--ts,1))}
 .ov-history-edit-pin .sheet{width:min(100%,440px);max-height:75dvh;border-radius:23px}
+
+.move-edit-hint{display:block;margin:-3px 0 10px;color:var(--mute);font-size:calc(10px * var(--ts,1));line-height:1.45}
+.history-edit-window{display:block;margin-top:5px;color:var(--mute);font-size:calc(10px * var(--ts,1));line-height:1.4}
 </style>
 </head>
 <body data-theme="teal">
@@ -5185,7 +5188,7 @@ const inner = `<h3>🍣 จัดการวัตถุดิบ: ${esc(p.name
    <label class="fld"><span id="ml">${MOVE_LABELS[movePin || 'out']}</span><div class="quantity-stepper"><button type="button" data-quantity-step="-1" aria-label="ลดจำนวน">−</button><input class="in" name="n" type="number" min="0" step="1" inputmode="numeric" value="1" required aria-label="จำนวนที่ทำรายการ"><button type="button" data-quantity-step="1" aria-label="เพิ่มจำนวน">+</button></div></label>
    <label class="fld"><span>หมายเหตุ <small style="font-weight:400;color:var(--mute)">(ไม่บังคับ)</small></span><textarea class="in" name="note" rows="2" maxlength="500" placeholder="เช่น ใช้ทำออเดอร์หน้าร้าน หรือปรับยอดจากการตรวจนับ">${esc(rememberedMoveNote)}</textarea></label>
    <label class="move-remember-note" style="display:flex;align-items:center;gap:8px;margin:-5px 0 12px;padding:2px 0;color:var(--mute);font-size:calc(12px * var(--ts,1));line-height:1.4;cursor:pointer"><input type="checkbox" name="rememberNote"${rememberedMoveNote ? ' checked' : ''} style="width:15px;height:15px;min-width:15px;margin:0;accent-color:var(--acc);cursor:pointer"><span>จดจำหมายเหตุนี้เพื่อใช้ซ้ำ</span></label>
-   <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div>
+   <div class="operator-note">บันทึกผู้ทำรายการอัตโนมัติ: <b>${esc(me.name)}</b></div><small class="move-edit-hint">💡 หลังบันทึก สามารถแก้ไขรายการได้ที่หน้าประวัติภายใน 5 นาที</small>
    <div class="acts"><button type="button" class="btn sec" id="editProdBtn">แก้ไขวัตถุดิบ</button><button class="btn">ยืนยันทำรายการ</button></div>
   </form>` : ''}
   ${can.del() ? `<div class="acts"><button type="button" class="btn bad" id="deleteProduct">ลบวัตถุดิบ</button></div>` : ''}
@@ -5430,7 +5433,8 @@ const rowHtml = (x, rowIndex = 0) => {
     if (canEditHistory && !isGlobalEditor) setTimeout(() => document.getElementById(editButtonId)?.remove(), Math.max(0, 300000 - age));
     const editedMeta = x.editedAt ? `<small class="history-edited">✏️ แก้ไขประวัติแล้ว · โดย ${esc(x.editedBy || 'ไม่ทราบ')} · ${historyDateFormatter.format(new Date(Number(x.editedAt)))}</small>` : '';
     const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไข</button>` : '';
-    return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editButton}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
+    const editWindowNote = age >= 0 && age < 300000 && ['in','out','adjust'].includes(x.type) ? '<small class="history-edit-window">แก้ไขได้ภายใน 5 นาทีหลังทำรายการ</small>' : '';
+    return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editWindowNote}${editButton}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
 };
 histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
 return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
