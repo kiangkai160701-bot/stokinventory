@@ -5372,7 +5372,7 @@ function openHistoryEditSheet(entry) {
     if(!Number.isSafeInteger(amount)||(type==='adjust'?amount===0:amount<=0)) return toast(type==='adjust'?'กรุณากรอกค่าปรับยอดเป็นจำนวนเต็มที่ไม่ใช่ศูนย์':'กรุณากรอกจำนวนเป็นจำนวนเต็มที่มากกว่า 0',1);
     if(!isGlobalEditor&&(Date.now()-Number(entry.ts)<0||Date.now()-Number(entry.ts)>=300000)) return toast('หมดเวลาแก้ไขแล้ว (จำกัด 5 นาที)',1);
     const amountToSave=type==='adjust'?amount:Math.abs(amount);
-    const pinHtml='<div class="history-pin-head"><span>🔐</span><div><b>ยืนยันตัวตนผู้ทำรายการ</b><small>กรอกรหัสผ่าน 6 หลักของ '+esc(entry.user||'ผู้ทำรายการเดิม')+'</small></div></div>' +
+    const pinHtml='<div class="history-pin-head"><span>🔐</span><div><b>ยืนยันตัวตน</b></div></div>' +
       '<div class="history-pin-summary"><b>ตรวจสอบการแก้ไข</b><span>'+labels[entry.type]+' → '+labels[type]+'</span><span>จำนวน: '+amountToSave+' '+unit+'</span><span>หมายเหตุ: '+esc(noteValue||'ไม่มี')+'</span></div>' +
       '<form id="historyEditPinForm"><label class="fld"><span>รหัสผ่าน 6 หลัก</span><input class="in" name="pin" type="password" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="current-password" placeholder="••••••" required></label><div class="acts"><button type="button" class="btn sec" id="cancelHistoryPin">กลับไปแก้ไข</button><button type="submit" class="btn" id="confirmHistoryEdit">ยืนยันการแก้ไข</button></div></form>';
     openModal(pinHtml,'history-edit-pin');
