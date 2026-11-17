@@ -1396,6 +1396,7 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .sd-tab svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round;transition:transform .28s cubic-bezier(.32,.72,0,1)}
 .sd-dock.open .sd-tab svg{transform:rotate(180deg)}
 @media(min-width:1100px){.sd-dock,.sd-scrim,.jp{display:none!important}}
+.jp-settings-layer{position:fixed;inset:0;z-index:90;display:flex;align-items:flex-end;justify-content:center;background:rgba(15,23,42,.38);opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}.jp-settings-layer.show{opacity:1;visibility:visible}.jp-settings-sheet{width:min(100%,560px);max-height:min(82dvh,760px);overflow:auto;padding:10px 16px calc(18px + env(safe-area-inset-bottom,0px));border-radius:24px 24px 0 0;background:var(--card-bg);color:var(--ink);box-shadow:0 -14px 48px rgba(15,23,42,.18);transform:translateY(35px);transition:transform .28s cubic-bezier(.2,.8,.2,1)}.jp-settings-layer.show .jp-settings-sheet{transform:translateY(0)}.jp-sheet-grip{width:42px;height:4px;border-radius:99px;background:var(--line);margin:0 auto 12px}.jp-sheet-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}.jp-sheet-head h3{flex:1;font-size:calc(16px * var(--ts,1));margin:0}.jp-sheet-close{width:36px;height:36px;border:1px solid var(--line);border-radius:12px;background:var(--bg-app);display:grid;place-items:center;color:var(--mute)}.jp-sheet-close svg{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round}.jp-setting-option{display:flex;align-items:center;gap:12px;width:100%;padding:14px;margin:9px 0;border:1px solid var(--line);border-radius:16px;background:var(--bg-app);text-align:left;color:var(--ink)}.jp-setting-icon{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:13px;background:color-mix(in srgb,var(--acc) 13%,var(--card-bg));color:var(--acc)}.jp-setting-icon svg{width:22px;height:22px;stroke:currentColor;stroke-width:1.8;fill:none;stroke-linecap:round;stroke-linejoin:round}.jp-setting-copy{flex:1;min-width:0}.jp-setting-copy b{display:block;font-size:calc(13.5px * var(--ts,1))}.jp-setting-copy small{display:block;margin-top:3px;color:var(--mute);font-size:calc(11px * var(--ts,1));line-height:1.45}.jp-setting-option>svg{width:17px;height:17px;stroke:var(--mute);stroke-width:2;fill:none}.jp-staff-date{display:grid;grid-template-columns:1fr minmax(132px,42%);align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}.jp-staff-date b{font-size:calc(13px * var(--ts,1))}.jp-staff-date input{width:100%;min-width:0;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--bg-app);font:inherit;font-size:calc(12px * var(--ts,1))}.jp-settings-note{margin:0 0 12px;color:var(--mute);font-size:calc(11.5px * var(--ts,1));line-height:1.5}.jp-settings-save{width:100%;margin-top:14px;padding:12px;border-radius:12px;background:var(--acc);color:#fff;font:inherit;font-weight:700}.jp-settings-step{display:flex;align-items:center;justify-content:center;gap:20px;margin:18px 0}.jp-settings-step b{min-width:36px;text-align:center;font-size:22px}.jp-settings-step button{width:40px;height:40px;border:1px solid var(--line);border-radius:12px;background:var(--bg-app);font-size:22px;color:var(--acc)}
 .jp{--j-off:#a99be0;--j-leave:#6fc08f;--j-late:#eeaa5d;--j-absent:#e9808b;--j-closed:#7db7e6;position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;contain:layout paint style}
 .jp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
 .jp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
@@ -6197,7 +6198,8 @@ const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '�
 const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const JORDER = ['absent', 'late', 'leave', 'off'];
 const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
-const jDef = () => ({ v: 2, ev: {}, rec: {}, closed: {}, periods: {}, max: 2, start: '', staff: null });
+const jDef = () => ({ v: 3, ev: {}, rec: {}, closed: {}, periods: {}, max: 2, start: '', startByName: {}, staff: null });
+const jStartFor = name => (J.startByName && J.startByName[name]) || J.start || jToday();
 const p2 = n => String(n).padStart(2, '0');
 const dk = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 const pk = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -6216,6 +6218,7 @@ const JS = (() => { const t = new Date(); return { y: t.getFullYear(), m: t.getM
 const jNames = () => jMgr() ? (JS.who !== 'all' && jStaff().includes(JS.who) ? [JS.who] : jStaff()) : (jStaff().includes(me.name) ? [me.name] : []);
 const jFmt = (k, o) => pk(k).toLocaleDateString('th-TH', o);
 function jEff(k, name) {
+  if (k < jStartFor(name)) return null;
   const frozen = J.periods && J.periods[jPeriodForDate(k)] && J.periods[jPeriodForDate(k)].snapshot;
   if (frozen && frozen.days && Object.prototype.hasOwnProperty.call(frozen.days, k)) return frozen.days[k][name] || null;
   const e = J.ev[k]?.[name];
@@ -6226,14 +6229,14 @@ function jEff(k, name) {
 function jDay(k, names = jNames()) {
   const o = { off: 0, leave: 0, late: 0, absent: 0, rows: [], normal: [], closed: !!J.closed[k] };
   if (o.closed) return o;
-  names.forEach(n => { const e = jEff(k, n); if (e) { o[e.t]++; o.rows.push({ n, e }); } else o.normal.push(n); });
+  names.forEach(n => { if (k < jStartFor(n)) return; const e = jEff(k, n); if (e) { o[e.t]++; o.rows.push({ n, e }); } else o.normal.push(n); });
   o.rows.sort((a, b) => JORDER.indexOf(a.e.t) - JORDER.indexOf(b.e.t));
   return o;
 }
 function jStat(name, y, m) {
   const s = { off: 0, leave: 0, late: 0, absent: 0, normal: 0, min: 0 };
   for (let d = 1, n = new Date(y, m + 1, 0).getDate(); d <= n; d++) {
-    const k = dk(new Date(y, m, d)); if (J.closed[k] || (J.start && k < J.start)) continue;
+    const k = dk(new Date(y, m, d)); if (J.closed[k] || k < jStartFor(name)) continue;
     const e = jEff(k, name);
     if (e) { s[e.t]++; if (e.t === 'late') s.min += Number(e.m) || 0; }
     else s.normal++;
@@ -6261,7 +6264,7 @@ function jRangeStat(name, range) {
   const d = pk(range.startKey), end = pk(range.endKey), today = jToday();
   while (d <= end) {
     const k = dk(d);
-    if ((!J.start || k >= J.start) && !J.closed[k]) {
+    if (k >= jStartFor(name) && !J.closed[k]) {
       const e = jEff(k, name);
       if (e && e.t === 'off') s.off++;
       else {
@@ -6554,6 +6557,7 @@ function jPick() {
   openModal(`<h3>👥 เลือกพนักงานในจ๊อบ</h3><p class="settings-hint">ติ๊กเฉพาะคนที่ต้องจัดตารางงาน ผู้จัดการและเจ้าของร้านไม่ต้องติ๊ก</p><form id="pickForm"><div class="jp-pick">${jCand().map(u => `<label class="jp-opt"><input type="checkbox" value="${esc(u.name)}"${on.has(u.name) ? ' checked' : ''}><span>${esc(u.name)}</span><em>${esc(ROLE[u.role] || u.role || '')}</em></label>`).join('')}</div><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">บันทึก</button></div></form>`);
   $('#pickForm').onsubmit = e => {
     e.preventDefault(); J.staff = [...e.target.querySelectorAll('input:checked')].map(i => i.value);
+    J.startByName = J.startByName || {}; J.staff.forEach(n => { if (!J.startByName[n]) J.startByName[n] = jToday(); });
     if (JS.who !== 'all' && !J.staff.includes(JS.who)) JS.who = 'all';
     saveJ(); closeModal(); jRender(); toast('บันทึกรายชื่อแล้ว');
   };
@@ -6585,12 +6589,32 @@ function jCopy() {
   };
 }
 function jSettings() {
-  let mx = J.max;
-  openModal(`<h3>⚙️ ตั้งค่าจ๊อบพนักงาน</h3><p class="settings-hint">เตือนเมื่อวันเดียวกันมีคนหยุด/ลา/ขาดเกินกี่คน</p><div class="jp-step"><button type="button" class="jp-btn sq" id="jsMinus">−</button><b id="jsVal">${mx}</b><button type="button" class="jp-btn sq" id="jsPlus">+</button></div><label class="fld"><span>เริ่มบันทึกตั้งแต่วันที่ (วันก่อนหน้านี้จะเว้นว่าง)</span><input class="in" type="date" id="jsStart" value="${J.start || jToday()}"></label><div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn" id="jsOk">บันทึก</button></div>`);
-  const show = () => { $('#jsVal').textContent = mx; };
-  $('#jsMinus').onclick = () => { mx = Math.max(1, mx - 1); show(); };
-  $('#jsPlus').onclick = () => { mx = Math.min(30, mx + 1); show(); };
-  $('#jsOk').onclick = () => { J.max = mx; J.start = $('#jsStart').value || J.start; saveJ(); closeModal(); jRender(); toast('บันทึกแล้ว'); };
+  const prev = $('#jpSettingsLayer'); if (prev) prev.remove();
+  const layer = document.createElement('div'); layer.id = 'jpSettingsLayer'; layer.className = 'jp-settings-layer';
+  layer.innerHTML = '<section class="jp-settings-sheet" role="dialog" aria-modal="true" aria-label="ตั้งค่าจ๊อบพนักงาน"><div class="jp-sheet-grip"></div><header class="jp-sheet-head"><h3 id="jpSheetTitle">ตั้งค่าจ๊อบพนักงาน</h3><button type="button" class="jp-sheet-close" id="jpSheetClose" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header><div id="jpSheetContent"></div></section>';
+  document.body.appendChild(layer);
+  const close = () => { layer.classList.remove('show'); setTimeout(() => layer.remove(), 240); };
+  const content = $('#jpSheetContent'), title = $('#jpSheetTitle');
+  $('#jpSheetClose').onclick = close; layer.addEventListener('click', e => { if (e.target === layer) close(); });
+  const menu = () => {
+    title.textContent = 'ตั้งค่าจ๊อบพนักงาน';
+    content.innerHTML = '<button type="button" class="jp-setting-option" data-sheet="dates"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3"/></svg></span><span class="jp-setting-copy"><b>ตั้งค่าวันเริ่มงาน</b><small>กำหนดวันเริ่มงานของพนักงานแต่ละคน ย้อนหลังหรืออนาคตได้</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button><button type="button" class="jp-setting-option" data-sheet="alert"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span class="jp-setting-copy"><b>เตือนเมื่อวันเดียวกันมีคนหยุด/ลา/ขาดเกินกี่คน</b><small>กำหนดจำนวนคนเพื่อใช้เป็นเกณฑ์แจ้งเตือน</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>';
+    content.querySelectorAll('[data-sheet]').forEach(b => b.onclick = () => b.dataset.sheet === 'dates' ? dates() : alertSetting());
+  };
+  const dates = () => {
+    title.textContent = 'ตั้งค่าวันเริ่มงาน'; const names = jStaff();
+    if (!names.length) { content.innerHTML = '<p class="jp-settings-note">ยังไม่มีพนักงานในจ๊อบ กรุณาเลือกพนักงานก่อน</p>'; return; }
+    content.innerHTML = '<p class="jp-settings-note">วันที่ก่อนเริ่มงานจะไม่ถูกนำไปคำนวณในปฏิทินและรายงาน สามารถเลือกวันย้อนหลังหรืออนาคตได้</p><div>'+names.map(n => '<label class="jp-staff-date"><b>'+esc(n)+'</b><input type="date" data-start-name="'+esc(n)+'" value="'+esc(jStartFor(n))+'"></label>').join('')+'</div><button type="button" class="jp-settings-save" id="jpSaveDates">บันทึกวันเริ่มงาน</button>';
+    $('#jpSaveDates').onclick = () => { J.startByName = J.startByName || {}; content.querySelectorAll('[data-start-name]').forEach(i => { if (i.value) J.startByName[i.dataset.startName] = i.value; }); saveJ(); jRender(); toast('บันทึกวันเริ่มงานแล้ว'); close(); };
+  };
+  const alertSetting = () => {
+    title.textContent = 'ตั้งค่าการแจ้งเตือน'; let mx = Math.max(1, Math.min(30, Number(J.max) || 2));
+    content.innerHTML = '<p class="jp-settings-note">แจ้งเตือนเมื่อจำนวนพนักงานที่หยุด ลา หรือขาดในวันเดียวกันเกินจำนวนที่กำหนด</p><div class="jp-settings-step"><button type="button" id="jpAlertMinus">−</button><b id="jpAlertValue">'+mx+'</b><button type="button" id="jpAlertPlus">+</button></div><button type="button" class="jp-settings-save" id="jpSaveAlert">บันทึกการตั้งค่า</button>';
+    const show = () => { $('#jpAlertValue').textContent = mx; };
+    $('#jpAlertMinus').onclick = () => { mx = Math.max(1, mx - 1); show(); }; $('#jpAlertPlus').onclick = () => { mx = Math.min(30, mx + 1); show(); };
+    $('#jpSaveAlert').onclick = () => { J.max = mx; saveJ(); jRender(); toast('บันทึกเกณฑ์แจ้งเตือนแล้ว'); close(); };
+  };
+  menu(); requestAnimationFrame(() => layer.classList.add('show'));
 }
 
 // ---------- เมนูด้านข้าง + หน้าจอ ----------
@@ -6626,7 +6650,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   const dock = document.createElement('div'); dock.className = 'sd-dock';
   dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><i class="chat-dot" data-chat-dot="dock"></i></button>';
   const page = document.createElement('div'); page.className = 'jp'; page.id = 'jobPage'; page.setAttribute('aria-hidden', 'true');
-  page.innerHTML = '<div class="jp-head"><button type="button" class="jp-btn sq" id="jpBack" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🗓️ จ๊อบพนักงาน</h2><button type="button" class="jp-btn sq" id="jpGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div><div class="jp-body" id="jpBody"></div><div class="jp-undo" id="jpUndo"><span>คัดลอกตารางแล้ว</span><button type="button" class="jp-btn" id="jpUndoBtn">ย้อนกลับ</button></div><button type="button" class="jp-fab" id="jpAdd">+ แจ้งสถานะ</button>';
+  page.innerHTML = '<div class="jp-head"><button type="button" class="jp-btn sq" id="jpBack" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🗓️ จ๊อบพนักงาน</h2><button type="button" class="jp-btn sq jp-gear" id="jpGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button></div><div class="jp-body" id="jpBody"></div><div class="jp-undo" id="jpUndo"><span>คัดลอกตารางแล้ว</span><button type="button" class="jp-btn" id="jpUndoBtn">ย้อนกลับ</button></div><button type="button" class="jp-fab" id="jpAdd">+ แจ้งสถานะ</button>';
   document.body.append(scrim, dock, page);
   const items = $('#sdItems');
   const menuOpen = v => { dock.classList.toggle('open', v); scrim.classList.toggle('show', v); dock.querySelector('.sd-tab').setAttribute('aria-label', v ? 'ปิดเมนูด้านข้าง' : 'เปิดเมนูด้านข้าง'); };
