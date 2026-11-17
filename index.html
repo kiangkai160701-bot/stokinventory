@@ -6199,7 +6199,7 @@ const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const JORDER = ['absent', 'late', 'leave', 'off'];
 const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
 const jDef = () => ({ v: 3, ev: {}, rec: {}, closed: {}, periods: {}, max: 2, start: '', startByName: {}, staff: null });
-const jStartFor = name => (J.startByName && J.startByName[name]) || J.start || jToday();
+const jStartFor = name => (J.startByName && J.startByName[name]) || (J.startByName && Object.keys(J.startByName).length ? jToday() : J.start || jToday());
 const p2 = n => String(n).padStart(2, '0');
 const dk = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 const pk = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -6208,7 +6208,10 @@ const jPhase = k => { const t = jToday(); return k < t ? 'past' : k === t ? 'tod
 const jMgr = () => can.manageJobs();
 function loadJ() {
   const d = store.get(jKey(), null); J = d && typeof d === 'object' ? { ...jDef(), ...d } : jDef();
-  if (!J.start && jMgr()) { J.start = jToday(); saveJ(); }
+  if (!J.start && jMgr()) J.start = jToday();
+  J.startByName = J.startByName || {};
+  if (!Object.keys(J.startByName).length) jStaff().forEach(n => { J.startByName[n] = J.start || jToday(); });
+  saveJ();
 }
 function saveJ() { store.set(jKey(), J); if (JOBS_CLOUD) save(); }
 // พนักงานที่อยู่ในจ๊อบ: หัวหน้าติ๊กเลือกเอง (ถ้ายังไม่เลือก ใช้บัญชีที่ไม่ใช่เจ้าของ/ผู้ดูแล/หัวหน้างาน)
@@ -6423,7 +6426,7 @@ function jRender() {
     let inner;
     if (single) {
       const e = info.closed ? null : jEff(k, names[0]);
-      inner = info.closed ? '<span class="jp-tag t-closed">ปิด</span>' : e ? `<span class="jp-tag t-${e.t}">${JT[e.t].l}</span>` : (ph !== 'fut' && k >= start) ? '<span class="jp-tag t-ok">✓</span>' : '';
+      inner = info.closed ? '<span class="jp-tag t-closed">ปิด</span>' : e ? `<span class="jp-tag t-${e.t}">${JT[e.t].l}</span>` : (ph !== 'fut' && k >= jStartFor(names[0])) ? '<span class="jp-tag t-ok">✓</span>' : '';
     } else if (info.closed) inner = '<span class="jp-tag t-closed">ปิด</span>';
     else {
       const rs = info.rows;
@@ -6437,7 +6440,8 @@ function jRender() {
   // รายละเอียดวัน
   const info = jDay(JS.sel), off = info.off + info.leave + info.absent, ph = jPhase(JS.sel), phL = { past: 'ย้อนหลัง', today: 'วันนี้', fut: 'แผนล่วงหน้า' }[ph];
   html += `<div class="jp-card jp-day has-card-mascot has-corner-stk"><div class="jp-day-top"><h3>${jFmt(JS.sel, { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' })}</h3>${mgr ? `<button type="button" class="jp-btn" id="jpClose">${info.closed ? 'ยกเลิกวันหยุดร้าน' : '🏪 วันหยุดร้าน'}</button>` : ''}</div><span class="jp-phase ${ph === 'fut' ? 'fut' : ''}">${phL}</span>`;
-  const pre = ph !== 'fut' && JS.sel < start;
+  const eligibleNames = names.filter(n => JS.sel >= jStartFor(n));
+  const pre = ph !== 'fut' && !eligibleNames.length;
   if (info.closed) html += '<div class="jp-closed">🏪 วันหยุดร้าน — ไม่นับลา สาย ขาด</div>';
   else if (mgr) {
     if (off > J.max) html += `<div class="jp-warn">⚠️ วันนี้มีคนหยุด/ลา/ขาด ${off} คน เกินที่ตั้งไว้ (${J.max} คน)</div>`;
