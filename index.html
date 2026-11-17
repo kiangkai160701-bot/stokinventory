@@ -5385,7 +5385,7 @@ function openHistoryEditSheet(entry) {
       button.disabled=true; button.textContent='กำลังตรวจสอบ…';
       try { const result=await cloudRpc('api_history_edit',{p_token:cloudToken,p_branch_id:currentBranch.id,p_ts:Number(entry.ts),p_pid:String(entry.pid),p_original_type:entry.type,p_new_type:type,p_amount:amountToSave,p_note:noteValue,p_pin_hash:await hash(pin)});
         if(!result?.ok) throw new Error(result?.error||'บันทึกการแก้ไขไม่สำเร็จ');
-        applyCloudState(result.state); syncSnapshot=cloneData(result.state); syncVersion=result.version||syncVersion; closeModal(); render(); toast('แก้ไขประวัติและปรับยอดสต็อกเรียบร้อย');
+        applyCloudState(result.state); syncSnapshot=cloneData(result.state); syncVersion=result.version||syncVersion; render(false,true); closeModal(); toast('แก้ไขประวัติและปรับยอดสต็อกเรียบร้อย');
       } catch(error) { toast(error.message||'บันทึกการแก้ไขไม่สำเร็จ',1); button.disabled=false; button.textContent='ยืนยันการแก้ไข'; }
     };
   };
