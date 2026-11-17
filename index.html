@@ -5496,7 +5496,7 @@ if (from && to && from > to) { toast('วันที่เริ่มต้น
 const url = new URL(location.href), key = type === 'out' ? 'dashOut' : 'dashIn';
 url.searchParams.set(`${key}From`, from);
 url.searchParams.set(`${key}To`, to);
-history.pushState({}, '', url); render();
+history.pushState({}, '', url); invalidatePageRenderCache(); render(false, true);
 }
 });
 function openDashboardMovement(card) { try { openDashboardMovementNow(card); } catch (err) { console.error(err); try { toast('เปิดหน้าประวัติไม่สำเร็จ [' + (err && err.name || 'Error') + '] ' + (err && err.message || err), 1); } catch (e2) {} } }
@@ -5524,7 +5524,7 @@ if (clearRank && isDashboardWorkspace()) {
 const key = clearRank.dataset.clearDashboardRank === 'out' ? 'dashOut' : 'dashIn';
 const url = new URL(location.href);
 url.searchParams.delete(`${key}From`); url.searchParams.delete(`${key}To`);
-history.pushState({}, '', url); render(); return;
+history.pushState({}, '', url); invalidatePageRenderCache(); render(false, true); return;
 }
 const dashboardStockCard = e.target.closest('[data-dashboard-stock-filter]');
 if (dashboardStockCard && isDashboardWorkspace()) {
