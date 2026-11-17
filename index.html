@@ -4700,7 +4700,7 @@ bar.classList.toggle('danger', percent >= 90);
 card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
 
 const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
-const history = Array.isArray(result.history) ? result.history.filter(item => /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date)) : [];
+const history = Array.isArray(result.history) ? result.history.filter(item => /^\d{4}-\d{2}-\d{2}$/.test(item.date)) : [];
 const historyByDate = new Map(history.map(item => [item.date, Number(item.usedBytes) || 0]));
 const days = Array.from({ length: 7 }, (_, index) => {
   const date = new Date(`${todayKey}T00:00:00Z`);
