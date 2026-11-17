@@ -1841,6 +1841,59 @@ const CLOUD_URL = 'https://pxklhstbxmhykeqlmyfr.supabase.co';
 const CLOUD_KEY = 'sb_publishable_1a-dg_a8Rzaaozs7u6_0pA_mS_OrSUq';
 let siteBrand = { siteName: 'ไข่หวานบ้านซูชิ', logoData: null };
 let siteLogoDraft = null;
+
+// Keep the latest global and per-branch branding in IndexedDB so it can be
+// painted before the network request to Supabase completes on later visits.
+const SITE_BRAND_CACHE_DB = 'stock-inventory-brand-cache';
+const SITE_BRAND_CACHE_STORE = 'brands';
+let siteBrandCacheDbPromise = null;
+function openSiteBrandCache() {
+if (!('indexedDB' in window)) return Promise.resolve(null);
+if (!siteBrandCacheDbPromise) siteBrandCacheDbPromise = new Promise(resolve => {
+  try {
+    const request = indexedDB.open(SITE_BRAND_CACHE_DB, 1);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(SITE_BRAND_CACHE_STORE)) db.createObjectStore(SITE_BRAND_CACHE_STORE);
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = request.onblocked = () => resolve(null);
+  } catch { resolve(null); }
+});
+return siteBrandCacheDbPromise;
+}
+async function readSiteBrandCache(key) {
+const db = await openSiteBrandCache();
+if (!db) return null;
+return new Promise(resolve => {
+  try {
+    const request = db.transaction(SITE_BRAND_CACHE_STORE, 'readonly').objectStore(SITE_BRAND_CACHE_STORE).get(String(key));
+    request.onsuccess = () => resolve(request.result || null);
+    request.onerror = () => resolve(null);
+  } catch { resolve(null); }
+});
+}
+async function writeSiteBrandCache(key, data) {
+const db = await openSiteBrandCache();
+if (!db) return;
+return new Promise(resolve => {
+  try {
+    const tx = db.transaction(SITE_BRAND_CACHE_STORE, 'readwrite');
+    tx.objectStore(SITE_BRAND_CACHE_STORE).put({
+      siteName: String(data.siteName || 'ไข่หวานบ้านซูชิ'),
+      logoData: typeof data.logoData === 'string' ? data.logoData : null,
+      updatedAt: Date.now()
+    }, String(key));
+    tx.oncomplete = tx.onerror = tx.onabort = () => resolve();
+  } catch { resolve(); }
+});
+}
+async function restoreSiteBrandCache(key, branchId = '') {
+const cached = await readSiteBrandCache(key);
+if (!cached || (branchId && String(currentBranch?.id) !== String(branchId))) return false;
+applySiteBrand(cached);
+return true;
+}
 function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
 const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 2500000 ? data.logoData : null;
@@ -1851,7 +1904,7 @@ setText('siteStoryName', name);
 setText('siteHeaderName', name);
 setText('siteLoginHeading', 'สต็อกวัตถุดิบ' + name);
 const marks = ['siteStoryLogo', 'siteLoginLogo', 'siteHeaderLogo', 'siteBootLogo'];
-marks.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = logo ? '<img src="' + esc(logo) + '" alt="" class="site-brand-image">' : (id === 'siteBootLogo' ? '' : '🍣'); });
+marks.forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = logo ? '<img src="' + esc(logo) + '" alt="" class="site-brand-image">' : '🍣'; });
 const preview = document.getElementById('siteLogoPreview');
 if (preview) { preview.hidden = !logo; if (logo) preview.src = logo; else preview.removeAttribute('src'); }
 const nameInput = document.getElementById('siteNameInput');
@@ -1890,15 +1943,22 @@ finally { if (button) { button.disabled = false; button.textContent = 'บัน
 }
 async function loadGlobalSiteBrand() {
 try {
-const result = await cloudRpc('api_site_brand_get');
-if (result?.ok) applySiteBrand(result);
+  // Paint the last known logo first; refresh it from Supabase afterwards.
+  await restoreSiteBrandCache('global');
+  const result = await cloudRpc('api_site_brand_get');
+  if (result?.ok) {
+    applySiteBrand(result);
+    void writeSiteBrandCache('global', result);
+  }
 }
 catch (error) { console.warn('โหลดโลโก้เว็บไซต์เริ่มต้นไม่สำเร็จ', error); }
 }
 async function loadSiteBrand(branchId = currentBranch?.id) {
 if (!branchId) return;
 try {
-const result = await cloudRpc('api_site_brand_get', { p_branch_id: branchId });
+  // Branch-specific cached branding takes priority for the selected branch.
+  await restoreSiteBrandCache('branch:' + branchId, branchId);
+  const result = await cloudRpc('api_site_brand_get', { p_branch_id: branchId });
 if (result?.ok && String(currentBranch?.id) === String(branchId)) {
   if (result.branchName && String(result.branchName) !== String(currentBranch.name)) {
     currentBranch = { ...currentBranch, name: String(result.branchName) };
@@ -1909,6 +1969,7 @@ if (result?.ok && String(currentBranch?.id) === String(branchId)) {
     if (option) option.textContent = 'สาขา' + currentBranch.name;
   }
   applySiteBrand(result);
+  void writeSiteBrandCache('branch:' + branchId, result);
 }
 }
 catch (error) { console.warn('โหลดข้อมูลแบรนด์เว็บไซต์ไม่สำเร็จ', error); }
