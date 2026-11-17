@@ -632,6 +632,27 @@ button:not(.drag-handle),.in,.row,.st,.history-item,.dash-card,.card,.theme-opt,
 .storage-progress span.danger{background:linear-gradient(90deg,#f0a8b7,var(--bad))}
 .storage-footer{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;color:var(--mute)}
 .storage-footer small{font-size:calc(10px * var(--ts,1))}
+
+.storage-history{margin-top:15px;padding:14px;border:1px solid var(--theme-border-strong);border-radius:16px;background:linear-gradient(145deg,var(--theme-wash),var(--card-bg) 72%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55)}
+.storage-history-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:13px}
+.storage-history-heading>div{display:grid;gap:2px}
+.storage-history-heading b{font-size:calc(13px * var(--ts,1));color:var(--ink)}
+.storage-history-heading small,.storage-history-note{font-size:calc(10px * var(--ts,1));color:var(--mute)}
+.storage-history-trend{flex:none;padding:5px 9px;border-radius:999px;background:var(--acc-light);color:var(--acc-hover);font-size:calc(10px * var(--ts,1));font-weight:650}
+.storage-history-trend.up{background:var(--warn-bg);color:var(--warn)}
+.storage-history-trend.down{background:var(--ok-bg);color:var(--ok)}
+.storage-chart{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));align-items:end;gap:7px;min-height:156px;padding:4px 2px 0}
+.storage-chart-loading{grid-column:1/-1;align-self:center;text-align:center;color:var(--mute);font-size:calc(11px * var(--ts,1))}
+.storage-chart-day{min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:154px}
+.storage-chart-value{width:100%;min-height:25px;text-align:center;font-size:calc(9px * var(--ts,1));line-height:1.25;color:var(--ink);font-weight:650;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.storage-chart-track{width:min(100%,30px);height:104px;display:flex;align-items:flex-end;overflow:hidden;border-radius:9px 9px 5px 5px;background:var(--theme-soft);border:1px solid var(--line)}
+.storage-chart-track span{display:block;width:100%;min-height:0;border-radius:7px 7px 4px 4px;background:linear-gradient(180deg,#f2a9bf 0%,#e58eae 52%,#c77da8 100%);box-shadow:0 3px 8px rgba(199,125,168,.2);transition:height .45s cubic-bezier(.22,.8,.22,1)}
+.storage-chart-day.today .storage-chart-track span{background:linear-gradient(180deg,#8dcbb9,#329c88)}
+.storage-chart-day.empty .storage-chart-track{border-style:dashed;background:transparent}
+.storage-chart-day>small{font-size:calc(9px * var(--ts,1));color:var(--mute);white-space:nowrap}
+.storage-chart-day.today>small{color:var(--acc-hover);font-weight:700}
+.storage-history-note{margin-top:10px;padding-top:9px;border-top:1px solid var(--line);line-height:1.5}
+@media(max-width:520px){.storage-history{padding:11px 8px}.storage-chart{gap:3px}.storage-chart-day{height:146px;gap:5px}.storage-chart-value{font-size:calc(8px * var(--ts,1));min-height:27px}.storage-chart-track{height:96px;width:min(100%,25px);border-radius:7px 7px 4px 4px}.storage-chart-day>small{font-size:calc(8.5px * var(--ts,1))}.storage-history-trend{font-size:calc(9px * var(--ts,1));padding:4px 7px}}
 .storage-error{display:block;margin-top:6px;color:var(--bad);font-size:calc(11px * var(--ts,1))}
 @media(max-width:520px){.storage-usage-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.storage-metric:last-child{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}.storage-metric:last-child b{order:2}.storage-metric:last-child small:last-child{order:3}}
 @media(max-width:680px){.branch-admin-card{min-width:0;overflow:hidden}.branch-admin-card .settings-hint{overflow-wrap:anywhere}.branch-row{align-items:stretch;flex-direction:column;gap:8px}.branch-row b{display:block;width:100%;line-height:1.4}.branch-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;width:100%;gap:8px}.branch-actions .btn{min-width:0;width:auto;height:44px;min-height:44px;padding:8px 10px;white-space:nowrap;line-height:1.2}.branch-actions [data-switch-branch]{width:100%;min-height:44px;font-weight:700}.branch-actions [data-deactivate-branch]{justify-self:end;width:94px;min-width:94px;height:44px;min-height:44px;padding:8px 7px;font-size:calc(11px * var(--ts,1));line-height:1;white-space:nowrap;opacity:.9}.card-mascot{width:21px;height:21px;right:6px;bottom:6px;font-size:calc(18px * var(--ts,1))}.card-mascot.corner-top{top:5px}.card-mascot.corner-left{left:6px}.stats .st.has-card-mascot{padding-right:36px}.dash-activity-stats>:is(div,button).has-card-mascot{padding-right:36px}.branch-confirm-actions{grid-template-columns:1fr}}
@@ -4025,7 +4046,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <button type="button" class="btn ann-save" id="annSave">📢 บันทึกและแสดงประกาศ</button>
       <div class="ann-active"><b>กำลังแสดงอยู่</b><div id="annList"><small class="ann-empty">กำลังโหลด…</small></div></div>
     </div></div></div>` : ''}
-    ${canViewStorage ? `<div class="dash-card storage-card disclosure-card" id="storageUsageCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="storageDisclosurePanel"><span>🗄️ พื้นที่ฐานข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="storageDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><div class="storage-heading"><div><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div></div></div>` : ''}
+    ${canViewStorage ? `<div class="dash-card storage-card disclosure-card" id="storageUsageCard"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="storageDisclosurePanel"><span>🗄️ พื้นที่ฐานข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="storageDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><div class="storage-heading"><div><p class="settings-hint">ขนาดฐานข้อมูลจริง เทียบกับโควตาแผน Free 500 MB</p></div><button type="button" class="btn sm sec" id="refreshStorageUsage">ตรวจตอนนี้</button></div><div class="storage-usage-grid"><div class="storage-metric"><small>ใช้ไปแล้ว</small><b id="storageUsed">กำลังตรวจสอบ…</b><small>ฐานข้อมูลจริง</small></div><div class="storage-metric"><small>พื้นที่เหลือ</small><b id="storageRemaining">กำลังตรวจสอบ…</b><small>จากโควตา</small></div><div class="storage-metric"><small>เปอร์เซ็นต์ที่ใช้</small><b id="storagePercent">กำลังตรวจสอบ…</b><small id="storageQuota">โควตา 500 MB</small></div></div><div class="storage-progress" role="progressbar" aria-label="สัดส่วนพื้นที่ฐานข้อมูล" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span id="storageUsageBar"></span></div><div class="storage-history"><div class="storage-history-heading"><div><b>📊 ประวัติพื้นที่จัดเก็บ</b><small>ขนาดฐานข้อมูลจริง · 7 วันล่าสุด</small></div><span id="storageHistoryTrend" class="storage-history-trend">กำลังโหลดข้อมูล</span></div><div class="storage-chart" id="storageHistoryChart" role="img" aria-label="กราฟแท่งแสดงพื้นที่ฐานข้อมูลย้อนหลัง 7 วัน"><div class="storage-chart-loading">กำลังโหลดข้อมูลย้อนหลัง…</div></div><div class="storage-history-note" id="storageHistoryNote">บันทึกข้อมูลอัตโนมัติทุกวัน เวลา 00:05 น. ตามเวลาไทย</div></div><div class="storage-footer"><small>ตรวจล่าสุด: <span id="storageCheckedAt">กำลังโหลด</span></small><small>ตรวจอัตโนมัติทุก 1 ชั่วโมงขณะเปิดหน้านี้</small></div><small class="storage-error" id="storageUsageError" role="status"></small></div></div></div>` : ''}
     <div class="dash-card disclosure-card theme-picker-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="themeDisclosurePanel"><span>🎨 การแสดงผล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="themeDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
       <p style="font-size:calc(12.5px * var(--ts,1));color:var(--mute);margin-bottom:6px">เลือกธีมที่ชอบ ธีมจะบันทึกแยกในอุปกรณ์นี้ ${isWideDesktop()?'เลื่อนแถบด้านล่างเพื่อดูธีมเพิ่มเติม':'ปัดซ้ายหรือขวาเพื่อดูธีมเพิ่มเติม'}</p>
       <div class="theme-picker" id="themePicker" aria-label="แถบเลือกธีม">${themePages.map((page,index) => `<div class="theme-page" data-theme-page="${index}" role="group" aria-label="ชุดธีมที่ ${index+1}">${page.map(theme => `<button type="button" class="theme-opt ${currentTheme===theme.id?'active':''}" data-th="${theme.id}" data-dark="${theme.dark?1:0}" style="--theme-chip:${theme.colors['--theme-chip']}" aria-pressed="${currentTheme===theme.id}" title="ธีม${esc(theme.name)}"><span class="theme-emoji" aria-hidden="true">${theme.mascot}</span><span class="theme-label">${esc(theme.name)}</span></button>`).join('')}</div>`).join('')}</div>
@@ -4670,8 +4691,37 @@ bar.style.width = `${Math.max(0, Math.min(100, percent))}%`;
 bar.classList.toggle('warn', percent >= 75 && percent < 90);
 bar.classList.toggle('danger', percent >= 90);
 card.querySelector('.storage-progress').setAttribute('aria-valuenow', String(Math.max(0, Math.min(100, percent))));
+
+const todayKey = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+const history = Array.isArray(result.history) ? result.history.filter(item => /^\\d{4}-\\d{2}-\\d{2}$/.test(item.date)) : [];
+const historyByDate = new Map(history.map(item => [item.date, Number(item.usedBytes) || 0]));
+const days = Array.from({ length: 7 }, (_, index) => {
+  const date = new Date(`${todayKey}T00:00:00Z`);
+  date.setUTCDate(date.getUTCDate() - (6 - index));
+  const key = date.toISOString().slice(0, 10);
+  return { key, bytes: historyByDate.has(key) ? historyByDate.get(key) : null, today: key === todayKey };
+});
+const maxBytes = Math.max(used, ...days.map(day => day.bytes || 0), 1);
+const chart = $('#storageHistoryChart');
+chart.innerHTML = days.map(day => {
+  const hasValue = day.bytes !== null;
+  const height = hasValue ? Math.max(5, day.bytes / maxBytes * 100) : 0;
+  const dateLabel = new Date(`${day.key}T00:00:00Z`).toLocaleDateString('th-TH', { timeZone: 'UTC', day: 'numeric', month: 'short' });
+  const valueLabel = hasValue ? `${mib(day.bytes)} MB` : '—';
+  return `<div class="storage-chart-day ${day.today ? 'today' : ''} ${hasValue ? '' : 'empty'}" title="${dateLabel}: ${hasValue ? valueLabel : 'ยังไม่มีข้อมูล'}"><div class="storage-chart-value">${valueLabel}</div><div class="storage-chart-track"><span style="height:${height}%"></span></div><small>${dateLabel}</small></div>`;
+}).join('');
+const trend = $('#storageHistoryTrend');
+const available = days.filter(day => day.bytes !== null);
+trend.classList.remove('up', 'down');
+if (available.length >= 2) {
+  const delta = used - available[0].bytes;
+  trend.textContent = `${delta > 0 ? '↑ +' : delta < 0 ? '↓ ' : '↔ '}${mib(Math.abs(delta))} MB`;
+  if (delta > 0) trend.classList.add('up');
+  else if (delta < 0) trend.classList.add('down');
+} else trend.textContent = 'เริ่มเก็บข้อมูลแล้ว';
+$('#storageHistoryNote').textContent = `บันทึกอัตโนมัติทุกวัน เวลา 00:05 น. (เวลาไทย) · มีข้อมูลแล้ว ${available.length}/7 วัน · วันที่ยังไม่มีข้อมูลจะแสดงเป็น —`;
 } catch (e) {
-error.textContent = 'อ่านข้อมูลไม่ได้ กรุณาติดตั้ง supabase-storage-usage-migration.sql แล้วลองใหม่';
+error.textContent = e.message || 'อ่านข้อมูลไม่ได้ กรุณาลองใหม่อีกครั้ง';
 $('#storageCheckedAt').textContent = 'ตรวจไม่สำเร็จ';
 } finally { storageUsageBusy = false; }
 }
