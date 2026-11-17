@@ -1822,6 +1822,12 @@ html.formal-theme .top-runway{display:none!important}
 
 /* ปุ่มแก้ไขประวัติให้พอดีข้อความ ไม่ยืดเต็มคอลัมน์ */
 .history-edit-btn{width:max-content;max-width:100%;min-width:0;justify-self:start;align-self:start;display:inline-flex;flex:0 0 auto;white-space:nowrap;padding:5px 12px;min-height:30px;margin:5px 0 0;border-radius:10px;line-height:1.2;font-size:calc(11px * var(--ts,1));}
+
+/* ปุ่มแก้ไขประวัติ: อยู่บนสุดของคอลัมน์ตัวเลขด้านขวา ขนาดกะทัดรัด ประหยัดความสูงของแต่ละรายการ */
+.history-result:has(.history-edit-btn){align-self:start}
+.history-result .history-edit-btn{width:max-content;max-width:100%;justify-self:end;align-self:auto;min-height:24px;margin:0 0 3px;padding:2px 9px;gap:3px;border-radius:999px;font-size:calc(10px * var(--ts,1));font-weight:700;line-height:1.3;box-shadow:none}
+.history-result .hr-amt{display:flex;align-items:center;justify-content:flex-end;gap:5px}
+.history-result .hr-amt small{line-height:1;white-space:nowrap}
 </style>
 </head>
 <body data-theme="teal">
@@ -5411,9 +5417,9 @@ const quickActive = historyQuickKey || '';
 const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}${selectedUser ? ` · ผู้ทำรายการ ${selectedUser}` : ''}`;
 const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'], import: ['นำเข้าวัตถุดิบ', 'import'] };
 const historyIcons = {
-in: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 13h15l-1.2 7H5.7z"/><path d="M12 3.5v8.5m-3.5-3.5 3.5 3.5 3.5-3.5"/><path d="M8 16.5h8"/></svg>',
-out: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 13h15l-1.2 7H5.7z"/><path d="M12 12.5V4m-3.5 3.5L12 4l3.5 3.5"/><path d="M8 16.5h8"/></svg>',
-adjust: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><path d="M7 9h6m-3-3v6m5 6h4"/></svg>',
+in: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 14h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M12 3.5v10m-3.6-3.6 3.6 3.6 3.6-3.6"/></svg>',
+out: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="d" d="M4 14h16v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 14v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/><path d="M12 14V4m-3.6 3.6L12 4l3.6 3.6"/></svg>',
+adjust: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h8.6m4.8 0H20M4 16h2.6m4.8 0H20"/><circle class="f" cx="15" cy="8" r="2.4"/><circle class="f" cx="9" cy="16" r="2.4"/></svg>',
 create: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 8 8-4 8 4-8 4-8-4Z"/><path d="M4 8v8l8 4 8-4V8m-8 4v8"/><path d="M18.5 2.5v5m-2.5-2.5h5"/></svg>',
 edit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 5 5 5M4 20l4.2-.8L20 7.4 16.6 4 4.8 15.8 4 20Z"/><path d="M13 20h7"/></svg>',
 delete: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 7h15m-13.5 0 .9 13h10.2l.9-13M9 7V4.5h6V7m-5 3.5v6m4-6v6"/></svg>',
@@ -5437,7 +5443,7 @@ const rowHtml = (x, rowIndex = 0) => {
     const editedMeta = x.editedAt ? `<small class="history-edited">✏️ แก้ไขประวัติแล้ว · โดย ${esc(x.editedBy || 'ไม่ทราบ')} · ${historyDateFormatter.format(new Date(Number(x.editedAt)))}</small>` : '';
     const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไขประวัติ</button>` : '';
     const editWindowNote = age >= 0 && age < 300000 && ['in','out','adjust'].includes(x.type) ? '<small class="history-edit-window">แก้ไขได้ภายใน 5 นาทีหลังทำรายการ</small>' : '';
-    return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editWindowNote}${editButton}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
+    return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><div class="history-meta-line"><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small></div>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editWindowNote}</div><div class="history-result">${editButton}${amount ? `<div class="hr-amt"><strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small></div>` : ''}<span class="hr-ba"><em>ก่อน</em> <b>${num(x.before || 0)}</b> <i>→</i> <em>หลัง</em> <b>${num(x.after || 0)}</b></span></div></article>`;
 };
 histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
 return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
@@ -7528,6 +7534,71 @@ html body button.kui-trigger.kui-bare:focus-visible,html body button.kui-trigger
 @media(max-width:420px){.kui-d{height:36px;font-size:calc(13.5px * var(--ts,1))}.kui-cal-body{min-height:246px}.kui-title{font-size:calc(14.5px * var(--ts,1))}}
 @media(prefers-reduced-motion:reduce){.kui-pop,.kui-pop *,html body button.kui-trigger,html body button.kui-trigger *{transition:none!important}}
 </style>
+<style id="history-card-v2">
+/* ===== การ์ดประวัติ v2: ไอคอนสถานะใหม่ + บรรทัดเตี้ยลง ===== */
+html .history-list .history-item.history-item{
+  --hc:var(--acc);--hi:34px;
+  grid-template-columns:var(--hi) minmax(0,1fr) auto;align-items:center;gap:9px;
+  min-height:0;padding:7px 10px 7px 8px;border-radius:14px;
+  border:1px solid var(--line)!important;
+  background-color:var(--card-bg)!important;
+  background-image:none!important;
+  box-shadow:none!important;contain-intrinsic-size:auto 54px
+}
+html .history-list .history-item.history-item:has(.history-icon.in){--hc:var(--ok)}
+html .history-list .history-item.history-item:has(.history-icon.out){--hc:var(--bad)}
+html .history-list .history-item.history-item:has(.history-icon.adjust){--hc:var(--warn,#d97706)}
+html .history-list .history-item.history-item:has(.history-icon.create){--hc:var(--ok)}
+html .history-list .history-item.history-item:has(.history-icon.edit){--hc:var(--acc)}
+html .history-list .history-item.history-item:has(.history-icon.delete){--hc:var(--bad)}
+html .history-list .history-item.history-item:has(.history-icon.import){--hc:var(--acc)}
+
+/* ไอคอนสถานะ: ช่องโค้งมน ไล่โทนสี + สัญลักษณ์ duotone */
+html .history-list .history-item.history-item .history-icon{
+  width:var(--hi);height:var(--hi);border-radius:11px;color:var(--hc)!important;
+  border:0!important;
+  background:color-mix(in srgb,var(--hc) 17%,var(--card-bg))!important;
+  box-shadow:none!important
+}
+html .history-list .history-item.history-item .history-icon svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+html .history-list .history-item.history-item .history-icon svg .d{fill:currentColor;fill-opacity:.2;stroke:none}
+html .history-list .history-item.history-item .history-icon svg .f{fill:currentColor;fill-opacity:.24}
+
+/* ชื่อ + ป้ายสถานะ */
+html .history-list .history-item.history-item .history-main{gap:1px}
+html .history-list .history-item.history-item .history-title{gap:6px;margin:0}
+html .history-list .history-item.history-item .history-title b{font-size:calc(14px * var(--ts,1));line-height:1.25;font-weight:700}
+html .history-list .history-item.history-item .history-badge{
+  padding:1px 8px;border-radius:99px;font-size:calc(9.5px * var(--ts,1))!important;font-weight:700;line-height:1.5;white-space:nowrap;
+  background:color-mix(in srgb,var(--hc) 14%,transparent)!important;
+  color:color-mix(in srgb,var(--hc) 80%,var(--ink))!important
+}
+html .history-list .history-item.history-item .history-edited-badge{--hc:var(--ok)}
+
+/* ผู้ทำรายการ + เวลา อยู่แถวเดียวกัน */
+html .history-list .history-item.history-item .history-meta-line{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:8px}
+html .history-list .history-item.history-item .history-meta-line small{font-size:calc(10px * var(--ts,1));line-height:1.3}
+html .history-list .history-item.history-item .history-time{font-variant-numeric:tabular-nums}
+html .history-list .history-item.history-item .history-note{margin-top:3px;padding:3px 7px;line-height:1.35}
+html .history-list .history-item.history-item .history-edited{margin-top:2px;line-height:1.35}
+html .history-list .history-item.history-item .history-edit-window{margin-top:1px;line-height:1.3}
+
+/* คอลัมน์ขวา: ป้ายจำนวน (หน่วยอยู่บรรทัดเดียวกัน) + ก่อน→หลัง บรรทัดเดียว */
+html .history-list .history-item.history-item .history-result{min-width:0;gap:2px}
+html .history-list .history-item.history-item .hr-amt{gap:4px}
+html .history-list .history-item.history-item .hr-amt small{font-size:calc(10px * var(--ts,1));line-height:1}
+html .history-list .history-item.history-item .history-result strong{
+  min-width:0;padding:1px 8px;border-radius:8px;font-size:calc(14.5px * var(--ts,1));font-weight:800;line-height:1.35;font-variant-numeric:tabular-nums;
+  color:color-mix(in srgb,var(--hc) 82%,var(--ink))!important;
+  background:color-mix(in srgb,var(--hc) 13%,transparent)!important
+}
+html .history-list .history-item.history-item .history-result .hr-ba{font-size:calc(11px * var(--ts,1));line-height:1.25;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+html .history-list .history-item.history-item .hr-ba b{font-weight:800}
+html .history-list .history-item.history-item .hr-ba em{font-style:normal;font-size:.82em;font-weight:500;color:var(--mute)}
+html .history-list .history-item.history-item .hr-ba i{padding:0 1px}
+html .history-list .history-item.history-item .history-result .history-edit-btn{min-height:22px;margin:0 0 2px;padding:1px 8px;font-size:calc(9.5px * var(--ts,1));line-height:1.3}
+</style>
+
 <script id="kui-script">
 /* ===== KUI: dropdown / ปฏิทิน ที่ออกแบบเอง =====
    - แทนที่ <select> และ <input type=date> ของฟิลเตอร์ทุกจุด ด้วยปุ่ม + เมนูที่เลื่อนลงมา
