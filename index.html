@@ -1819,6 +1819,9 @@ html.formal-theme .top-runway{display:none!important}
 
 .move-edit-hint{display:block;margin:-3px 0 10px;color:var(--mute);font-size:calc(10px * var(--ts,1));line-height:1.45}
 .history-edit-window{display:block;margin-top:5px;color:var(--mute);font-size:calc(10px * var(--ts,1));line-height:1.4}
+
+/* ปุ่มแก้ไขประวัติให้พอดีข้อความ ไม่ยืดเต็มคอลัมน์ */
+.history-edit-btn{width:max-content;max-width:100%;min-width:0;justify-self:start;align-self:start;display:inline-flex;flex:0 0 auto;white-space:nowrap;padding:5px 12px;min-height:30px;margin:5px 0 0;border-radius:10px;line-height:1.2;font-size:calc(11px * var(--ts,1));}
 </style>
 </head>
 <body data-theme="teal">
@@ -5432,7 +5435,7 @@ const rowHtml = (x, rowIndex = 0) => {
     const editButtonId = 'historyEdit-' + Number(x.ts || 0) + '-' + String(x.pid || '').replace(/[^a-zA-Z0-9_-]/g, '_') + '-' + x.type;
     if (canEditHistory && !isGlobalEditor) setTimeout(() => document.getElementById(editButtonId)?.remove(), Math.max(0, 300000 - age));
     const editedMeta = x.editedAt ? `<small class="history-edited">✏️ แก้ไขประวัติแล้ว · โดย ${esc(x.editedBy || 'ไม่ทราบ')} · ${historyDateFormatter.format(new Date(Number(x.editedAt)))}</small>` : '';
-    const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไข</button>` : '';
+    const editButton = canEditHistory ? `<button type="button" class="history-edit-btn" id="${editButtonId}" data-history-edit="1">✏️ แก้ไขประวัติ</button>` : '';
     const editWindowNote = age >= 0 && age < 300000 && ['in','out','adjust'].includes(x.type) ? '<small class="history-edit-window">แก้ไขได้ภายใน 5 นาทีหลังทำรายการ</small>' : '';
     return `<article class="history-item" data-history-ts="${Number(x.ts)}" data-history-pid="${esc(x.pid || '')}" data-history-type="${esc(x.type)}"><div class="history-icon ${t[1]}">${movementIcon}</div><div class="history-main"><div class="history-title"><b>${esc(x.pname || 'วัตถุดิบ')}</b><span class="history-badge ${t[1]}">${t[0]}</span>${x.editedAt ? '<span class="history-badge history-edited-badge">แก้ไขแล้ว</span>' : ''}</div><small>${esc(x.user || 'ไม่ทราบผู้ใช้')} · ${esc(role)}</small><small class="history-time">${date}</small>${x.note ? `<small class="history-note"><b>หมายเหตุ:</b> ${esc(x.note)}</small>` : ''}${editedMeta}${editWindowNote}${editButton}</div><div class="history-result">${amount ? `<strong class="${t[1]}">${delta}${num(Math.abs(amount))}</strong><small>${esc(unit)}</small>` : ''}<span>${num(x.before || 0)} <i>→</i> ${num(x.after || 0)}</span><small>ก่อน · หลัง</small></div></article>`;
 };
