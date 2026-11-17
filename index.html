@@ -6409,7 +6409,7 @@ function jRender() {
       }
     } else {
       html += '<p class="jp-ok" style="margin:-2px 2px 10px">รวมวันที่วางแผนไว้ล่วงหน้าของเดือนนี้ด้วย</p>';
-      html += all.length ? all.map((n, i) => '<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none"><span class="jp-av">' + esc([...n][0] || '?') + '</span><div class="jp-info"><b>' + esc(n) + '</b></div></div><div class="jp-stat">' + jChips(jStat(n, JS.y, JS.m)) + '</div>' + jMas(i, 'mascot-top-right') + '</div>').join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
+      html += all.length ? all.map((n, i) => '<div class="jp-card jp-team has-card-mascot"><div class="jp-row" style="border:0;padding:0;margin:0;background:none">' + jAvatar(n) + '<div class="jp-info"><b>' + esc(n) + '</b></div></div><div class="jp-stat">' + jChips(jStat(n, JS.y, JS.m)) + '</div>' + jMas(i, 'mascot-top-right') + '</div>').join('') : '<div class="jp-card jp-ok">ยังไม่ได้เลือกพนักงาน กดปุ่ม "เลือกพนักงาน" ในหน้าปฏิทิน</div>';
     }
     jpBody().innerHTML = html; $('#jpAdd').style.display = 'none'; return;
   }
