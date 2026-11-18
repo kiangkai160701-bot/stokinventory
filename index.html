@@ -2551,7 +2551,8 @@ presenceBusy = true; presenceLastRequestAt = Date.now();
 presencePromise = (async () => {
 try {
 const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-if (result?.ok && !pollingLogoutInProgress && cloudToken) { presenceFailures = 0; presenceRetryAt = 0; updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
+if (document.hidden || pollingLogoutInProgress || !cloudToken) return;
+if (result?.ok) { presenceFailures = 0; presenceRetryAt = 0; updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
 else if (result?.error?.includes('หมดเวลา')) logout();
 else throw new Error(result?.error || 'Presence request failed');
 } catch {
