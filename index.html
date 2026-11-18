@@ -1603,6 +1603,45 @@ html.formal-theme .top-runway{display:none!important}
 .history-result .hr-amt{display:flex;align-items:center;justify-content:flex-end;gap:5px}
 .history-result .hr-amt small{line-height:1;white-space:nowrap}
 </style>
+<style id="historyQuickFilterPolish">
+/* ปุ่มลัดช่วงเวลาประวัติ: กระจายพื้นที่และเน้นสถานะที่เลือก */
+.history-filter.range-filter:not(.dashboard-range)>.history-actions{
+  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;
+  gap:10px;width:100%;margin-top:2px;
+}
+.history-filter.range-filter:not(.dashboard-range)>.history-actions>button{
+  display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;
+  padding:9px 12px;border:1px solid var(--theme-border-strong,var(--line));
+  border-radius:12px;background:var(--theme-soft,var(--card-bg));color:var(--ink);
+  font-size:calc(12px * var(--ts,1));font-weight:650;line-height:1.25;white-space:nowrap;
+  cursor:pointer;touch-action:manipulation;
+  transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
+}
+.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:hover{
+  border-color:var(--acc);background:var(--acc-light,var(--theme-soft));
+}
+.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:active{transform:scale(.97)}
+.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:focus-visible{
+  outline:3px solid color-mix(in srgb,var(--acc) 30%,transparent);outline-offset:2px;
+}
+.history-filter.range-filter:not(.dashboard-range)>.history-actions>button.history-quick.on{
+  border-color:var(--acc);background:var(--acc);color:#fff;
+  box-shadow:0 4px 12px color-mix(in srgb,var(--acc) 25%,transparent),inset 0 1px 0 #ffffff35;
+  font-weight:800;
+}
+@media(max-width:680px){
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions{
+    grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:3px;
+  }
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions>button{
+    min-height:43px;padding:9px 8px;border-radius:11px;font-size:calc(12px * var(--ts,1));
+  }
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions>#clearHistoryRange{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions>button{transition:none}
+}
+</style>
 </head>
 <body data-theme="teal">
 <div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true"></span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
@@ -5301,7 +5340,7 @@ const rowHtml = (x, rowIndex = 0) => {
 };
 histState = { rows: l, rowHtml, shown: Math.min(HIST_INITIAL_PAGE, l.length) };
 return `<div class="sect history-sect"><div class="history-headline"><h2>ประวัติความเคลื่อนไหว</h2></div><small class="history-retention-note">เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small><small class="history-meta">${l.length} รายการ · ช่วง ${periodText} · ผู้ทำรายการอ้างอิงจากบัญชีที่เข้าสู่ระบบ</small></div>` +
-`<div class="history-filter range-filter"><label class="hf-title">📅 ช่วงวันที่</label><span class="hist-count" id="historyCount" aria-live="polite"><b>${l.length}</b> รายการ</span><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
+`<div class="history-filter range-filter"><label class="hf-title">📅 ช่วงวันที่</label><span class="hist-count" id="historyCount" aria-live="polite"><b>${l.length}</b> รายการ</span><label class="range-field"><span>ตั้งแต่</span><input id="historyFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นกรองประวัติ"></label><label class="range-field"><span>ถึง</span><input id="historyTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดกรองประวัติ"></label><label class="range-field"><span>รายการ</span><select id="historyTypeFilter" aria-label="กรองตามประเภทรายการ"><option value="">ทุกประเภท</option>${Object.entries(typeLabels).map(([key,label]) => `<option value="${key}" ${typeFilter === key ? 'selected' : ''}>${label}</option>`).join('')}</select></label><label class="range-field"><span>ผู้ทำรายการ</span><select id="historyUserFilter" aria-label="กรองตามผู้ทำรายการ"><option value="">ทุกคน</option>${userNames.map(name => `<option value="${esc(name)}" ${selectedUser === name ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></label><div class="history-actions"><button type="button" id="clearHistoryRange">ล้างตัวกรอง</button>${[['today','วันนี้'],['yesterday','เมื่อวาน'],['week','7 วัน'],['month','1 เดือน']].map(([k,t]) => `<button type="button" class="history-quick${quickActive === k ? ' on' : ''}" data-history-quick="${k}" aria-pressed="${quickActive === k ? 'true' : 'false'}">${t}</button>`).join('')}</div><small>เก็บย้อนหลังไม่เกิน 6 เดือน · ไม่จำกัดจำนวนรายการ</small></div>` +
 (l.length ? `<div class="history-list">${l.slice(0, HIST_INITIAL_PAGE).map(rowHtml).join('')}</div>${histMoreHtml(l.length, Math.min(HIST_INITIAL_PAGE, l.length))}` : (quickActive && !typeFilter && !selectedUser ? `<div class="empty"><b>ยังไม่มีประวัติบันทึก${({today:'ในวันนี้',yesterday:'เมื่อวาน',week:'ใน 7 วันที่ผ่านมา',month:'ใน 1 เดือนที่ผ่านมา'})[quickActive]}</b>เมื่อมีการทำรายการ ประวัติจะปรากฏที่นี่</div>` : `<div class="empty"><b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ไม่พบรายการตามตัวกรอง' : 'ยังไม่มีประวัติ'}</b>${dateFrom || dateTo || typeFilter || selectedUser ? 'ลองเปลี่ยนตัวกรอง หรือกดล้างตัวกรอง' : 'รายการจะปรากฏที่นี่เมื่อมีการทำรายการ'}</div>`));
 }
 document.addEventListener('click', e => {
