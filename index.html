@@ -1828,6 +1828,40 @@ if (!cached || (branchId && String(currentBranch?.id) !== String(branchId))) ret
 applySiteBrand(cached);
 return cached;
 }
+
+async function readJobProfilesCache(branchId) {
+  return await readSiteBrandCache('job-profiles:' + String(branchId));
+}
+async function writeJobProfilesCache(branchId, profiles, version) {
+  await writeSiteBrandCache('job-profiles:' + String(branchId), {
+    profiles: profiles && typeof profiles === 'object' ? profiles : {},
+    version: version || null
+  });
+}
+async function refreshJobProfiles(serverVersion = null) {
+  if (!cloudToken || !currentBranch?.id) return;
+  const branchId = String(currentBranch.id), cacheKey = 'job-profiles:' + branchId;
+  let cached = await readJobProfilesCache(branchId);
+  if (String(currentBranch?.id) !== branchId) return;
+  if (cached?.profiles && typeof cached.profiles === 'object') {
+    J = J || jDef(); J.profiles = cached.profiles;
+    store.set(jKey(), J);
+    if (tab === 'jobs') { try { jRender(); } catch {} }
+  }
+  let version = serverVersion;
+  if (!version) {
+    const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
+    if (!check?.ok) return;
+    version = check.profilesVersion;
+  }
+  if (cached && String(cached.version || '') === String(version || '')) return;
+  const result = await cloudRpc('api_job_profiles_get', { p_token: cloudToken });
+  if (!result?.ok || String(currentBranch?.id) !== branchId) return;
+  J = J || jDef(); J.profiles = result.profiles || {};
+  store.set(jKey(), J);
+  await writeJobProfilesCache(branchId, J.profiles, result.profilesVersion || version);
+  if (tab === 'jobs') { try { jRender(); } catch {} }
+}
 function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
 const logo = typeof data.logoData === 'string' && /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(data.logoData) && data.logoData.length <= 2500000 ? data.logoData : null;
@@ -2157,7 +2191,8 @@ const ts = typeof entry?.ts === 'number' ? entry.ts : Date.parse(entry?.ts);
 return Number.isFinite(ts) && ts >= cutoff;
 });
 }
-const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset, ...(JOBS_CLOUD && J ? { jobs: J } : {}) });
+const jobDataForSync = () => { if (!JOBS_CLOUD || !J) return null; const data = cloneData(J); delete data.profiles; return data; };
+const safeState = () => ({ users: U.map(({ pin, ...u }) => u), products: P, log: pruneActivityLog(L), roles: ROLE, categories: CATS, units: UNITS, lastReset, ...(jobDataForSync() ? { jobs: jobDataForSync() } : {}) });
 function applyCloudState(state) {
 invalidatePageRenderCache();
 U = normalizeRemovedViewerAccounts((state.users || []).map(({ pin, ...u }) => u));
@@ -2168,7 +2203,11 @@ logNeedsPrune = logNeedsPrune || L.length !== sourceLog.length;
 ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) }; delete ROLE.viewer;
 CATS = state.categories || []; UNITS = state.units || [];
 lastReset = state.lastReset || null;
-if (JOBS_CLOUD && state.jobs) { J = state.jobs; store.set(jKey(), J); }
+if (JOBS_CLOUD && state.jobs) {
+  const cachedProfiles = store.get(jKey(), {})?.profiles || {};
+  J = { ...state.jobs, profiles: cachedProfiles };
+  store.set(jKey(), J);
+}
 }
 function migrateLegacyBrowserData(result) {
 if (result.version !== 1 || result.me?.role !== 'admin') return false;
@@ -2482,7 +2521,7 @@ invalidatePageRenderCache();
 syncQueue = syncQueue.then(async () => {
 if (!cloudToken || !syncSnapshot) return;
 L = pruneActivityLog(L);
-const next = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS, ...(JOBS_CLOUD && J ? { jobs: J } : {}) }, base = syncSnapshot;
+const next = { users: U, products: P, log: L, roles: ROLE, categories: CATS, units: UNITS, ...(jobDataForSync() ? { jobs: jobDataForSync() } : {}) }, base = syncSnapshot;
 if (!logNeedsPrune && JSON.stringify(safeState()) === JSON.stringify(base)) return;
 cloudBusy = true;
 try {
@@ -2549,7 +2588,7 @@ me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); startPresence(); annState.version = null; refreshAnnouncement(true); if (u.must) pinModal(true);
+tab = 'stock'; build(); void refreshJobProfiles(); startPresence(); annState.version = null; refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 stopPresence();
@@ -2651,6 +2690,7 @@ if (!check.ok) { logout(); showHint(false); return toast(check.error || 'กร�
 const branchChanged = !!(check.branch && (check.branch.id !== currentBranch.id || check.branch.name !== currentBranch.name));
 if (branchChanged) setCurrentBranch(check.branch);
 // Most checks return only a tiny version response. Download the full inventory only after a real change.
+void refreshJobProfiles(check.profilesVersion);
 if (Number(check.version) === Number(syncVersion) && !branchChanged) return;
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
 if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
@@ -5989,8 +6029,13 @@ function jSettings() {
             scale *= .78;
           }
           if (!data) throw new Error('รูปภาพมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');
-          J.profiles = J.profiles || {}; J.profiles[input.dataset.profileCameraInput || input.dataset.profileGalleryInput] = data;
-          saveJ(); jRender(); toast('บันทึกรูปโปรไฟล์แล้ว'); profiles();
+          const profileName = input.dataset.profileCameraInput || input.dataset.profileGalleryInput;
+          const saved = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: profileName, p_data: data });
+          if (!saved?.ok) throw new Error(saved?.error || 'บันทึกรูปโปรไฟล์ไม่สำเร็จ');
+          J.profiles = J.profiles || {}; J.profiles[profileName] = data;
+          store.set(jKey(), J);
+          await writeJobProfilesCache(currentBranch.id, J.profiles, saved.profilesVersion);
+          jRender(); toast('บันทึกรูปโปรไฟล์แล้ว'); profiles();
         } finally { bitmap.close?.(); }
       } catch (err) { toast(err.message || 'บันทึกรูปไม่สำเร็จ', 1); }
     };
@@ -6000,7 +6045,11 @@ function jSettings() {
     content.querySelectorAll('[data-profile-remove]').forEach(btn => btn.onclick = () => {
       const n = btn.dataset.profileRemove;
       if (!confirm('ต้องการลบรูปโปรไฟล์ของ ' + n + ' ใช่หรือไม่?')) return;
-      delete J.profiles[n]; saveJ(); jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
+      const removed = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: null });
+      if (!removed?.ok) return toast(removed?.error || 'ลบรูปโปรไฟล์ไม่สำเร็จ', 1);
+      delete J.profiles[n]; store.set(jKey(), J);
+      await writeJobProfilesCache(currentBranch.id, J.profiles, removed.profilesVersion);
+      jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
     });
   };
   menu(); requestAnimationFrame(() => layer.classList.add('show'));
