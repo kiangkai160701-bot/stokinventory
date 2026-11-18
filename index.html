@@ -2636,6 +2636,14 @@ async function dispatchPendingPushEvents() {
   try { await pushApi({ action: 'dispatch', token: cloudToken }); } catch {}
 }
 const save = () => {
+if (isClosedHoursReadOnly()) {
+  if (syncSnapshot) {
+    applyCloudState(syncSnapshot);
+    build(true);
+  }
+  notifyClosedHours();
+  return;
+}
 invalidatePageRenderCache();
 syncQueue = syncQueue.then(async () => {
 if (!cloudToken || !syncSnapshot) return;
