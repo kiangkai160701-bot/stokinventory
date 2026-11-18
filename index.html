@@ -2550,7 +2550,7 @@ presenceBusy = true; presenceLastRequestAt = Date.now();
 presencePromise = (async () => {
 try {
 const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-if (result?.ok) { presenceFailures = 0; presenceRetryAt = 0; updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
+if (result?.ok && !pollingLogoutInProgress && cloudToken) { presenceFailures = 0; presenceRetryAt = 0; updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
 else if (result?.error?.includes('หมดเวลา')) logout();
 else throw new Error(result?.error || 'Presence request failed');
 } catch {
@@ -2640,6 +2640,9 @@ foregroundSyncTimer = setTimeout(() => {
 foregroundSyncTimer = null;
 if (document.hidden || !me || !cloudToken || pollingLogoutInProgress || isClosedHoursReadOnly()) return;
 cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
+presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
+annState.failures = 0; annState.paused = false; annState.retryAt = 0;
+lastCloudPollAt = Date.now();
 void refreshCloudState(); void refreshPresence(); void refreshAnnouncement();
 scheduleCloudPoll();
 }, delay);
@@ -2714,7 +2717,6 @@ function syncAnnounceOffset() {
   root.setProperty('--ann-h', bar && !bar.hidden ? (bar.offsetHeight + 6) + 'px' : '0px');
   root.setProperty('--dock-gap', bar && !bar.hidden ? '4px' : '14px'); // มีประกาศ: ห่างใต้แถบแค่ 4px พอให้พ้น
 }
-let annPollTimer = null;
 async function refreshAnnouncement(force = false) {
   if (annState.promise) return annState.promise;
   if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || annState.unavailable || annState.paused || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && Date.now() - annState.lastCheckAt < 300000)) return;
@@ -3901,14 +3903,30 @@ window.addEventListener('resize', () => {
 const list = $('#adminBackupList');
 if (list?.classList.contains('is-scrollable')) requestAnimationFrame(() => fitAdminBackupList(list));
 }, { passive: true });
-async function refreshAdminBackups() {
-if (!cloudToken) return;
+let adminBackupCachedResult = null, adminBackupCacheAt = 0, adminBackupPromise = null;
+async function refreshAdminBackups(force = false) {
+if (!cloudToken || pollingLogoutInProgress || document.hidden || cloudBusy) return;
+if (adminBackupPromise) return adminBackupPromise;
 const status = $('#adminBackupStatus'), branches = $('#adminBackupBranches'), list = $('#adminBackupList');
 if (!status || !branches || !list) return;
+if (!force && adminBackupCachedResult && Date.now() - adminBackupCacheAt < 30000) {
+ renderAdminBackupList(adminBackupCachedResult, status, branches, list); return;
+}
 status.textContent = 'กำลังโหลดรายการ Backup…';
+adminBackupPromise = (async () => {
 try {
 const result = await cloudRpc('api_inventory_backup_list', { p_token: cloudToken });
 if (!result?.ok) throw new Error(result?.error || 'โหลดรายการ Backup ไม่สำเร็จ');
+adminBackupCachedResult = result; adminBackupCacheAt = Date.now();
+renderAdminBackupList(result, status, branches, list);
+} catch (error) {
+status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
+list.innerHTML = '<small class="storage-error">ตรวจสอบการเชื่อมต่อแล้วกดรีเฟรชอีกครั้ง</small>';
+} finally { adminBackupPromise = null; }
+})();
+return adminBackupPromise;
+}
+function renderAdminBackupList(result, status, branches, list) {
 const branchNames = Array.isArray(result.branches) ? result.branches.map(branch => esc(branch.name)).join(' · ') : '';
 branches.textContent = 'ขอบเขตข้อมูล: ' + (result.branches?.length || 0) + ' สาขา' + (branchNames ? ' — ' + branchNames : '');
 status.textContent = result.latest_at ? 'สำรองล่าสุด: ' + formatBackupDate(result.latest_at) + ' · เก็บล่าสุด ' + (result.retention_count || 6) + ' ชุด' : 'ยังไม่มีข้อมูลสำรอง';
@@ -3920,10 +3938,6 @@ const branchButtons = (Array.isArray(result.branches) ? result.branches : []).ma
 return '<div class="backup-version-row"><div class="backup-version-info"><b>' + esc(formatBackupDate(item.saved_at)) + '</b><small>' + esc(backupReasonText(item.reason)) + ' · ' + (Number(item.branch_count) || 0) + ' สาขา · ' + size + '</small></div><div class="backup-branch-actions">' + branchButtons + '</div></div>';
 }).join('') : '<small class="dash-empty-note">ยังไม่มี Backup ใน 6 ชุดล่าสุด</small>';
 requestAnimationFrame(() => fitAdminBackupList(list));
-} catch (error) {
-status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
-list.innerHTML = '<small class="storage-error">ตรวจสอบการเชื่อมต่อแล้วกดรีเฟรชอีกครั้ง</small>';
-}
 }
 async function createAdminBackup(button) {
 if (!isBackupOwner() || !cloudToken || !button) return;
@@ -3935,7 +3949,7 @@ await syncQueue;
 const result = await cloudRpc('api_inventory_backup_create', { p_token: cloudToken });
 if (!result?.ok) throw new Error(result?.error || 'สร้าง Backup ไม่สำเร็จ');
 toast('สำรองข้อมูลครบทุกสาขาแล้ว');
-await refreshAdminBackups();
+await refreshAdminBackups(true);
 } catch (error) {
 toast(error.message || 'สร้าง Backup ไม่สำเร็จ', 1);
 } finally {
@@ -4006,7 +4020,7 @@ if (!result?.ok) throw new Error(result?.error || 'กู้คืนข้อ�
 closeModal();
 toast('กู้คืน ' + (result.branch_name || branchName) + ' สำเร็จ สาขาอื่นไม่เปลี่ยนแปลง');
 if (String(currentBranch?.id) === String(branchId)) await refreshCloudState();
-await refreshAdminBackups();
+await refreshAdminBackups(true);
 } catch (error) {
 if (errorEl) errorEl.textContent = error.message || 'ยืนยันตัวตนหรือกู้คืนข้อมูลไม่สำเร็จ';
 confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันและกู้คืน';
@@ -4281,13 +4295,14 @@ panel.classList.add('open');
 });
 if (isWideDesktop()) requestAnimationFrame(updatePageMascots);
 if (me?.owner || me?.role === 'admin') {
-refreshStorageUsage();
-storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
+const storageToggle = $('button[aria-controls="storageDisclosurePanel"]');
+if (storageToggle?.getAttribute('aria-expanded') === 'true') refreshStorageUsage();
 }
-if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
+if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = () => refreshStorageUsage(true);
 if (cloudToken && $('#adminBackupList')) {
-refreshAdminBackups();
-if ($('#adminBackupRefresh')) $('#adminBackupRefresh').onclick = refreshAdminBackups;
+const backupToggle = $('button[aria-controls="adminBackupDisclosurePanel"]');
+if (backupToggle?.getAttribute('aria-expanded') === 'true') refreshAdminBackups();
+if ($('#adminBackupRefresh')) $('#adminBackupRefresh').onclick = () => refreshAdminBackups(true);
 if ($('#adminBackupNow')) $('#adminBackupNow').onclick = e => createAdminBackup(e.currentTarget);
 if ($('#adminBackupList')) $('#adminBackupList').onclick = e => {
 const restoreButton = e.target.closest('[data-admin-restore-branch]');
@@ -4315,7 +4330,12 @@ updatePageMascots(); toast(`ตั้งจำนวนสติ๊กเกอ�
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
-document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => toggleDisclosure(button));
+document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => {
+ const opening = button.getAttribute('aria-expanded') !== 'true';
+ toggleDisclosure(button);
+ if (opening && button.getAttribute('aria-controls') === 'storageDisclosurePanel') void refreshStorageUsage();
+ if (opening && button.getAttribute('aria-controls') === 'adminBackupDisclosurePanel') void refreshAdminBackups();
+});
 bindAnnounceCard(); refreshBranchOnline();
 const resetScopeSelect = $('#resetScope');
 if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
@@ -4569,16 +4589,20 @@ if (verificationToken) cloudRpc('api_logout', { p_token: verificationToken }).ca
 }
 };
 }
-async function refreshStorageUsage() {
-if (isClosedHoursReadOnly()) return;
+let storageUsageCachedResult = null, storageUsageCacheAt = 0;
+async function refreshStorageUsage(force = false) {
+if (isClosedHoursReadOnly() || !cloudToken || pollingLogoutInProgress || cloudBusy) return;
 const card = $('#storageUsageCard');
-if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
+if (!card || storageUsageBusy || document.hidden || !(me?.owner || me?.role === 'admin')) return;
 storageUsageBusy = true;
 const error = $('#storageUsageError');
 error.textContent = '';
 try {
-const result = await cloudRpc('api_storage_usage', { p_token: cloudToken });
-if (!result.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+const result = !force && storageUsageCachedResult && Date.now() - storageUsageCacheAt < 300000
+ ? storageUsageCachedResult
+ : await cloudRpc('api_storage_usage', { p_token: cloudToken });
+if (!result?.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+storageUsageCachedResult = result; storageUsageCacheAt = Date.now();
 const mib = bytes => (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const used = Number(result.usedBytes) || 0, remaining = Number(result.remainingBytes) || 0, quota = Number(result.quotaBytes) || 0;
 const percent = Number(result.usedPercent) || 0, bar = $('#storageUsageBar');
