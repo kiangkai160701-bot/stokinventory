@@ -1505,6 +1505,47 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .sticker-level-presets{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:6px!important}
 .sticker-level-presets .text-scale-option{padding-left:0;padding-right:0}
 @media(prefers-reduced-motion:reduce){.jp,.jp.open,.chp,.chp.open{transition-duration:.01ms!important}}
+
+/* Heading layout fix: keep titles on one line and let supporting copy use full width */
+#main .history-sect,
+#main .sect.dashboard-sect{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  align-items:start;
+  justify-content:stretch;
+  gap:4px;
+  min-width:0;
+}
+#main .history-sect .history-headline{min-width:0}
+#main .history-sect .history-headline h2,
+#main .sect.dashboard-sect h2{
+  display:block;
+  width:100%;
+  min-width:0;
+  margin:0;
+  white-space:nowrap;
+  line-height:1.35;
+}
+#main .history-sect .history-retention-note,
+#main .history-sect .history-meta,
+#main .sect.dashboard-sect>small{
+  display:block;
+  width:100%;
+  max-width:none;
+  min-width:0;
+  margin:0;
+  text-align:left;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  line-height:1.55;
+}
+#main .history-sect .history-meta{margin-top:1px}
+@media(min-width:1100px){
+  #main .sect.dashboard-sect{gap:5px}
+  #main .sect.dashboard-sect>small{text-align:left}
+}
+
 </style>
 <style id="topRunnerStyle">/* ตัวการ์ตูนตัวเล็กวิ่งบนขอบบนของแถบเมนูด้านล่าง (ไม่รับการกด ไม่ดันปุ่ม) */
 .top-runway{position:fixed;left:30px;right:30px;top:auto;bottom:calc(12px + 44px + env(safe-area-inset-bottom,0px));width:auto;height:20px;overflow:hidden;pointer-events:none!important;z-index:41;--rn-dist:0px;--rn-dur:12s;contain:layout paint style;will-change:transform;transform:translateZ(0)}
@@ -3933,7 +3974,7 @@ const rankFilter = (type, range) => {
 const title = type === 'out' ? 'เบิกจ่าย' : 'รับเข้า', prefix = type === 'out' ? 'Out' : 'In';
 return `<div class="dash-rank-filter" aria-label="กรองรายการ${title}ตามช่วงวันที่"><label class="dash-rank-date"><span>ตั้งแต่</span><input id="dashboard${prefix}From" type="date" value="${range.from || ''}" aria-label="วันที่เริ่มต้นรายการ${title}"></label><label class="dash-rank-date"><span>ถึง</span><input id="dashboard${prefix}To" type="date" value="${range.to || ''}" aria-label="วันที่สิ้นสุดรายการ${title}"></label><button type="button" data-clear-dashboard-rank="${type}">ล้างตัวกรอง</button></div>`;
 };
-return `<div class="sect"><h2>${isWideDesktop()?'ภาพรวมสาขา':'แดชบอร์ดสรุปภาพรวม'}</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
+return `<div class="sect dashboard-sect"><h2>${isWideDesktop()?'ภาพรวมสาขา':'แดชบอร์ดสรุปภาพรวม'}</h2><small>สถานะคลังปัจจุบันและการเคลื่อนไหวในช่วงวันที่เลือก</small></div>
   <div class="history-filter range-filter dashboard-range"><label>📅 ช่วงข้อมูล</label><label class="range-field"><span>ตั้งแต่</span><input id="dashboardFrom" type="date" value="${dateFrom}" aria-label="วันที่เริ่มต้นแดชบอร์ด"></label><label class="range-field"><span>ถึง</span><input id="dashboardTo" type="date" value="${dateTo}" aria-label="วันที่สิ้นสุดแดชบอร์ด"></label><button type="button" id="dashboardSevenDays">7 วันล่าสุด</button><small>${inRange.length} รายการเคลื่อนไหว · ${activityDays} วันที่มีรายการ</small></div>
   <div class="stats">
     <div class="st" data-dashboard-stock-filter="all" role="button" tabindex="0" aria-label="ไปหน้าสต็อกและแสดงวัตถุดิบทั้งหมด"><small>วัตถุดิบทั้งหมด</small><b>${totalItems}</b><small>รายการ</small></div>
