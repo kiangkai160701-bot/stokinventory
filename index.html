@@ -926,11 +926,7 @@ html.dark-theme .bm-badge{color:#8fd1a8}
 }
 @media(max-width:1099px){.desktop-settings-shortcut{display:none!important}}
 @media(hover:none) and (pointer:coarse) and (max-width:1099px){#nav.nav{contain:layout style}#nav.nav button{touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .12s ease!important}#nav .nav-pill.ready{transition:transform .36s cubic-bezier(.32,.72,0,1)}html.nav-busy .card-mascot,html.nav-busy #app::before,html.nav-busy #app::after{animation-play-state:paused!important}}
-.nav-loading{display:none}
-@keyframes navLoadingIn{to{opacity:1}}
-@keyframes navSpin{to{transform:rotate(360deg)}}
-@media(max-width:1099px){#nav .nav-pill.ready{transition:transform .42s cubic-bezier(.3,.8,.25,1)}html.nav-switching #main{opacity:.45;transition:opacity .14s ease}html.nav-switching .nav-loading{display:flex}.nav-loading{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:45;align-items:center;gap:8px;padding:9px 16px;border-radius:99px;background:var(--card-bg);border:1px solid var(--theme-border-strong);box-shadow:0 8px 22px var(--theme-shadow);color:var(--ink);font-size:calc(13px * var(--ts,1));font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;animation:navLoadingIn .2s ease .16s forwards}.nav-loading-spin{width:15px;height:15px;flex:none;border-radius:50%;border:2px solid var(--line);border-top-color:var(--acc);animation:navSpin .7s linear infinite}}
-@media(prefers-reduced-motion:reduce){html.nav-switching #main{transition:none}.nav-loading{animation:none;opacity:1}.nav-loading-spin{animation:none}}
+@media(max-width:1099px){#nav .nav-pill.ready{transition:transform .42s cubic-bezier(.3,.8,.25,1)}}
 @media(min-width:1100px){#nav.nav{left:0;right:0;margin:0 auto;transform:none;backface-visibility:visible}#nav .nav-pill{will-change:auto;backface-visibility:visible}#main{backface-visibility:visible}}
 @media(max-width:1099px){.row .stock-dots.ok .stock-dot.on{background:#86d9ac;box-shadow:0 1px 5px rgba(134,217,172,.55)}.row .stock-dots.low .stock-dot.on{background:#ffd978;box-shadow:0 1px 5px rgba(255,217,120,.6)}.row .stock-dots.out .stock-dot.on{background:#ff9fb2;box-shadow:0 1px 5px rgba(255,159,178,.6)}}
 .ov.ov-item{display:block;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scroll-snap-type:y mandatory}
@@ -2329,7 +2325,6 @@ THEME_CARD_FRIENDS[id] = merged; t.friends = merged;
 });
 })();
 let uiTopRunners = store.get('inv_top_runners', true) !== false;
-const RUNNER_LANE_H = 20;
 function sizeTopRunners() {
 const lane = document.getElementById('topRunway'), nav = document.getElementById('nav'); if (!lane || !nav) return;
 const r = nav.getBoundingClientRect();
@@ -2883,27 +2878,6 @@ document.documentElement.classList.add('nav-busy');
 clearTimeout(navBusyTimer);
 navBusyTimer = setTimeout(() => document.documentElement.classList.remove('nav-busy'), 650);
 }
-let navLoadingEl = null, navSwitchTimer = null, navSwitchFallback = null;
-function stagedPageSwitch(go) {
-const root = document.documentElement;
-if (!navLoadingEl) {
-navLoadingEl = document.createElement('div');
-navLoadingEl.className = 'nav-loading';
-navLoadingEl.setAttribute('role', 'status');
-navLoadingEl.setAttribute('aria-live', 'polite');
-navLoadingEl.innerHTML = '<span class="nav-loading-spin" aria-hidden="true"></span><span>รอสักครู่…</span>';
-document.body.appendChild(navLoadingEl);
-}
-clearTimeout(navSwitchTimer); clearTimeout(navSwitchFallback);
-root.classList.add('nav-switching');
-const finish = () => {
-clearTimeout(navSwitchTimer); clearTimeout(navSwitchFallback);
-root.classList.remove('nav-switching');
-go();
-};
-requestAnimationFrame(() => requestAnimationFrame(() => { navSwitchTimer = setTimeout(finish, 50); }));
-navSwitchFallback = setTimeout(finish, 400);
-}
 function runPageExit() {
 const main = $('#main');
 let called = false;
@@ -3057,23 +3031,6 @@ m.className = 'card-mascot mascot-tl'; m.setAttribute('aria-hidden', 'true');
 m.textContent = friends[(index + 2) % friends.length];
 card.classList.add('has-corner-stk');
 card.append(m);
-});
-}
-function updateStockRowMascots() {
-const list = $('#list');
-if (!list) return;
-list.querySelectorAll('.card-mascot').forEach(mascot => mascot.remove());
-list.querySelectorAll('.has-card-mascot').forEach(card => card.classList.remove('has-card-mascot'));
-if (THEMES[currentTheme]?.formal) return;
-const friends = THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣','🍙','🍤'];
-list.querySelectorAll('.row .c-name').forEach((card, index) => {
-if (!stkKeep(index)) return;
-const mascot = document.createElement('span');
-mascot.className = 'card-mascot mascot-stock';
-mascot.setAttribute('aria-hidden', 'true');
-mascot.textContent = friends[index % friends.length];
-card.classList.add('has-card-mascot');
-card.append(mascot);
 });
 }
 let pageAnimation = null, mascotTimer = 0;
@@ -3683,7 +3640,6 @@ const chartDays = buckets.slice(-12), maxMoves = Math.max(1, ...chartDays.flatMa
 const pieTotal = Math.max(1, totalItems);
 const inPct = readyCount / pieTotal * 100, lowPct = lowCount / pieTotal * 100;
 const pieA = inPct * 3.6, pieB = (inPct + lowPct) * 3.6;
-const pieStyle = totalItems ? `conic-gradient(var(--ok) 0deg ${pieA}deg,var(--warn) ${pieA}deg ${pieB}deg,var(--bad) ${pieB}deg 360deg)` : 'conic-gradient(var(--line) 0deg 360deg)';
 const pct = n => totalItems ? Math.round(n / totalItems * 1000) / 10 : 0;
 const statusSegs = [
 {key:'ok',  label:'ปกติ',     sub:'พร้อมใช้งาน',        n:readyCount,    color:'var(--kd-ok)',   filter:'status-ok'},
@@ -5097,7 +5053,6 @@ const localDateKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-
 if (dateFrom || dateTo) historyQuickKey = null;
 else if (historyQuickKey) { const dq = o => localDateKey(Date.now() - o * 864e5); [dateFrom, dateTo] = historyQuickKey === 'today' ? [dq(0), dq(0)] : historyQuickKey === 'yesterday' ? [dq(1), dq(1)] : historyQuickKey === 'month' ? [dq(29), dq(0)] : [dq(6), dq(0)]; }
 const l = L.filter(x => { const day = localDateKey(x.ts); return (!dateFrom || day >= dateFrom) && (!dateTo || day <= dateTo) && (!typeFilter || (typeFilter === 'note' ? !!String(x.note || '').trim() : x.type === typeFilter)) && (!selectedUser || String(x.user || '').toLowerCase() === selectedUser.toLowerCase()); });
-const quickRange = k => { const d = o => localDateKey(Date.now() - o * 864e5); return k === 'today' ? [d(0), d(0)] : k === 'yesterday' ? [d(1), d(1)] : k === 'month' ? [d(29), d(0)] : [d(6), d(0)]; };
 const quickActive = historyQuickKey || '';
 const periodText = `${dateFrom && dateTo ? `${dateFrom} ถึง ${dateTo}` : dateFrom ? `ตั้งแต่ ${dateFrom}` : dateTo ? `ถึง ${dateTo}` : 'ทุกวัน'}${typeFilter ? ` · เฉพาะ${typeLabels[typeFilter]}` : ''}${selectedUser ? ` · ผู้ทำรายการ ${selectedUser}` : ''}`;
 const LT = { in: ['รับเข้า', 'in'], out: ['เบิกจ่าย', 'out'], adjust: ['ปรับยอด', 'adjust'], create: ['เพิ่มวัตถุดิบ', 'create'], edit: ['แก้ไขข้อมูล', 'edit'], delete: ['ลบวัตถุดิบ', 'delete'], import: ['นำเข้าวัตถุดิบ', 'import'] };
