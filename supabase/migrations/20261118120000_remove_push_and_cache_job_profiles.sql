@@ -1,4 +1,15 @@
 -- Remove Web Push and keep job profile images out of routine inventory payloads.
+
+create table if not exists private.inventory_job_profile_versions (
+  branch_id uuid primary key references private.inventory_branches(id) on delete cascade,
+  version text not null,
+  updated_at timestamptz not null default now()
+);
+insert into private.inventory_job_profile_versions(branch_id,version)
+select branch_id,md5(coalesce(data->'jobs'->'profiles','{}'::jsonb)::text)
+from private.inventory_state where id=true
+on conflict(branch_id) do update set version=excluded.version,updated_at=now();
+
 CREATE OR REPLACE FUNCTION public.api_safe_state(p_data jsonb)
  RETURNS jsonb LANGUAGE sql IMMUTABLE SET search_path TO ''
 AS $function$
@@ -66,7 +77,7 @@ begin
   return jsonb_build_object(
     'ok', true,
     'version', v_version,
-    'profilesVersion', md5(coalesce(v_data->'jobs'->'profiles','{}'::jsonb)::text),
+    'profilesVersion', coalesce((select version from private.inventory_job_profile_versions where branch_id=v_branch_id), md5('{}'::text)),
     'branch', (select jsonb_build_object('id', id, 'name', name)
                from private.inventory_branches where id = v_branch_id)
   );
@@ -328,7 +339,7 @@ begin
  if v_name is null then return jsonb_build_object('ok',false,'error','หมดเวลาการใช้งาน กรุณาเข้าสู่ระบบใหม่'); end if;
  select data into v_data from private.inventory_state where id=true and branch_id=v_branch_id;
  return jsonb_build_object('ok',true,'profiles',coalesce(v_data->'jobs'->'profiles','{}'::jsonb),
- 'profilesVersion',md5(coalesce(v_data->'jobs'->'profiles','{}'::jsonb)::text));
+ 'profilesVersion',coalesce((select version from private.inventory_job_profile_versions where branch_id=v_branch_id),md5('{}'::text)));
 end;$function$;
 
 CREATE OR REPLACE FUNCTION public.api_job_profile_set(p_token text,p_name text,p_data text)
@@ -349,6 +360,7 @@ begin
  v_profiles:=coalesce(v_data->'jobs'->'profiles','{}'::jsonb);
  if p_data is null then v_profiles:=v_profiles-p_name; else v_profiles:=jsonb_set(v_profiles,array[p_name],to_jsonb(p_data),true); end if;
  update private.inventory_state set data=jsonb_set(coalesce(data,'{}'::jsonb),'{jobs}',coalesce(data->'jobs','{}'::jsonb)||jsonb_build_object('profiles',v_profiles),true),version=version+1,updated_at=now() where id=true and branch_id=v_branch_id;
+ insert into private.inventory_job_profile_versions(branch_id,version,updated_at) values(v_branch_id,md5(v_profiles::text),now()) on conflict(branch_id) do update set version=excluded.version,updated_at=excluded.updated_at;
  return jsonb_build_object('ok',true,'profilesVersion',md5(v_profiles::text));
 end;$function$;
 GRANT EXECUTE ON FUNCTION public.api_job_profiles_get(text) TO anon,authenticated;
