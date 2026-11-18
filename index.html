@@ -6150,7 +6150,9 @@ function jSettings() {
     title.textContent = 'ตั้งค่าวันเริ่มงาน'; const names = jStaff();
     if (!names.length) { content.innerHTML = '<p class="jp-settings-note">ยังไม่มีพนักงานในจ๊อบ กรุณาเลือกพนักงานก่อน</p>'; return; }
     content.innerHTML = '<p class="jp-settings-note">วันที่ก่อนเริ่มงานจะไม่ถูกนำไปคำนวณในปฏิทินและรายงาน สามารถเลือกวันย้อนหลังหรืออนาคตได้</p><div>'+names.map(n => '<label class="jp-staff-date"><b>'+esc(n)+'</b><input type="date" data-start-name="'+esc(n)+'" value="'+esc(jStartFor(n))+'"></label>').join('')+'</div><button type="button" class="jp-settings-save" id="jpSaveDates">บันทึกวันเริ่มงาน</button>';
-    $('#jpSaveDates').onclick = () => { J.startByName = J.startByName || {}; content.querySelectorAll('[data-start-name]').forEach(i => { if (i.value) J.startByName[i.dataset.startName] = i.value; }); saveJ();  const profiles = () => {
+    $('#jpSaveDates').onclick = () => { J.startByName = J.startByName || {}; content.querySelectorAll('[data-start-name]').forEach(i => { if (i.value) J.startByName[i.dataset.startName] = i.value; }); saveJ(); jRender(); toast('บันทึกวันเริ่มงานแล้ว'); close(); };
+  };
+  const profiles = () => {
     if (!jIsSupervisor()) { toast('เฉพาะหัวหน้างานเท่านั้นที่จัดการรูปโปรไฟล์ได้', 1); return; }
     title.textContent = 'โปรไฟล์พนักงาน';
     const names = jStaff();
@@ -6158,7 +6160,7 @@ function jSettings() {
     window.__refreshJobProfileSettings = () => { if (title.textContent === 'โปรไฟล์พนักงาน' && layer.isConnected) profiles(); };
     const safeUrl = raw => {
       const value = String(raw || '').trim();
-      if (!value) return '';
+      if (!value) return null;
       try {
         const u = new URL(value);
         const host = u.hostname.toLowerCase();
@@ -6172,7 +6174,7 @@ function jSettings() {
     content.innerHTML = '<p class="jp-settings-note">ใส่ลิงก์ URL รูปภาพจากเว็บไซต์ภายนอก (ต้องเป็น HTTPS) ระบบจะบันทึกเฉพาะลิงก์ ไม่อัปโหลดไฟล์รูปเข้า Supabase</p><div class="jp-profile-list">' + names.map(n => {
       const current = String(J.profiles?.[n] || '');
       const has = !!current;
-      const currentUrl = /^https:\\/\\//i.test(current) ? current : '';
+      const currentUrl = /^https:\/\//i.test(current) ? current : '';
       const legacy = has && !currentUrl;
       return '<article class="jp-profile-card"><div class="jp-profile-main">' + jAvatar(n, 'jp-profile-avatar') + '<div class="jp-profile-meta"><b>' + esc(n) + '</b><small>' + (currentUrl ? 'ใช้รูปจากลิงก์ภายนอกแล้ว' : legacy ? 'มีรูปเดิมอยู่ — วาง URL ใหม่เพื่อเปลี่ยนรูป' : 'ยังไม่ได้เพิ่มลิงก์รูปโปรไฟล์') + '</small></div></div><input class="jp-profile-url" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com/photo.jpg" value="' + esc(currentUrl) + '" data-profile-url="' + esc(n) + '"><div class="jp-profile-actions"><button type="button" class="jp-profile-btn" data-profile-save="' + esc(n) + '">บันทึกลิงก์รูป</button>' + (has ? '<button type="button" class="jp-profile-btn jp-profile-delete" data-profile-remove="' + esc(n) + '"><span>🗑️</span> ลบรูป</button>' : '') + '</div></article>';
     }).join('') + '</div>';
@@ -6197,13 +6199,16 @@ function jSettings() {
       const n = btn.dataset.profileRemove;
       if (!confirm('ต้องการลบรูปโปรไฟล์ของ ' + n + ' ใช่หรือไม่?')) return;
       btn.disabled = true;
-      const removed = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: null });
-      if (!removed?.ok) { btn.disabled = false; return toast(removed?.error || 'ลบรูปโปรไฟล์ไม่สำเร็จ', 1); }
-      delete J.profiles[n]; saveJ();
-      await writeJobProfilesCache(currentBranch.id, J.profiles, removed.profilesVersion);
-      jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
-    });
-  };Render(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
+      try {
+        const removed = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: null });
+        if (!removed?.ok) throw new Error(removed?.error || 'ลบรูปโปรไฟล์ไม่สำเร็จ');
+        delete J.profiles[n]; saveJ();
+        await writeJobProfilesCache(currentBranch.id, J.profiles, removed.profilesVersion);
+        jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
+      } catch (err) {
+        toast(err.message || 'ลบรูปโปรไฟล์ไม่สำเร็จ', 1);
+        btn.disabled = false;
+      }
     });
   };
   menu(); requestAnimationFrame(() => layer.classList.add('show'));
