@@ -5740,7 +5740,7 @@ const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
 const jDef = () => ({ v: 4, ev: {}, rec: {}, closed: {}, periods: {}, start: '', startByName: {}, profiles: {}, staff: null });
 const jStartFor = name => (J.startByName && J.startByName[name]) || (J.startByName && Object.keys(J.startByName).length ? jToday() : J.start || jToday());
 const jIsSupervisor = () => me?.role === 'supervisor' || String(me?.name || '').trim().toLowerCase() === 'kiangkai';
-const jAvatar = (name, cls = '') => '<span class="jp-av '+cls+'">'+(J.profiles?.[name] ? '<img src="'+esc(J.profiles[name])+'" alt="รูปโปรไฟล์ '+esc(name)+'">' : esc([...name][0] || '?'))+'</span>'; 
+const jAvatar = (name, cls = '') => '<span class="jp-av '+cls+'">'+(J.profiles?.[name] ? '<img loading="lazy" decoding="async" referrerpolicy="no-referrer" src="'+esc(J.profiles[name])+'" alt="รูปโปรไฟล์ '+esc(name)+'">' : esc([...name][0] || '?'))+'</span>'; 
 const p2 = n => String(n).padStart(2, '0');
 const dk = d => `${d.getFullYear()}-${p2(d.getMonth() + 1)}-${p2(d.getDate())}`;
 const pk = k => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
@@ -6150,56 +6150,58 @@ function jSettings() {
     title.textContent = 'ตั้งค่าวันเริ่มงาน'; const names = jStaff();
     if (!names.length) { content.innerHTML = '<p class="jp-settings-note">ยังไม่มีพนักงานในจ๊อบ กรุณาเลือกพนักงานก่อน</p>'; return; }
     content.innerHTML = '<p class="jp-settings-note">วันที่ก่อนเริ่มงานจะไม่ถูกนำไปคำนวณในปฏิทินและรายงาน สามารถเลือกวันย้อนหลังหรืออนาคตได้</p><div>'+names.map(n => '<label class="jp-staff-date"><b>'+esc(n)+'</b><input type="date" data-start-name="'+esc(n)+'" value="'+esc(jStartFor(n))+'"></label>').join('')+'</div><button type="button" class="jp-settings-save" id="jpSaveDates">บันทึกวันเริ่มงาน</button>';
-    $('#jpSaveDates').onclick = () => { J.startByName = J.startByName || {}; content.querySelectorAll('[data-start-name]').forEach(i => { if (i.value) J.startByName[i.dataset.startName] = i.value; }); saveJ(); jRender(); toast('บันทึกวันเริ่มงานแล้ว'); close(); };
-  };
-  const profiles = () => {
+    $('#jpSaveDates').onclick = () => { J.startByName = J.startByName || {}; content.querySelectorAll('[data-start-name]').forEach(i => { if (i.value) J.startByName[i.dataset.startName] = i.value; }); saveJ();  const profiles = () => {
     if (!jIsSupervisor()) { toast('เฉพาะหัวหน้างานเท่านั้นที่จัดการรูปโปรไฟล์ได้', 1); return; }
     title.textContent = 'โปรไฟล์พนักงาน';
     const names = jStaff();
     if (!names.length) { content.innerHTML = '<p class="jp-settings-note">ยังไม่มีพนักงานในรายการจ๊อบ</p>'; return; }
     window.__refreshJobProfileSettings = () => { if (title.textContent === 'โปรไฟล์พนักงาน' && layer.isConnected) profiles(); };
-    content.innerHTML = '<p class="jp-settings-note">จัดการรูปโปรไฟล์ของพนักงานได้จากที่นี่ เลือกถ่ายรูปด้วยกล้องหรือเลือกรูปจากเครื่อง รูปจะแสดงเป็นวงกลมในหน้าจ๊อบพนักงาน</p><div class="jp-profile-list">' + names.map(n => {
-      const has = !!J.profiles?.[n];
-      return '<article class="jp-profile-card"><div class="jp-profile-main">' + jAvatar(n, 'jp-profile-avatar') + '<div class="jp-profile-meta"><b>' + esc(n) + '</b><small>' + (has ? 'มีรูปโปรไฟล์แล้ว' : 'ยังไม่ได้เพิ่มรูปโปรไฟล์') + '</small></div></div><div class="jp-profile-actions"><button type="button" class="jp-profile-btn jp-profile-camera" data-profile-camera="' + esc(n) + '"><span>📷</span> ถ่ายรูป</button><button type="button" class="jp-profile-btn" data-profile-gallery="' + esc(n) + '"><span>🖼️</span> เลือกรูป</button>' + (has ? '<button type="button" class="jp-profile-btn jp-profile-delete" data-profile-remove="' + esc(n) + '"><span>🗑️</span> ลบรูป</button>' : '') + '</div><input type="file" accept="image/*" capture="user" data-profile-camera-input="' + esc(n) + '" hidden><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-profile-gallery-input="' + esc(n) + '" hidden></article>';
-    }).join('') + '</div>';
-    const processImage = async (input) => {
-      const file = input.files?.[0]; if (!file) return;
+    const safeUrl = raw => {
+      const value = String(raw || '').trim();
+      if (!value) return '';
       try {
-        if (!file.type.startsWith('image/')) throw new Error('กรุณาเลือกไฟล์รูปภาพ');
-        if (file.size > 20000000) throw new Error('ไฟล์ต้นฉบับต้องมีขนาดไม่เกิน 20 MB');
-        if (!('createImageBitmap' in window)) throw new Error('อุปกรณ์นี้ไม่รองรับการประมวลผลรูปภาพ');
-        const bitmap = await createImageBitmap(file);
-        try {
-          let scale = Math.min(1, 640 / Math.max(bitmap.width, bitmap.height)), data = '';
-          for (let attempt = 0; attempt < 7; attempt++) {
-            const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
-            const ctx = canvas.getContext('2d'); if (!ctx) throw new Error('ประมวลผลรูปภาพไม่สำเร็จ');
-            ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/webp', Math.max(.65, .9 - attempt * .04)));
-            if (blob && blob.size <= 220000) { data = await new Promise((resolve, reject) => { const fr = new FileReader(); fr.onload = () => resolve(String(fr.result || '')); fr.onerror = () => reject(new Error('อ่านรูปภาพไม่สำเร็จ')); fr.readAsDataURL(blob); }); break; }
-            scale *= .78;
-          }
-          if (!data) throw new Error('รูปภาพมีขนาดใหญ่เกินไป กรุณาเลือกรูปอื่น');
-          const profileName = input.dataset.profileCameraInput || input.dataset.profileGalleryInput;
-          const saved = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: profileName, p_data: data });
-          if (!saved?.ok) throw new Error(saved?.error || 'บันทึกรูปโปรไฟล์ไม่สำเร็จ');
-          J.profiles = J.profiles || {}; J.profiles[profileName] = data; saveJ();
-          await writeJobProfilesCache(currentBranch.id, J.profiles, saved.profilesVersion);
-          jRender(); toast('บันทึกรูปโปรไฟล์แล้ว'); profiles();
-        } finally { bitmap.close?.(); }
-      } catch (err) { toast(err.message || 'บันทึกรูปไม่สำเร็จ', 1); }
+        const u = new URL(value);
+        const host = u.hostname.toLowerCase();
+        const privateIp = /^(localhost|127(?:\\.\\d{1,3}){3}|10(?:\\.\\d{1,3}){3}|192\\.168(?:\\.\\d{1,3}){2}|169\\.254(?:\\.\\d{1,3}){2}|172\\.(?:1[6-9]|2\\d|3[01])(?:\\.\\d{1,3}){2}|\\[?::1\\]?)$/i.test(host);
+        if (u.protocol !== 'https:' || u.username || u.password || !host || privateIp || host.endsWith('.local') || host.endsWith('.internal')) return null;
+        return u.href;
+      } catch { return null; }
     };
-    content.querySelectorAll('[data-profile-camera]').forEach(btn => btn.onclick = () => content.querySelector('[data-profile-camera-input="' + CSS.escape(btn.dataset.profileCamera) + '"]')?.click());
-    content.querySelectorAll('[data-profile-gallery]').forEach(btn => btn.onclick = () => content.querySelector('[data-profile-gallery-input="' + CSS.escape(btn.dataset.profileGallery) + '"]')?.click());
-    content.querySelectorAll('[data-profile-camera-input],[data-profile-gallery-input]').forEach(input => input.onchange = () => processImage(input));
+    content.innerHTML = '<p class="jp-settings-note">ใส่ลิงก์ URL รูปภาพจากเว็บไซต์ภายนอก (ต้องเป็น HTTPS) ระบบจะบันทึกเฉพาะลิงก์ ไม่อัปโหลดไฟล์รูปเข้า Supabase</p><div class="jp-profile-list">' + names.map(n => {
+      const current = String(J.profiles?.[n] || '');
+      const has = !!current;
+      const currentUrl = /^https:\\/\\//i.test(current) ? current : '';
+      const legacy = has && !currentUrl;
+      return '<article class="jp-profile-card"><div class="jp-profile-main">' + jAvatar(n, 'jp-profile-avatar') + '<div class="jp-profile-meta"><b>' + esc(n) + '</b><small>' + (currentUrl ? 'ใช้รูปจากลิงก์ภายนอกแล้ว' : legacy ? 'มีรูปเดิมอยู่ — วาง URL ใหม่เพื่อเปลี่ยนรูป' : 'ยังไม่ได้เพิ่มลิงก์รูปโปรไฟล์') + '</small></div></div><input class="jp-profile-url" type="url" inputmode="url" autocomplete="url" placeholder="https://example.com/photo.jpg" value="' + esc(currentUrl) + '" data-profile-url="' + esc(n) + '"><div class="jp-profile-actions"><button type="button" class="jp-profile-btn" data-profile-save="' + esc(n) + '">บันทึกลิงก์รูป</button>' + (has ? '<button type="button" class="jp-profile-btn jp-profile-delete" data-profile-remove="' + esc(n) + '"><span>🗑️</span> ลบรูป</button>' : '') + '</div></article>';
+    }).join('') + '</div>';
+    content.querySelectorAll('[data-profile-save]').forEach(btn => btn.onclick = async () => {
+      const n = btn.dataset.profileSave;
+      const input = content.querySelector('[data-profile-url="' + CSS.escape(n) + '"]');
+      const url = safeUrl(input?.value);
+      if (!url) return toast('กรุณาใส่ลิงก์รูปภาพ HTTPS ที่ถูกต้อง', 1);
+      btn.disabled = true;
+      try {
+        const saved = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: url });
+        if (!saved?.ok) throw new Error(saved?.error || 'บันทึกลิงก์รูปโปรไฟล์ไม่สำเร็จ');
+        J.profiles = J.profiles || {}; J.profiles[n] = url; saveJ();
+        await writeJobProfilesCache(currentBranch.id, J.profiles, saved.profilesVersion);
+        jRender(); toast('บันทึกลิงก์รูปโปรไฟล์แล้ว'); profiles();
+      } catch (err) {
+        toast(err.message || 'บันทึกลิงก์รูปไม่สำเร็จ', 1);
+        btn.disabled = false;
+      }
+    });
     content.querySelectorAll('[data-profile-remove]').forEach(btn => btn.onclick = async () => {
       const n = btn.dataset.profileRemove;
       if (!confirm('ต้องการลบรูปโปรไฟล์ของ ' + n + ' ใช่หรือไม่?')) return;
+      btn.disabled = true;
       const removed = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: null });
-      if (!removed?.ok) return toast(removed?.error || 'ลบรูปโปรไฟล์ไม่สำเร็จ', 1);
+      if (!removed?.ok) { btn.disabled = false; return toast(removed?.error || 'ลบรูปโปรไฟล์ไม่สำเร็จ', 1); }
       delete J.profiles[n]; saveJ();
       await writeJobProfilesCache(currentBranch.id, J.profiles, removed.profilesVersion);
       jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
+    });
+  };Render(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
     });
   };
   menu(); requestAnimationFrame(() => layer.classList.add('show'));
