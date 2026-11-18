@@ -1772,6 +1772,7 @@ async function refreshJobProfiles(serverVersion = null) {
   if (cached?.profiles && typeof cached.profiles === 'object') {
     J = J || jDef(); J.profiles = cached.profiles; saveJ();
     if (tab === 'jobs') { try { jRender(); } catch {} }
+    if (typeof window.__refreshJobProfileSettings === 'function') { try { window.__refreshJobProfileSettings(); } catch {} }
   }
   if (isClosedHoursReadOnly() || document.hidden || pollingLogoutInProgress || cloudBusy) return;
   let version = serverVersion;
@@ -1786,6 +1787,7 @@ async function refreshJobProfiles(serverVersion = null) {
   J = J || jDef(); J.profiles = result.profiles || {}; saveJ();
   await writeJobProfilesCache(branchId, J.profiles, result.profilesVersion || version);
   if (tab === 'jobs') { try { jRender(); } catch {} }
+  if (typeof window.__refreshJobProfileSettings === 'function') { try { window.__refreshJobProfileSettings(); } catch {} }
   } finally { jobProfilesBusy = false; }
 }
 function applySiteBrand(data = {}) {
@@ -6052,7 +6054,7 @@ function jSettings() {
   const layer = document.createElement('div'); layer.id = 'jpSettingsLayer'; layer.className = 'jp-settings-layer';
   layer.innerHTML = '<section class="jp-settings-sheet" role="dialog" aria-modal="true" aria-label="ตั้งค่าจ๊อบพนักงาน"><div class="jp-sheet-grip"></div><header class="jp-sheet-head"><h3 id="jpSheetTitle">ตั้งค่าจ๊อบพนักงาน</h3><button type="button" class="jp-sheet-close" id="jpSheetClose" aria-label="ปิด"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></header><div id="jpSheetContent"></div></section>';
   document.body.appendChild(layer);
-  const close = () => { layer.classList.remove('show'); setTimeout(() => layer.remove(), 240); };
+  const close = () => { if (window.__refreshJobProfileSettings) delete window.__refreshJobProfileSettings; layer.classList.remove('show'); setTimeout(() => layer.remove(), 240); };
   const content = $('#jpSheetContent'), title = $('#jpSheetTitle');
   $('#jpSheetClose').onclick = close; layer.addEventListener('click', e => { if (e.target === layer) close(); });
   const menu = () => {
@@ -6072,6 +6074,7 @@ function jSettings() {
     title.textContent = 'โปรไฟล์พนักงาน';
     const names = jStaff();
     if (!names.length) { content.innerHTML = '<p class="jp-settings-note">ยังไม่มีพนักงานในรายการจ๊อบ</p>'; return; }
+    window.__refreshJobProfileSettings = () => { if (title.textContent === 'โปรไฟล์พนักงาน' && layer.isConnected) profiles(); };
     content.innerHTML = '<p class="jp-settings-note">จัดการรูปโปรไฟล์ของพนักงานได้จากที่นี่ เลือกถ่ายรูปด้วยกล้องหรือเลือกรูปจากเครื่อง รูปจะแสดงเป็นวงกลมในหน้าจ๊อบพนักงาน</p><div class="jp-profile-list">' + names.map(n => {
       const has = !!J.profiles?.[n];
       return '<article class="jp-profile-card"><div class="jp-profile-main">' + jAvatar(n, 'jp-profile-avatar') + '<div class="jp-profile-meta"><b>' + esc(n) + '</b><small>' + (has ? 'มีรูปโปรไฟล์แล้ว' : 'ยังไม่ได้เพิ่มรูปโปรไฟล์') + '</small></div></div><div class="jp-profile-actions"><button type="button" class="jp-profile-btn jp-profile-camera" data-profile-camera="' + esc(n) + '"><span>📷</span> ถ่ายรูป</button><button type="button" class="jp-profile-btn" data-profile-gallery="' + esc(n) + '"><span>🖼️</span> เลือกรูป</button>' + (has ? '<button type="button" class="jp-profile-btn jp-profile-delete" data-profile-remove="' + esc(n) + '"><span>🗑️</span> ลบรูป</button>' : '') + '</div><input type="file" accept="image/*" capture="user" data-profile-camera-input="' + esc(n) + '" hidden><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-profile-gallery-input="' + esc(n) + '" hidden></article>';
