@@ -2114,7 +2114,7 @@ $('#lgBranch').addEventListener('change', e => { const branch = branches.find(b 
 const CLOSED_HOUR_START = 22, CLOSED_HOUR_END = 6;
 const CLOSED_WRITE_RPCS = new Set([
 'api_announcement_cancel','api_announcement_set','api_app_download_update','api_branch_create','api_branch_deactivate',
-'api_branch_switch','api_change_pin','api_history_edit','api_inventory_backup_create','api_inventory_backup_export',
+'api_branch_switch','api_change_pin','api_history_edit','api_job_profile_set','api_inventory_backup_create','api_inventory_backup_export',
 'api_inventory_backup_export_branch','api_inventory_backup_restore','api_inventory_backup_restore_branch','api_manage_username','api_reset_data',
 'api_set_theme','api_site_brand_update','api_storage_usage','api_sync','api_update_owner_account','api_update_username'
 ]);
@@ -2128,7 +2128,32 @@ function isClosedHoursReadOnly() {
   return !isPrimaryOwner() && (hour >= CLOSED_HOUR_START || hour < CLOSED_HOUR_END);
 }
 function closedHoursMessage() { return 'ขณะนี้เว็บไซต์อยู่ในช่วงปิดทำการ (22:00–06:00 น.) เพื่อประหยัดปริมาณรับส่งข้อมูล ระบบจึงเปิดให้ดูข้อมูลล่าสุดเท่านั้น กรุณากลับมาทำรายการหลัง 06:00 น.'; }
-function notifyClosedHours() { toast(closedHoursMessage(), 1); }
+function notifyClosedHours() {
+  let overlay = document.getElementById('closedHoursFullNotice');
+  if (overlay) { overlay.classList.add('show'); return; }
+  overlay = document.createElement('div');
+  overlay.id = 'closedHoursFullNotice';
+  overlay.setAttribute('role', 'alertdialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-labelledby', 'closedHoursFullTitle');
+  overlay.innerHTML = '<div class="closed-hours-panel"><div class="closed-hours-moon" aria-hidden="true">🌙</div><div class="closed-hours-kicker">ระบบปิดทำการชั่วคราว</div><h1 id="closedHoursFullTitle">ไม่สามารถทำรายการได้</h1><div class="closed-hours-time">หลัง 22:00 น.</div><p>ขณะนี้เว็บไซต์อยู่ในช่วงปิดทำการ<br>ระบบไม่อนุญาตให้บันทึกรายการทุกประเภท</p><div class="closed-hours-return">กรุณาลองมาอีกครั้ง<br><strong>หลัง 6 โมงเช้า (06:00 น.)</strong></div><button type="button" id="closedHoursAcknowledge">รับทราบ</button></div>';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:22px;background:rgba(8,15,30,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transition:opacity .18s ease';
+  const panel = overlay.querySelector('.closed-hours-panel');
+  panel.style.cssText = 'width:min(100%,440px);box-sizing:border-box;padding:clamp(26px,7vw,42px) 24px;border-radius:26px;background:linear-gradient(155deg,#fff 0%,#fff8ed 100%);color:#172033;text-align:center;box-shadow:0 24px 90px rgba(0,0,0,.35);font-family:inherit';
+  overlay.querySelector('.closed-hours-moon').style.cssText = 'font-size:54px;line-height:1.2;margin-bottom:12px';
+  overlay.querySelector('.closed-hours-kicker').style.cssText = 'font-size:13px;font-weight:800;letter-spacing:.12em;color:#b45309;margin-bottom:10px';
+  overlay.querySelector('h1').style.cssText = 'font-size:clamp(27px,7vw,36px);line-height:1.25;font-weight:900;margin:0 0 14px;color:#991b1b';
+  overlay.querySelector('.closed-hours-time').style.cssText = 'display:inline-block;padding:9px 18px;border-radius:999px;background:#fee2e2;color:#991b1b;font-size:clamp(19px,5vw,24px);font-weight:900;margin-bottom:16px';
+  overlay.querySelector('p').style.cssText = 'font-size:16px;line-height:1.8;margin:0 0 18px;color:#374151';
+  overlay.querySelector('.closed-hours-return').style.cssText = 'padding:15px 12px;border-radius:16px;background:#fff1d6;color:#854d0e;font-size:17px;line-height:1.7;margin-bottom:22px';
+  const button = overlay.querySelector('button');
+  button.style.cssText = 'width:100%;border:0;border-radius:14px;padding:14px 20px;background:#1d4ed8;color:#fff;font:inherit;font-size:17px;font-weight:800;cursor:pointer;min-height:50px';
+  button.addEventListener('click', () => overlay.remove());
+  overlay.addEventListener('click', event => { if (event.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.style.opacity = '1');
+  button.focus();
+}
 function syncClosedHoursNotice() {
   const app = document.getElementById('app');
   if (!app) return;
