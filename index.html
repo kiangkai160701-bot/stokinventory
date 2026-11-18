@@ -528,7 +528,7 @@ body[data-theme]{background:var(--bg-app);color:var(--ink)}
 .out .meter u{background:linear-gradient(90deg,#f0a8b7,var(--bad));min-width:8%}
 .brand-copy{min-width:0;line-height:1.2}
 .brand-title{display:block;font-size:inherit;line-height:1.2}
-.brand-branch{display:none!important;color:var(--mute)!important;font-size:calc(10px * var(--ts,1))!important;font-weight:600!important;line-height:1.2;margin-top:2px}
+.brand-branch{display:block!important;color:var(--mute)!important;font-size:calc(10px * var(--ts,1))!important;font-weight:600!important;line-height:1.2;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .brand #clock{font-size:calc(9px * var(--ts,1))!important;line-height:1.1;margin-top:2px}
 .brand-title-row{display:flex;align-items:center;gap:7px;min-width:0}
 .brand-title-row .brand-title{min-width:0;overflow:hidden;text-overflow:ellipsis}
