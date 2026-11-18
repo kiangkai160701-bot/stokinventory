@@ -761,9 +761,6 @@ html.formal-theme .theme-opt .theme-emoji{font-family:var(--font);font-size:calc
 .settings-grid>.settings-bottom-row{display:contents}
 .settings-bottom-row>.disclosure-card{padding:0!important}
 .settings-bottom-row>.disclosure-card>.disclosure-summary{min-height:54px}
-.notification-list-scroll{max-height:min(340px,52vh);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;border:1px solid var(--line);border-radius:13px;background:var(--theme-soft);padding:5px}
-.notification-pref-row{display:flex;align-items:center;gap:12px;padding:10px;min-height:60px;border-bottom:1px solid var(--line)}
-.notification-pref-row:last-child{border-bottom:0}
 .disclosure-chevron{transition:transform .44s cubic-bezier(.32,.72,0,1)!important}
 @media(hover:none){.row:hover,.st[data-stock-filter]:hover,.filter-stat:hover,.stats .st[data-dashboard-stock-filter]:hover,.dash-action-card:hover,.user-activity-card:hover,.icon-tool:hover,.btn:hover,.brand-badge:hover,.story-mark:hover{transform:none}}
 @media(prefers-reduced-motion:reduce){#nav .nav-pill.ready{transition-duration:.01ms!important}.disclosure-panel,.disclosure-inner,.disclosure-chevron{transition-duration:.01ms!important}}
@@ -4965,7 +4962,7 @@ openModal(`<h3>${id ? 'แก้ไขวัตถุดิบ' : 'เพิ่�
    </div>
    <div class="g2">
      ${id ? '' : `<label class="fld"><span>จำนวนเริ่มต้น *</span><input class="in" name="qty" type="number" min="0" step="1" inputmode="numeric" required value="${p.qty || 0}"></label>`}
-     <label class="fld"><span>แจ้งเตือนเมื่อเหลือต่ำกว่า</span><input class="in" name="min" type="number" min="0" step="1" inputmode="numeric" value="${p.min ?? 1}"></label>
+     <label class="fld"><span>เกณฑ์สต็อกต่ำ (จำนวนคงเหลือขั้นต่ำ)</span><input class="in" name="min" type="number" min="0" step="1" inputmode="numeric" value="${p.min ?? 1}"></label>
    </div>
    <label class="fld"><span>ซัพพลายเออร์ / แหล่งจัดซื้อ</span><input class="in" name="loc" placeholder="เช่น ตลาดมหาชัย หรือผู้จำหน่ายปลา" value="${esc(p.loc || '')}"></label>
    <div class="acts"><button type="button" class="btn sec" onclick="closeModal()">ยกเลิก</button><button class="btn">${id ? 'บันทึก' : 'เพิ่มวัตถุดิบ'}</button></div>
