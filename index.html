@@ -2007,7 +2007,7 @@ try {
 catch (error) { console.warn('โหลดโลโก้เว็บไซต์เริ่มต้นไม่สำเร็จ', error); }
 }
 async function loadSiteBrand(branchId = currentBranch?.id) {
-if (!branchId) return;
+if (isClosedHoursReadOnly() || !branchId) return;
 try {
   // Branch-specific cached branding takes priority for the selected branch.
   await restoreSiteBrandCache('branch:' + branchId, branchId);
@@ -2173,7 +2173,46 @@ select.innerHTML = branches.length ? branches.map(b => `<option value="${esc(b.i
 const selected = branches.find(b => String(b.id) === String(previous)) || branches[0]; if (selected) setCurrentBranch(selected);
 }
 $('#lgBranch').addEventListener('change', e => { const branch = branches.find(b => String(b.id) === e.target.value); if (branch) { setCurrentBranch(branch); $('#lgMsg').textContent = ''; } });
+const CLOSED_HOUR_START = 22, CLOSED_HOUR_END = 6;
+const CLOSED_WRITE_RPCS = new Set([
+'api_announcement_cancel','api_announcement_set','api_app_download_update','api_branch_create','api_branch_deactivate',
+'api_branch_switch','api_change_pin','api_eggfeed','api_history_edit','api_inventory_backup_create',
+'api_inventory_backup_restore','api_inventory_backup_restore_branch','api_manage_username','api_reset_data',
+'api_set_theme','api_site_brand_update','api_sync','api_update_owner_account','api_update_username'
+]);
+function bangkokHour() {
+  const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
+  return Number(parts.find(part => part.type === 'hour')?.value ?? 0);
+}
+function isPrimaryOwner() { return String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true; }
+function isClosedHoursReadOnly() {
+  const hour = bangkokHour();
+  return !isPrimaryOwner() && (hour >= CLOSED_HOUR_START || hour < CLOSED_HOUR_END);
+}
+function closedHoursMessage() { return 'ขณะนี้เว็บไซต์อยู่ในช่วงปิดทำการ (22:00–06:00 น.) เพื่อประหยัดปริมาณรับส่งข้อมูล ระบบจึงเปิดให้ดูข้อมูลล่าสุดเท่านั้น กรุณากลับมาทำรายการหลัง 06:00 น.'; }
+function notifyClosedHours() { toast(closedHoursMessage(), 1); }
+function syncClosedHoursNotice() {
+  const app = document.getElementById('app');
+  if (!app) return;
+  let notice = document.getElementById('closedHoursNotice');
+  if (isClosedHoursReadOnly()) {
+    if (!notice) {
+      notice = document.createElement('div');
+      notice.id = 'closedHoursNotice';
+      notice.setAttribute('role', 'status');
+      notice.style.cssText = 'position:sticky;top:0;z-index:29;margin:0;padding:9px 14px;text-align:center;background:#fff4d6;color:#80551b;border-bottom:1px solid #f2d28c;font-size:12px;font-weight:600;line-height:1.5';
+      notice.textContent = '🌙 ปิดทำการ 22:00–06:00 น. · โหมดดูข้อมูลเท่านั้น เพื่อประหยัด Egress';
+      const header = app.querySelector('.top');
+      if (header?.parentNode) header.parentNode.insertBefore(notice, header.nextSibling);
+      else app.prepend(notice);
+    }
+  } else if (notice) notice.remove();
+}
 async function cloudRpc(name, args = {}) {
+if (CLOSED_WRITE_RPCS.has(name) && isClosedHoursReadOnly()) {
+  notifyClosedHours();
+  return { ok: false, readonly: true, error: closedHoursMessage() };
+}
 const controller = new AbortController();
 const timeout = setTimeout(() => controller.abort(), 15000);
 try {
@@ -2663,6 +2702,7 @@ enter(result.me, result.branch);
 }
 function enter(u, branch = currentBranch) {
 setCurrentBranch(branch);
+syncClosedHoursNotice();
 me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 void refreshPushSubscriptionForSession();
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
@@ -2698,7 +2738,7 @@ label.textContent = `ออนไลน์ล่าสุด: ${text}`;
 updateBranchOnlineBadges();
 }
 async function refreshPresence() {
-if (!cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
+if (isClosedHoursReadOnly() || !cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
 presenceBusy = true;
 try {
 const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
@@ -2729,7 +2769,7 @@ function updateBranchOnlineBadges() {
   });
 }
 async function refreshBranchOnline() {
-  if (!document.querySelector('[data-branch-online]')) return;
+  if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
   if (!cloudToken || branchOnlineBusy || branchOnlineUnavailable) return;
   branchOnlineBusy = true;
@@ -2747,6 +2787,7 @@ async function refreshBranchOnline() {
 }
 function startPresence() {
 clearInterval(presenceTimer);
+if (isClosedHoursReadOnly()) { stopPresence(); return; }
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
 refreshPresence();
 presenceTimer = setInterval(refreshPresence, 15000);
@@ -2760,7 +2801,7 @@ function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('l
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
 let cloudRefreshBusy = false;
 async function refreshCloudState() {
-if (!cloudToken || !syncSnapshot || cloudBusy || cloudRefreshBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600 || Date.now() < (window.__navHoldUntil || 0)) return;
+if (isClosedHoursReadOnly() || !cloudToken || !syncSnapshot || cloudBusy || cloudRefreshBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600 || Date.now() < (window.__navHoldUntil || 0)) return;
 if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
 cloudRefreshBusy = true;
 try {
@@ -2820,7 +2861,7 @@ function syncAnnounceOffset() {
   root.setProperty('--dock-gap', bar && !bar.hidden ? '4px' : '14px'); // มีประกาศ: ห่างใต้แถบแค่ 4px พอให้พ้น
 }
 async function refreshAnnouncement(force = false) {
-  if (!cloudToken || !me || annState.unavailable || annState.busy) return;
+  if (isClosedHoursReadOnly() || !cloudToken || !me || annState.unavailable || annState.busy) return;
   if (!force && document.hidden) return;
   annState.busy = true;
   try {
@@ -2983,7 +3024,17 @@ void status.offsetWidth;
 status.classList.add('blink');
 syncStatusTimer = setTimeout(() => { status.classList.remove('blink'); status.classList.add('hide'); }, 5000);
 }
-setInterval(refreshCloudState, 5000);
+setInterval(() => { if (!isClosedHoursReadOnly()) refreshCloudState(); }, 5000);
+let closedHoursWasActive = isClosedHoursReadOnly();
+setInterval(() => {
+  const active = isClosedHoursReadOnly();
+  syncClosedHoursNotice();
+  if (active !== closedHoursWasActive) {
+    closedHoursWasActive = active;
+    if (active) { stopPresence(); renderAnnounce(null); }
+    else if (me) { startPresence(); refreshCloudState(); refreshAnnouncement(true); }
+  }
+}, 30000);
 window.addEventListener('focus', refreshCloudState);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
 const can = {
@@ -4796,6 +4847,7 @@ if (verificationToken) cloudRpc('api_logout', { p_token: verificationToken }).ca
 };
 }
 async function refreshStorageUsage() {
+if (isClosedHoursReadOnly()) return;
 const card = $('#storageUsageCard');
 if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
 storageUsageBusy = true;
@@ -6884,6 +6936,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   ['#nav', '#dtabs', '#main'].forEach(sel => { const el = q(sel); if (el) new MutationObserver(queueDots).observe(el, { childList: true }); });
 
   async function pollUnread() {
+    if (isClosedHoursReadOnly()) return;
     if (!me || !cloudToken) { if (CH.total || Object.keys(CH.rooms).length) { CH.total = 0; CH.rooms = {}; updateDots(); } closeAll(); return; }
     if (CH.unavailable || CH.busy || document.visibilityState === 'hidden') return;
     CH.busy = true;
@@ -7014,7 +7067,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     if (CH.audioId) { const b = elMsgs.querySelector(`[data-aud="${CH.audioId}"]`); if (b && CH.audio && !CH.audio.paused) b.textContent = '⏸'; }
   }
   async function pull(initial) {
-    if (CH.pulling || !elRoom.classList.contains('open')) return;
+    if (isClosedHoursReadOnly() || CH.pulling || !elRoom.classList.contains('open')) return;
     CH.pulling = true;
     try {
       const r = await rpc('chat_get', { p_room: CH.admin ? CH.room : null, p_after: initial ? 0 : CH.lastId, p_mark: document.visibilityState === 'visible' });
@@ -7063,6 +7116,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   function autoGrow() { elText.style.height = 'auto'; const h = elText.scrollHeight; elText.style.height = Math.min(112, h) + 'px'; elText.style.overflowY = h > 112 ? 'auto' : 'hidden'; }
   function clearPending() { CH.pending = null; q('#chPrev').hidden = true; q('#chFile').value = ''; }
   async function send(args, localUrl) {
+    if (isClosedHoursReadOnly()) { notifyClosedHours(); return false; }
     if (CH.sending) return false;
     CH.sending = true;
     try {
