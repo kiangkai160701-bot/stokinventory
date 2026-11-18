@@ -1213,6 +1213,11 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .backup-admin-card .backup-admin-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;min-width:0}
 /* Keep the original .btn.sm sizing for the two top-level actions */
 .backup-admin-card .backup-admin-list{display:grid;gap:14px;min-width:0}
+.backup-admin-card .backup-admin-list.is-scrollable{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:5px;max-height:var(--backup-visible-height);-webkit-overflow-scrolling:touch}
+.backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar{width:5px}
+.backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar-thumb{background:var(--theme-border-strong,var(--line));border-radius:99px}
+.backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar-track{background:transparent}
+
 .backup-admin-card .backup-version-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;padding:20px 22px;border:1px solid var(--line);border-radius:20px;background:var(--card-bg);box-sizing:border-box}
 .backup-admin-card .backup-version-info{display:grid;gap:7px;min-width:0}
 .backup-admin-card .backup-version-info b{font-size:calc(16px * var(--ts,1));line-height:1.45;overflow-wrap:anywhere}
@@ -3807,6 +3812,23 @@ return Number.isFinite(date.getTime()) ? date.toLocaleString('th-TH', { dateStyl
 function backupReasonText(reason) {
 return ({ scheduled: 'สำรองอัตโนมัติ', initial: 'ชุดสำรองเริ่มต้น', manual: 'สำรองด้วยตนเอง', 'before-restore': 'สำรองก่อนกู้คืน' })[reason] || 'ข้อมูลสำรอง';
 }
+function fitAdminBackupList(list) {
+if (!list) return;
+const rows = Array.from(list.querySelectorAll('.backup-version-row'));
+if (rows.length <= 3) {
+list.classList.remove('is-scrollable');
+list.style.removeProperty('--backup-visible-height');
+return;
+}
+const gap = parseFloat(getComputedStyle(list).rowGap) || 14;
+const visibleHeight = rows.slice(0, 3).reduce((height, row) => height + row.getBoundingClientRect().height, 0) + gap * 2 + 2;
+list.style.setProperty('--backup-visible-height', Math.ceil(visibleHeight) + 'px');
+list.classList.add('is-scrollable');
+}
+window.addEventListener('resize', () => {
+const list = $('#adminBackupList');
+if (list?.classList.contains('is-scrollable')) requestAnimationFrame(() => fitAdminBackupList(list));
+}, { passive: true });
 async function refreshAdminBackups() {
 if (!cloudToken) return;
 const status = $('#adminBackupStatus'), branches = $('#adminBackupBranches'), list = $('#adminBackupList');
@@ -3825,6 +3847,7 @@ const size = bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB' : Math.max(
 const branchButtons = (Array.isArray(result.branches) ? result.branches : []).map(branch => '<div class="backup-branch-action-row"><button type="button" class="btn sm sec backup-restore-branch" data-admin-restore-branch="' + esc(item.id) + '" data-branch-id="' + esc(branch.id) + '" data-branch-name="' + esc(branch.name) + '" title="กู้คืน ' + esc(branch.name) + '"><span class="backup-branch-label">กู้คืน ' + esc(branch.name) + '</span></button><button type="button" class="btn sm sec backup-download-branch" data-admin-download="' + esc(item.id) + '" data-branch-id="' + esc(branch.id) + '" data-branch-name="' + esc(branch.name) + '" aria-label="ดาวน์โหลด Backup สาขา ' + esc(branch.name) + '">⬇ <span class="backup-download-label">ดาวน์โหลด</span></button></div>').join('');
 return '<div class="backup-version-row"><div class="backup-version-info"><b>' + esc(formatBackupDate(item.saved_at)) + '</b><small>' + esc(backupReasonText(item.reason)) + ' · ' + (Number(item.branch_count) || 0) + ' สาขา · ' + size + '</small></div><div class="backup-branch-actions">' + branchButtons + '</div></div>';
 }).join('') : '<small class="dash-empty-note">ยังไม่มี Backup ใน 6 ชุดล่าสุด</small>';
+requestAnimationFrame(() => fitAdminBackupList(list));
 } catch (error) {
 status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
 list.innerHTML = '<small class="storage-error">ตรวจสอบการเชื่อมต่อแล้วกดรีเฟรชอีกครั้ง</small>';
