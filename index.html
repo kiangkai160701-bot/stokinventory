@@ -2654,6 +2654,9 @@ scheduleCloudPoll();
 function stopCloudPolling() { clearTimeout(cloudPollTimer); cloudPollTimer = null; clearTimeout(foregroundSyncTimer); foregroundSyncTimer = null; }
 function scheduleForegroundSync(delay = 800) {
 clearTimeout(foregroundSyncTimer);
+clearTimeout(cloudPollTimer); cloudPollTimer = null;
+clearTimeout(presenceTimer); presenceTimer = null;
+clearTimeout(annPollTimer); annPollTimer = null;
 foregroundSyncTimer = setTimeout(() => {
 foregroundSyncTimer = null;
 if (document.hidden || !me || !cloudToken || pollingLogoutInProgress || isClosedHoursReadOnly()) return;
