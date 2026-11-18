@@ -1773,6 +1773,7 @@ async function refreshJobProfiles(serverVersion = null) {
     J = J || jDef(); J.profiles = cached.profiles; saveJ();
     if (tab === 'jobs') { try { jRender(); } catch {} }
   }
+  if (isClosedHoursReadOnly() || document.hidden || pollingLogoutInProgress || cloudBusy) return;
   let version = serverVersion;
   if (!version) {
     const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
@@ -2509,14 +2510,14 @@ enter(result.me, result.branch);
 function enter(u, branch = currentBranch) {
 setCurrentBranch(branch);
 syncClosedHoursNotice();
-me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
+me = u; pollingLogoutInProgress = false; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); void refreshJobProfiles(); startPresence(); annState.version = null; refreshAnnouncement(true); if (u.must) pinModal(true);
+tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
 }
 function logout() {
-stopPresence();
+pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
 const oldToken = cloudToken;
 if (oldToken) {
   cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
@@ -2541,15 +2542,26 @@ label.textContent = `ออนไลน์ล่าสุด: ${text}`;
 });
 updateBranchOnlineBadges();
 }
+let presenceLastRequestAt = 0, presencePromise = null, presenceFailures = 0, presencePaused = false;
+let presenceRetryAt = 0, branchOnlineLastRequestAt = 0;
 async function refreshPresence() {
-if (isClosedHoursReadOnly() || !cloudToken || presenceBusy || document.visibilityState === 'hidden') return;
-presenceBusy = true;
+if (presencePromise) return presencePromise;
+if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || Date.now() - presenceLastRequestAt < 180000) return;
+presenceBusy = true; presenceLastRequestAt = Date.now();
+presencePromise = (async () => {
 try {
 const result = await cloudRpc('api_presence_tick', { p_token: cloudToken });
-if (result.ok) { updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
-else if (result.error?.includes('หมดเวลา')) logout();
-} catch {}
-finally { presenceBusy = false; }
+if (document.hidden || pollingLogoutInProgress || !cloudToken) return;
+if (result?.ok) { presenceFailures = 0; presenceRetryAt = 0; updateOnlineUsers(result.users || [], result.lastOnline || {}); refreshBranchOnline(); }
+else if (result?.error?.includes('หมดเวลา')) logout();
+else throw new Error(result?.error || 'Presence request failed');
+} catch {
+presenceFailures++;
+if (presenceFailures >= 3) { presencePaused = true; presenceRetryAt = Infinity; }
+else presenceRetryAt = Math.max(presenceLastRequestAt + 180000, Date.now() + [60000, 120000, 300000][presenceFailures - 1]);
+} finally { presenceBusy = false; presencePromise = null; }
+})();
+return presencePromise;
 }
 // ===== จำนวนผู้ใช้ออนไลน์ต่อสาขา (แสดงท้ายชื่อสาขาในหน้าจัดการสาขา) =====
 let branchOnlineCounts = {}, branchOnlineUnavailable = false, branchOnlineBusy = false;
@@ -2575,8 +2587,8 @@ function updateBranchOnlineBadges() {
 async function refreshBranchOnline() {
   if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
-  if (!cloudToken || branchOnlineBusy || branchOnlineUnavailable) return;
-  branchOnlineBusy = true;
+  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 180000) return;
+  branchOnlineBusy = true; branchOnlineLastRequestAt = Date.now();
   try {
     const r = await cloudRpc('api_presence_branch_counts', { p_token: cloudToken });
     if (r?.ok) {
@@ -2589,36 +2601,91 @@ async function refreshBranchOnline() {
     if (/Could not find the function|api_presence_branch_counts|schema cache/i.test(String(error?.message || ''))) branchOnlineUnavailable = true;
   } finally { branchOnlineBusy = false; }
 }
+function schedulePresencePoll() {
+clearTimeout(presenceTimer); presenceTimer = null;
+if (isClosedHoursReadOnly() || !me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
+const dueAt = Math.max(presenceLastRequestAt + 180000, presenceRetryAt || 0);
+presenceTimer = setTimeout(async () => {
+ const before = presenceLastRequestAt;
+ const wasSyncing = cloudBusy;
+ await refreshPresence();
+ if (presencePaused) return;
+ if (wasSyncing && presenceLastRequestAt === before) presenceLastRequestAt = Date.now();
+ schedulePresencePoll();
+}, Math.max(1000, dueAt - Date.now()));
+}
 function startPresence() {
-clearInterval(presenceTimer);
-if (isClosedHoursReadOnly()) { stopPresence(); return; }
+clearTimeout(presenceTimer); presenceTimer = null;
+if (isClosedHoursReadOnly() || !me || !cloudToken) { stopPresence(); return; }
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
-refreshPresence();
-presenceTimer = setInterval(refreshPresence, 30000);
+void refreshPresence();
+schedulePresencePoll();
 }
 function stopPresence() {
-clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
+clearTimeout(presenceTimer); presenceTimer = null; presenceBusy = false;
 onlineUsers = new Set(); updateOnlineUsers([]);
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshPresence(); });
+// Presence refresh is coalesced with the shared foreground-sync handler.
 function showHint(firstLogin = U.some(u => u.must)) { document.getElementById('lgHint').classList.toggle('hide', !firstLogin); if (firstLogin) document.getElementById('lgHint').textContent = 'เข้าใช้งานครั้งแรก ให้เจ้าของร้านลงชื่อเข้าใช้และตั้งรหัสใหม่'; }
 $('#btnOut').onclick = logout; $('#btnPin').onclick = () => pinModal(false); $('#btnEditName').onclick = editMyUsernameModal;
-let cloudRefreshBusy = false;
+let cloudRefreshBusy = false, cloudRefreshPromise = null;
+let cloudPollTimer = null, cloudPollFailures = 0, cloudPollPaused = false, cloudPollRetryAt = 0;
+let lastCloudPollAt = 0, lastUserActivityAt = Date.now(), foregroundSyncTimer = null, pollingLogoutInProgress = false;
+function cloudPollInterval() { return Date.now() - lastUserActivityAt > 120000 ? 180000 : 60000; }
+function scheduleCloudPoll(delay = null) {
+clearTimeout(cloudPollTimer); cloudPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || cloudPollPaused) return;
+const dueAt = Math.max(lastCloudPollAt + cloudPollInterval(), cloudPollRetryAt || 0);
+const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
+cloudPollTimer = setTimeout(async () => {
+lastCloudPollAt = Date.now();
+await refreshCloudState();
+if (cloudPollPaused) return;
+const retryDelay = cloudPollRetryAt > Date.now() ? cloudPollRetryAt - Date.now() : null;
+scheduleCloudPoll(retryDelay);
+}, wait);
+}
+function startCloudPolling() {
+clearTimeout(cloudPollTimer); cloudPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+lastCloudPollAt = Date.now(); cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
+scheduleCloudPoll();
+}
+function stopCloudPolling() { clearTimeout(cloudPollTimer); cloudPollTimer = null; clearTimeout(foregroundSyncTimer); foregroundSyncTimer = null; }
+function scheduleForegroundSync(delay = 800) {
+clearTimeout(foregroundSyncTimer);
+clearTimeout(cloudPollTimer); cloudPollTimer = null;
+clearTimeout(presenceTimer); presenceTimer = null;
+clearTimeout(annPollTimer); annPollTimer = null;
+foregroundSyncTimer = setTimeout(() => {
+foregroundSyncTimer = null;
+if (document.hidden || !me || !cloudToken || pollingLogoutInProgress || isClosedHoursReadOnly()) return;
+cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
+presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
+annState.failures = 0; annState.paused = false; annState.retryAt = 0;
+lastCloudPollAt = Date.now();
+void refreshCloudState(); void refreshPresence(); void refreshAnnouncement(true);
+scheduleCloudPoll(); schedulePresencePoll(); scheduleAnnouncementPoll();
+}, delay);
+}
 async function refreshCloudState() {
-if (isClosedHoursReadOnly() || !cloudToken || !syncSnapshot || cloudBusy || cloudRefreshBusy || $('#ov') || document.hidden || Date.now() - (window.__lastScrollTs || 0) < 600 || Date.now() < (window.__navHoldUntil || 0)) return;
+if (cloudRefreshPromise) return cloudRefreshPromise;
+if (isClosedHoursReadOnly() || !cloudToken || !me || !syncSnapshot || pollingLogoutInProgress || cloudBusy || cloudRefreshBusy || document.hidden || cloudPollPaused || Date.now() < cloudPollRetryAt || $('#ov') || Date.now() - (window.__lastScrollTs || 0) < 600 || Date.now() < (window.__navHoldUntil || 0)) return;
 if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
-cloudRefreshBusy = true;
+cloudRefreshBusy = true; lastCloudPollAt = Date.now();
+cloudRefreshPromise = (async () => {
 try {
 const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
 if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
-if (!check.ok) { logout(); showHint(false); return toast(check.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken || isClosedHoursReadOnly()) return;
+if (!check?.ok) { logout(); showHint(false); return toast(check?.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
 const branchChanged = !!(check.branch && (check.branch.id !== currentBranch.id || check.branch.name !== currentBranch.name));
 if (branchChanged) setCurrentBranch(check.branch);
-// Most checks return only a tiny version response. Download the full inventory only after a real change.
+// Keep version-first sync: api_get_state is requested only when the server version changes.
 void refreshJobProfiles(check.profilesVersion);
-if (Number(check.version) === Number(syncVersion) && !branchChanged) return;
+if (Number(check.version) === Number(syncVersion) && !branchChanged) { cloudPollFailures = 0; cloudPollRetryAt = 0; return; }
 const result = await cloudRpc('api_get_state', { p_token: cloudToken });
-if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+if (!result?.ok) { logout(); showHint(false); return toast(result?.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
 const fullBranchChanged = !!(result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name));
 if (fullBranchChanged) setCurrentBranch(result.branch);
 const previousState = JSON.stringify(safeState());
@@ -2629,11 +2696,18 @@ me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = R
 if (stateChanged || branchChanged || fullBranchChanged) build(true);
 else { renderedRevision = pageRenderRevision; syncNav(); }
 showSyncUpdateStatus(); if (logNeedsPrune) save();
-} catch {} finally { cloudRefreshBusy = false; }
+cloudPollFailures = 0; cloudPollRetryAt = 0;
+} catch {
+cloudPollFailures++;
+if (cloudPollFailures >= 3) { cloudPollPaused = true; cloudPollRetryAt = Infinity; }
+else cloudPollRetryAt = Date.now() + [60000, 120000, 300000][cloudPollFailures - 1];
+} finally { cloudRefreshBusy = false; cloudRefreshPromise = null; }
+})();
+return cloudRefreshPromise;
 }
 /* ---------- Announcement ticker (shown under the header, set by kiangkai only) ---------- */
 const isAnnouncer = () => String(me?.name || '').toLowerCase() === 'kiangkai';
-const annState = { id: null, message: '', endAt: 0, timer: null, unavailable: false, busy: false, resize: null, version: null };
+const annState = { id: null, message: '', endAt: 0, timer: null, unavailable: false, busy: false, resize: null, version: null, promise: null, lastCheckAt: 0, failures: 0, paused: false, retryAt: 0 };
 function annFill(message) {
   const bar = $('#announceBar'), track = $('#announceTrack'), move = $('#announceMove');
   if (!bar || !track || !move) return;
@@ -2666,22 +2740,46 @@ function syncAnnounceOffset() {
   root.setProperty('--dock-gap', bar && !bar.hidden ? '4px' : '14px'); // มีประกาศ: ห่างใต้แถบแค่ 4px พอให้พ้น
 }
 async function refreshAnnouncement(force = false) {
-  if (isClosedHoursReadOnly() || !cloudToken || !me || annState.unavailable || annState.busy) return;
-  if (!force && document.hidden) return;
-  annState.busy = true;
+  if (annState.promise) return annState.promise;
+  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || annState.unavailable || annState.paused || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
+  annState.busy = true; annState.lastCheckAt = Date.now();
+  annState.promise = (async () => {
   try {
     const version = await cloudRpc('api_announcement_version_get', { p_token: cloudToken });
-    if (!version?.ok || !version.version) return;
-    if (annState.version === version.version) return; // Announcement has not changed; skip the full payload.
+    if (!version?.ok || !version.version) throw new Error(version?.error || 'Announcement version check failed');
+    if (annState.version === version.version) { annState.failures = 0; annState.retryAt = 0; return; }
+    if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken || isClosedHoursReadOnly()) return;
     const r = await cloudRpc('api_announcement_get', { p_token: cloudToken });
-    if (r?.ok) { annState.version = version.version; renderAnnounce(r.announcement); }
+    if (r?.ok) { annState.version = version.version; annState.failures = 0; annState.retryAt = 0; renderAnnounce(r.announcement); }
+    else throw new Error(r?.error || 'Announcement request failed');
   } catch (error) {
     if (/Could not find the function|api_announcement|schema cache/i.test(String(error?.message || ''))) annState.unavailable = true;
-  } finally { annState.busy = false; }
+    else { annState.failures++; if (annState.failures >= 3) { annState.paused = true; annState.retryAt = Infinity; } else annState.retryAt = Date.now() + [60000, 120000, 300000][annState.failures - 1]; }
+  } finally { annState.busy = false; annState.promise = null; }
+  })();
+  return annState.promise;
 }
-setInterval(() => refreshAnnouncement(), 60000);
-window.addEventListener('focus', () => refreshAnnouncement(true));
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshAnnouncement(true); });
+let annPollTimer = null;
+function scheduleAnnouncementPoll(delay = null) {
+clearTimeout(annPollTimer); annPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || annState.paused || annState.unavailable) return;
+const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
+const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
+annPollTimer = setTimeout(async () => {
+ const blockedBySync = cloudBusy;
+ await refreshAnnouncement();
+ if (blockedBySync && annState.failures === 0) annState.lastCheckAt = Date.now();
+ if (annState.paused) return;
+ const retryDelay = annState.failures > 0 && annState.retryAt > Date.now() ? annState.retryAt - Date.now() : null;
+ scheduleAnnouncementPoll(retryDelay);
+}, wait);
+}
+function startAnnouncementPolling() {
+clearTimeout(annPollTimer); annPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+scheduleAnnouncementPoll();
+}
+function stopAnnouncementPolling() { clearTimeout(annPollTimer); annPollTimer = null; }
 // Mobile browsers fire 'resize' while scrolling (address bar collapses). Only rebuild when the track WIDTH really changed, otherwise the text would restart from the right.
 window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); const track = $('#announceTrack'); if (annState.message && track && !$('#announceBar').hidden && Math.abs(track.clientWidth - (annState.w || 0)) > 2) annFill(annState.message); }, 200); });
 if ('ResizeObserver' in window) { const h = document.querySelector('#app .top'); if (h) new ResizeObserver(syncAnnounceOffset).observe(h); }
@@ -2832,19 +2930,36 @@ void status.offsetWidth;
 status.classList.add('blink');
 syncStatusTimer = setTimeout(() => { status.classList.remove('blink'); status.classList.add('hide'); }, 5000);
 }
-setInterval(() => { if (!isClosedHoursReadOnly()) refreshCloudState(); }, 15000);
 let closedHoursWasActive = isClosedHoursReadOnly();
 setInterval(() => {
   const active = isClosedHoursReadOnly();
   syncClosedHoursNotice();
   if (active !== closedHoursWasActive) {
     closedHoursWasActive = active;
-    if (active) { stopPresence(); renderAnnounce(null); }
-    else if (me) { startPresence(); refreshCloudState(); refreshAnnouncement(true); }
+    if (active) { stopPresence(); stopCloudPolling(); stopAnnouncementPolling(); renderAnnounce(null); }
+    else if (me) { startPresence(); startCloudPolling(); scheduleForegroundSync(800); }
   }
 }, 30000);
-window.addEventListener('focus', refreshCloudState);
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
+// Coalesce focus + visibility events. Multi-tab leader election is intentionally skipped:
+ // localStorage-only leadership cannot safely share in-memory syncSnapshot/session state
+ // between tabs; a local lease without a backend coordination contract risks stale UI.
+window.addEventListener('focus', () => scheduleForegroundSync(800));
+document.addEventListener('visibilitychange', () => {
+ if (document.hidden) {
+   clearTimeout(cloudPollTimer); cloudPollTimer = null;
+   clearTimeout(presenceTimer); presenceTimer = null;
+   clearTimeout(annPollTimer); annPollTimer = null;
+ } else {
+   if (me && cloudToken && !isClosedHoursReadOnly()) { schedulePresencePoll(); }
+   scheduleForegroundSync(800);
+ }
+});
+['pointerdown','keydown','input','touchstart','scroll'].forEach(type => {
+ document.addEventListener(type, () => {
+   lastUserActivityAt = Date.now();
+   if (!document.hidden && me && cloudToken && !pollingLogoutInProgress && !cloudPollPaused) scheduleCloudPoll();
+ }, { passive: true, capture: true });
+});
 const can = {
 edit: () => fullAccessUser(me) || !!me?.permissions?.editStock,
 del: () => fullAccessUser(me) || !!me?.permissions?.deleteStock,
@@ -3829,14 +3944,30 @@ window.addEventListener('resize', () => {
 const list = $('#adminBackupList');
 if (list?.classList.contains('is-scrollable')) requestAnimationFrame(() => fitAdminBackupList(list));
 }, { passive: true });
-async function refreshAdminBackups() {
-if (!cloudToken) return;
+let adminBackupCachedResult = null, adminBackupCacheAt = 0, adminBackupPromise = null;
+async function refreshAdminBackups(force = false) {
+if (!cloudToken || pollingLogoutInProgress || document.hidden || cloudBusy || isClosedHoursReadOnly()) return;
+if (adminBackupPromise) return adminBackupPromise;
 const status = $('#adminBackupStatus'), branches = $('#adminBackupBranches'), list = $('#adminBackupList');
 if (!status || !branches || !list) return;
+if (!force && adminBackupCachedResult && Date.now() - adminBackupCacheAt < 30000) {
+ renderAdminBackupList(adminBackupCachedResult, status, branches, list); return;
+}
 status.textContent = 'กำลังโหลดรายการ Backup…';
+adminBackupPromise = (async () => {
 try {
 const result = await cloudRpc('api_inventory_backup_list', { p_token: cloudToken });
 if (!result?.ok) throw new Error(result?.error || 'โหลดรายการ Backup ไม่สำเร็จ');
+adminBackupCachedResult = result; adminBackupCacheAt = Date.now();
+renderAdminBackupList(result, status, branches, list);
+} catch (error) {
+status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
+list.innerHTML = '<small class="storage-error">ตรวจสอบการเชื่อมต่อแล้วกดรีเฟรชอีกครั้ง</small>';
+} finally { adminBackupPromise = null; }
+})();
+return adminBackupPromise;
+}
+function renderAdminBackupList(result, status, branches, list) {
 const branchNames = Array.isArray(result.branches) ? result.branches.map(branch => esc(branch.name)).join(' · ') : '';
 branches.textContent = 'ขอบเขตข้อมูล: ' + (result.branches?.length || 0) + ' สาขา' + (branchNames ? ' — ' + branchNames : '');
 status.textContent = result.latest_at ? 'สำรองล่าสุด: ' + formatBackupDate(result.latest_at) + ' · เก็บล่าสุด ' + (result.retention_count || 6) + ' ชุด' : 'ยังไม่มีข้อมูลสำรอง';
@@ -3848,10 +3979,6 @@ const branchButtons = (Array.isArray(result.branches) ? result.branches : []).ma
 return '<div class="backup-version-row"><div class="backup-version-info"><b>' + esc(formatBackupDate(item.saved_at)) + '</b><small>' + esc(backupReasonText(item.reason)) + ' · ' + (Number(item.branch_count) || 0) + ' สาขา · ' + size + '</small></div><div class="backup-branch-actions">' + branchButtons + '</div></div>';
 }).join('') : '<small class="dash-empty-note">ยังไม่มี Backup ใน 6 ชุดล่าสุด</small>';
 requestAnimationFrame(() => fitAdminBackupList(list));
-} catch (error) {
-status.textContent = error.message || 'ไม่สามารถโหลดสถานะ Backup ได้';
-list.innerHTML = '<small class="storage-error">ตรวจสอบการเชื่อมต่อแล้วกดรีเฟรชอีกครั้ง</small>';
-}
 }
 async function createAdminBackup(button) {
 if (!isBackupOwner() || !cloudToken || !button) return;
@@ -3863,7 +3990,7 @@ await syncQueue;
 const result = await cloudRpc('api_inventory_backup_create', { p_token: cloudToken });
 if (!result?.ok) throw new Error(result?.error || 'สร้าง Backup ไม่สำเร็จ');
 toast('สำรองข้อมูลครบทุกสาขาแล้ว');
-await refreshAdminBackups();
+await refreshAdminBackups(true);
 } catch (error) {
 toast(error.message || 'สร้าง Backup ไม่สำเร็จ', 1);
 } finally {
@@ -3934,7 +4061,7 @@ if (!result?.ok) throw new Error(result?.error || 'กู้คืนข้อ�
 closeModal();
 toast('กู้คืน ' + (result.branch_name || branchName) + ' สำเร็จ สาขาอื่นไม่เปลี่ยนแปลง');
 if (String(currentBranch?.id) === String(branchId)) await refreshCloudState();
-await refreshAdminBackups();
+await refreshAdminBackups(true);
 } catch (error) {
 if (errorEl) errorEl.textContent = error.message || 'ยืนยันตัวตนหรือกู้คืนข้อมูลไม่สำเร็จ';
 confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันและกู้คืน';
@@ -4209,13 +4336,14 @@ panel.classList.add('open');
 });
 if (isWideDesktop()) requestAnimationFrame(updatePageMascots);
 if (me?.owner || me?.role === 'admin') {
-refreshStorageUsage();
-storageUsageTimer = setInterval(refreshStorageUsage, 60 * 60 * 1000);
+const storageToggle = $('button[aria-controls="storageDisclosurePanel"]');
+if (storageToggle?.getAttribute('aria-expanded') === 'true') refreshStorageUsage();
 }
-if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = refreshStorageUsage;
+if ($('#refreshStorageUsage')) $('#refreshStorageUsage').onclick = () => refreshStorageUsage(true);
 if (cloudToken && $('#adminBackupList')) {
-refreshAdminBackups();
-if ($('#adminBackupRefresh')) $('#adminBackupRefresh').onclick = refreshAdminBackups;
+const backupToggle = $('button[aria-controls="adminBackupDisclosurePanel"]');
+if (backupToggle?.getAttribute('aria-expanded') === 'true') refreshAdminBackups();
+if ($('#adminBackupRefresh')) $('#adminBackupRefresh').onclick = () => refreshAdminBackups(true);
 if ($('#adminBackupNow')) $('#adminBackupNow').onclick = e => createAdminBackup(e.currentTarget);
 if ($('#adminBackupList')) $('#adminBackupList').onclick = e => {
 const restoreButton = e.target.closest('[data-admin-restore-branch]');
@@ -4243,7 +4371,12 @@ updatePageMascots(); toast(`ตั้งจำนวนสติ๊กเกอ�
 if ($('#createBranchBtn')) $('#createBranchBtn').onclick = createBranchModal;
 document.querySelectorAll('[data-switch-branch]').forEach(button => button.onclick = () => switchBranch(button.dataset.switchBranch));
 document.querySelectorAll('[data-deactivate-branch]').forEach(button => button.onclick = () => deactivateBranch(button.dataset.deactivateBranch));
-document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => toggleDisclosure(button));
+document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.onclick = () => {
+ const opening = button.getAttribute('aria-expanded') !== 'true';
+ toggleDisclosure(button);
+ if (opening && button.getAttribute('aria-controls') === 'storageDisclosurePanel') void refreshStorageUsage();
+ if (opening && button.getAttribute('aria-controls') === 'adminBackupDisclosurePanel') void refreshAdminBackups();
+});
 bindAnnounceCard(); refreshBranchOnline();
 const resetScopeSelect = $('#resetScope');
 if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
@@ -4497,16 +4630,20 @@ if (verificationToken) cloudRpc('api_logout', { p_token: verificationToken }).ca
 }
 };
 }
-async function refreshStorageUsage() {
-if (isClosedHoursReadOnly()) return;
+let storageUsageCachedResult = null, storageUsageCacheAt = 0;
+async function refreshStorageUsage(force = false) {
+if (isClosedHoursReadOnly() || !cloudToken || pollingLogoutInProgress || cloudBusy) return;
 const card = $('#storageUsageCard');
-if (!card || storageUsageBusy || document.visibilityState === 'hidden' || !(me?.owner || me?.role === 'admin')) return;
+if (!card || storageUsageBusy || document.hidden || !(me?.owner || me?.role === 'admin')) return;
 storageUsageBusy = true;
 const error = $('#storageUsageError');
 error.textContent = '';
 try {
-const result = await cloudRpc('api_storage_usage', { p_token: cloudToken });
-if (!result.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+const result = !force && storageUsageCachedResult && Date.now() - storageUsageCacheAt < 300000
+ ? storageUsageCachedResult
+ : await cloudRpc('api_storage_usage', { p_token: cloudToken });
+if (!result?.ok) throw new Error(result.error || 'อ่านพื้นที่ฐานข้อมูลไม่สำเร็จ');
+storageUsageCachedResult = result; storageUsageCacheAt = Date.now();
 const mib = bytes => (Math.max(0, Number(bytes) || 0) / (1024 * 1024)).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const used = Number(result.usedBytes) || 0, remaining = Number(result.remainingBytes) || 0, quota = Number(result.quotaBytes) || 0;
 const percent = Number(result.usedPercent) || 0, bar = $('#storageUsageBar');
