@@ -1604,42 +1604,39 @@ html.formal-theme .top-runway{display:none!important}
 .history-result .hr-amt small{line-height:1;white-space:nowrap}
 </style>
 <style id="historyQuickFilterPolish">
-/* ปุ่มลัดช่วงเวลาประวัติ: กระจายพื้นที่และเน้นสถานะที่เลือก */
-.history-filter.range-filter:not(.dashboard-range)>.history-actions{
-  display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:stretch;
-  gap:10px;width:100%;margin-top:2px;
-}
-.history-filter.range-filter:not(.dashboard-range)>.history-actions>button{
-  display:flex;align-items:center;justify-content:center;min-width:0;min-height:44px;
-  padding:9px 12px;border:1px solid var(--theme-border-strong,var(--line));
-  border-radius:12px;background:var(--theme-soft,var(--card-bg));color:var(--ink);
-  font-size:calc(12px * var(--ts,1));font-weight:650;line-height:1.25;white-space:nowrap;
-  cursor:pointer;touch-action:manipulation;
-  transition:background .16s ease,border-color .16s ease,color .16s ease,box-shadow .16s ease,transform .16s ease;
-}
-.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:hover{
-  border-color:var(--acc);background:var(--acc-light,var(--theme-soft));
-}
-.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:active{transform:scale(.97)}
-.history-filter.range-filter:not(.dashboard-range)>.history-actions>button:focus-visible{
-  outline:3px solid color-mix(in srgb,var(--acc) 30%,transparent);outline-offset:2px;
-}
-.history-filter.range-filter:not(.dashboard-range)>.history-actions>button.history-quick.on{
-  border-color:var(--acc);background:var(--acc);color:#fff;
-  box-shadow:0 4px 12px color-mix(in srgb,var(--acc) 25%,transparent),inset 0 1px 0 #ffffff35;
-  font-weight:800;
+/* ใช้รูปแบบปุ่มช่วงเวลาตามไฟล์ตัวอย่าง */
+.history-filter .history-actions{display:contents}
+.history-filter .history-quick{display:none!important}
+@media(max-width:1099px){
+  .history-filter .history-actions{
+    display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    padding:3px 1px 6px;
+  }
+  .history-filter .history-actions::-webkit-scrollbar{display:none}
+  .history-filter .history-actions>button{flex:0 0 auto;width:auto;min-width:0}
+  .history-filter .history-quick{
+    display:inline-flex!important;align-items:center;justify-content:center;
+    min-height:38px;padding:7px 15px;font-weight:700;white-space:nowrap;
+    color:var(--acc-hover);background:var(--acc-light);
+    border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);
+    border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);
+    transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .16s ease;
+  }
+  .history-filter .history-quick:active{
+    background:color-mix(in srgb,var(--acc) 22%,var(--acc-light));transform:scale(.97)
+  }
+  .history-filter .history-quick.on{
+    color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc-hover));
+    border-color:var(--acc-hover);box-shadow:0 3px 9px var(--acc-glow);
+  }
+  .history-filter .history-quick:focus-visible{
+    outline:3px solid color-mix(in srgb,var(--acc) 28%,transparent);outline-offset:2px
+  }
 }
 @media(max-width:680px){
-  .history-filter.range-filter:not(.dashboard-range)>.history-actions{
-    grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:3px;
-  }
-  .history-filter.range-filter:not(.dashboard-range)>.history-actions>button{
-    min-height:43px;padding:9px 8px;border-radius:11px;font-size:calc(12px * var(--ts,1));
-  }
-  .history-filter.range-filter:not(.dashboard-range)>.history-actions>#clearHistoryRange{grid-column:1/-1}
-}
-@media(prefers-reduced-motion:reduce){
-  .history-filter.range-filter:not(.dashboard-range)>.history-actions>button{transition:none}
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}
+  .history-filter.range-filter:not(.dashboard-range)>.history-actions>#clearHistoryRange{min-width:0}
 }
 </style>
 </head>
