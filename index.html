@@ -5383,30 +5383,55 @@ $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#log
 if (message) $('#lgMsg').textContent = message;
 }
 (async () => {
-await init();
-await loadGlobalSiteBrand();
 let startupMessage = '';
+const bootFailsafe = setTimeout(() => {
+  const screen = document.getElementById('bootScreen');
+  if (screen && !screen.classList.contains('hide')) {
+    console.error('Startup exceeded 10 seconds; showing login instead of leaving the loading screen.');
+    revealLogin('ระบบเริ่มต้นใช้เวลานาน กรุณาตรวจอินเทอร์เน็ตแล้วกดรีเฟรชหน้าเว็บ');
+  }
+}, 10000);
 try {
-const branchResult = await cloudRpc('api_branch_list');
-if (!branchResult.ok || !Array.isArray(branchResult.branches) || !branchResult.branches.length) throw new Error(branchResult.error || 'โหลดรายชื่อสาขาไม่สำเร็จ');
-renderBranchOptions(branchResult.branches);
+  await init();
+  // Branding/cache is optional: never block startup on IndexedDB or logo fetch.
+  void loadGlobalSiteBrand().catch(error => console.warn('โหลดโลโก้เริ่มต้นไม่สำเร็จ', error));
+  try {
+    const branchResult = await cloudRpc('api_branch_list');
+    if (!branchResult?.ok || !Array.isArray(branchResult.branches) || !branchResult.branches.length) throw new Error(branchResult?.error || 'โหลดรายชื่อสาขาไม่สำเร็จ');
+    try { renderBranchOptions(branchResult.branches); }
+    catch (error) {
+      console.error('แสดงรายชื่อสาขาไม่สำเร็จ', error);
+      branches = [PRIMARY_BRANCH_FALLBACK];
+      renderBranchOptions(branches);
+      startupMessage = 'โหลดรายชื่อสาขาไม่สมบูรณ์ กำลังใช้สาขาพันท้ายนรสิงห์ชั่วคราว';
+    }
+  } catch (error) {
+    console.error('โหลดรายชื่อสาขาไม่สำเร็จ', error);
+    try { renderBranchOptions([PRIMARY_BRANCH_FALLBACK]); } catch (renderError) { console.error(renderError); }
+    startupMessage = 'โหลดรายชื่อสาขาไม่สำเร็จ กำลังใช้สาขาพันท้ายนรสิงห์ชั่วคราว';
+  }
+  try { const status = await cloudRpc('api_bootstrap_status'); showHint(!!status?.firstLogin); }
+  catch (error) { console.warn('ตรวจสอบสถานะเริ่มต้นไม่สำเร็จ', error); showHint(false); }
+  const token = sess.get();
+  if (token) {
+    try {
+      const result = await cloudRpc('api_get_state', { p_token: token });
+      if (result?.ok) {
+        applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
+        if (result.branch) { setCurrentBranch(result.branch); sess.set(token, result.branch.id); }
+        enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout(); if (logNeedsPrune) save();
+      } else { sess.set(null); showHint(false); revealLogin(result?.error || 'กรุณาเข้าสู่ระบบใหม่'); }
+    } catch (error) { showHint(false); revealLogin(error.message || 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
+  } else revealLogin(startupMessage);
 } catch (error) {
-renderBranchOptions([PRIMARY_BRANCH_FALLBACK]);
-startupMessage = 'โหลดรายชื่อสาขาไม่สำเร็จ กำลังใช้สาขาพันท้ายนรสิงห์ชั่วคราว';
+  console.error('เว็บไซต์เริ่มต้นไม่สำเร็จ', error);
+  try { showHint(false); } catch {}
+  revealLogin('เริ่มต้นเว็บไซต์ไม่สำเร็จ กรุณากดรีเฟรชหน้าเว็บ หากยังพบปัญหาให้ติดต่อผู้ดูแลระบบ');
+} finally {
+  clearTimeout(bootFailsafe);
+  const screen = document.getElementById('bootScreen');
+  if (screen && !screen.classList.contains('hide')) revealLogin(startupMessage);
 }
-try { const status = await cloudRpc('api_bootstrap_status'); showHint(!!status.firstLogin); }
-catch { showHint(false); }
-const token = sess.get();
-if (token) {
-try {
-const result = await cloudRpc('api_get_state', { p_token: token });
-if (result.ok) {
-applyCloudState(result.state); syncSnapshot = cloneData(result.state); syncVersion = result.version;
-if (result.branch) { setCurrentBranch(result.branch); sess.set(token, result.branch.id); }
-enter(result.me, result.branch || currentBranch); checkSaturdayAutoLogout(); if (logNeedsPrune) save();
-} else { sess.set(null); showHint(false); revealLogin(result.error || 'กรุณาเข้าสู่ระบบใหม่'); }
-} catch (error) { showHint(false); revealLogin(error.message || 'ยังเชื่อมต่อฐานข้อมูลไม่ได้ กรุณาติดต่อผู้ดูแลระบบ'); }
-} else revealLogin(startupMessage);
 })();
 (function(){
 const btn=document.createElement('button');
