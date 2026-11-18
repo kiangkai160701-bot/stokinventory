@@ -2601,15 +2601,28 @@ async function refreshBranchOnline() {
     if (/Could not find the function|api_presence_branch_counts|schema cache/i.test(String(error?.message || ''))) branchOnlineUnavailable = true;
   } finally { branchOnlineBusy = false; }
 }
+function schedulePresencePoll() {
+clearTimeout(presenceTimer); presenceTimer = null;
+if (isClosedHoursReadOnly() || !me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
+const dueAt = Math.max(presenceLastRequestAt + 180000, presenceRetryAt || 0);
+presenceTimer = setTimeout(async () => {
+ const before = presenceLastRequestAt;
+ const wasSyncing = cloudBusy;
+ await refreshPresence();
+ if (presencePaused) return;
+ if (wasSyncing && presenceLastRequestAt === before) presenceLastRequestAt = Date.now();
+ schedulePresencePoll();
+}, Math.max(1000, dueAt - Date.now()));
+}
 function startPresence() {
-clearInterval(presenceTimer); presenceTimer = null;
+clearTimeout(presenceTimer); presenceTimer = null;
 if (isClosedHoursReadOnly() || !me || !cloudToken) { stopPresence(); return; }
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
 void refreshPresence();
-presenceTimer = setInterval(refreshPresence, 180000);
+schedulePresencePoll();
 }
 function stopPresence() {
-clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
+clearTimeout(presenceTimer); presenceTimer = null; presenceBusy = false;
 onlineUsers = new Set(); updateOnlineUsers([]);
 }
 // Presence refresh is coalesced with the shared foreground-sync handler.
@@ -2649,7 +2662,7 @@ presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
 annState.failures = 0; annState.paused = false; annState.retryAt = 0;
 lastCloudPollAt = Date.now();
 void refreshCloudState(); void refreshPresence(); void refreshAnnouncement(true);
-scheduleCloudPoll(); scheduleAnnouncementPoll();
+scheduleCloudPoll(); schedulePresencePoll(); scheduleAnnouncementPoll();
 }, delay);
 }
 async function refreshCloudState() {
@@ -2931,10 +2944,10 @@ window.addEventListener('focus', () => scheduleForegroundSync(800));
 document.addEventListener('visibilitychange', () => {
  if (document.hidden) {
    clearTimeout(cloudPollTimer); cloudPollTimer = null;
-   clearInterval(presenceTimer); presenceTimer = null;
-   clearInterval(annPollTimer); annPollTimer = null;
+   clearTimeout(presenceTimer); presenceTimer = null;
+   clearTimeout(annPollTimer); annPollTimer = null;
  } else {
-   if (me && cloudToken && !isClosedHoursReadOnly()) { presenceTimer = setInterval(refreshPresence, 180000); }
+   if (me && cloudToken && !isClosedHoursReadOnly()) { schedulePresencePoll(); }
    scheduleForegroundSync(800);
  }
 });
