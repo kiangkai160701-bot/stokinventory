@@ -2746,7 +2746,7 @@ async function refreshAnnouncement(force = false) {
 let annPollTimer = null;
 function scheduleAnnouncementPoll(delay = null) {
 clearTimeout(annPollTimer); annPollTimer = null;
-if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || annState.paused) return;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || annState.paused || annState.unavailable) return;
 const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
 const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 annPollTimer = setTimeout(async () => {
