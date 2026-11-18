@@ -2514,7 +2514,7 @@ me = u; pollingLogoutInProgress = false; $('#lgPinInput').value = ''; $('#lgUser
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; void refreshJobProfiles(); startPresence(); startCloudPolling(); startAnnouncementPolling(); annState.version = null; void refreshAnnouncement(true); if (u.must) pinModal(true);
+tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
 }
 function logout() {
 pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
@@ -2558,7 +2558,7 @@ else throw new Error(result?.error || 'Presence request failed');
 } catch {
 presenceFailures++;
 if (presenceFailures >= 3) { presencePaused = true; presenceRetryAt = Infinity; }
-else presenceRetryAt = Date.now() + [60000, 120000, 300000][presenceFailures - 1];
+else presenceRetryAt = Math.max(presenceLastRequestAt + 180000, Date.now() + [60000, 120000, 300000][presenceFailures - 1]);
 } finally { presenceBusy = false; presencePromise = null; }
 })();
 return presencePromise;
@@ -2625,6 +2625,7 @@ if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosed
 const dueAt = Math.max(lastCloudPollAt + cloudPollInterval(), cloudPollRetryAt || 0);
 const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 cloudPollTimer = setTimeout(async () => {
+lastCloudPollAt = Date.now();
 await refreshCloudState();
 if (cloudPollPaused) return;
 const retryDelay = cloudPollRetryAt > Date.now() ? cloudPollRetryAt - Date.now() : null;
@@ -2648,7 +2649,7 @@ presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
 annState.failures = 0; annState.paused = false; annState.retryAt = 0;
 lastCloudPollAt = Date.now();
 void refreshCloudState(); void refreshPresence(); void refreshAnnouncement(true);
-scheduleCloudPoll();
+scheduleCloudPoll(); scheduleAnnouncementPoll();
 }, delay);
 }
 async function refreshCloudState() {
@@ -2724,7 +2725,7 @@ function syncAnnounceOffset() {
 }
 async function refreshAnnouncement(force = false) {
   if (annState.promise) return annState.promise;
-  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || annState.unavailable || annState.paused || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && Date.now() - annState.lastCheckAt < 300000)) return;
+  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || annState.unavailable || annState.paused || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
   annState.busy = true; annState.lastCheckAt = Date.now();
   annState.promise = (async () => {
   try {
@@ -2743,12 +2744,25 @@ async function refreshAnnouncement(force = false) {
   return annState.promise;
 }
 let annPollTimer = null;
-function startAnnouncementPolling() {
-clearInterval(annPollTimer); annPollTimer = null;
-if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
-annPollTimer = setInterval(() => refreshAnnouncement(), 300000);
+function scheduleAnnouncementPoll(delay = null) {
+clearTimeout(annPollTimer); annPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || annState.paused) return;
+const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
+const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
+annPollTimer = setTimeout(async () => {
+ annState.lastCheckAt = Date.now();
+ await refreshAnnouncement();
+ if (annState.paused) return;
+ const retryDelay = annState.failures > 0 && annState.retryAt > Date.now() ? annState.retryAt - Date.now() : null;
+ scheduleAnnouncementPoll(retryDelay);
+}, wait);
 }
-function stopAnnouncementPolling() { clearInterval(annPollTimer); annPollTimer = null; }
+function startAnnouncementPolling() {
+clearTimeout(annPollTimer); annPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+scheduleAnnouncementPoll();
+}
+function stopAnnouncementPolling() { clearTimeout(annPollTimer); annPollTimer = null; }
 // Mobile browsers fire 'resize' while scrolling (address bar collapses). Only rebuild when the track WIDTH really changed, otherwise the text would restart from the right.
 window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); const track = $('#announceTrack'); if (annState.message && track && !$('#announceBar').hidden && Math.abs(track.clientWidth - (annState.w || 0)) > 2) annFill(annState.message); }, 200); });
 if ('ResizeObserver' in window) { const h = document.querySelector('#app .top'); if (h) new ResizeObserver(syncAnnounceOffset).observe(h); }
