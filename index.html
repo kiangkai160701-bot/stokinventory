@@ -2621,7 +2621,8 @@ function cloudPollInterval() { return Date.now() - lastUserActivityAt > 120000 ?
 function scheduleCloudPoll(delay = null) {
 clearTimeout(cloudPollTimer); cloudPollTimer = null;
 if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || cloudPollPaused) return;
-const wait = delay == null ? Math.max(1000, lastCloudPollAt + cloudPollInterval() - Date.now()) : Math.max(1000, delay);
+const dueAt = Math.max(lastCloudPollAt + cloudPollInterval(), cloudPollRetryAt || 0);
+const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 cloudPollTimer = setTimeout(async () => {
 await refreshCloudState();
 if (cloudPollPaused) return;
@@ -2631,6 +2632,7 @@ scheduleCloudPoll(retryDelay);
 }
 function startCloudPolling() {
 clearTimeout(cloudPollTimer); cloudPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
 lastCloudPollAt = Date.now(); cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
 scheduleCloudPoll();
 }
@@ -2657,6 +2659,7 @@ cloudRefreshPromise = (async () => {
 try {
 const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
 if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
+if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken || isClosedHoursReadOnly()) return;
 if (!check?.ok) { logout(); showHint(false); return toast(check?.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
 const branchChanged = !!(check.branch && (check.branch.id !== currentBranch.id || check.branch.name !== currentBranch.name));
 if (branchChanged) setCurrentBranch(check.branch);
@@ -2727,6 +2730,7 @@ async function refreshAnnouncement(force = false) {
     const version = await cloudRpc('api_announcement_version_get', { p_token: cloudToken });
     if (!version?.ok || !version.version) throw new Error(version?.error || 'Announcement version check failed');
     if (annState.version === version.version) { annState.failures = 0; annState.retryAt = 0; return; }
+    if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken || isClosedHoursReadOnly()) return;
     const r = await cloudRpc('api_announcement_get', { p_token: cloudToken });
     if (r?.ok) { annState.version = version.version; annState.failures = 0; annState.retryAt = 0; renderAnnounce(r.announcement); }
     else throw new Error(r?.error || 'Announcement request failed');
@@ -2738,7 +2742,11 @@ async function refreshAnnouncement(force = false) {
   return annState.promise;
 }
 let annPollTimer = null;
-function startAnnouncementPolling() { clearInterval(annPollTimer); annPollTimer = setInterval(() => refreshAnnouncement(), 300000); }
+function startAnnouncementPolling() {
+clearInterval(annPollTimer); annPollTimer = null;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+annPollTimer = setInterval(() => refreshAnnouncement(), 300000);
+}
 function stopAnnouncementPolling() { clearInterval(annPollTimer); annPollTimer = null; }
 // Mobile browsers fire 'resize' while scrolling (address bar collapses). Only rebuild when the track WIDTH really changed, otherwise the text would restart from the right.
 window.addEventListener('resize', () => { clearTimeout(annState.resize); annState.resize = setTimeout(() => { syncAnnounceOffset(); const track = $('#announceTrack'); if (annState.message && track && !$('#announceBar').hidden && Math.abs(track.clientWidth - (annState.w || 0)) > 2) annFill(annState.message); }, 200); });
@@ -2896,8 +2904,8 @@ setInterval(() => {
   syncClosedHoursNotice();
   if (active !== closedHoursWasActive) {
     closedHoursWasActive = active;
-    if (active) { stopPresence(); renderAnnounce(null); }
-    else if (me) { startPresence(); scheduleForegroundSync(800); }
+    if (active) { stopPresence(); stopCloudPolling(); stopAnnouncementPolling(); renderAnnounce(null); }
+    else if (me) { startPresence(); startCloudPolling(); startAnnouncementPolling(); scheduleForegroundSync(800); }
   }
 }, 30000);
 // Coalesce focus + visibility events. Multi-tab leader election is intentionally skipped:
