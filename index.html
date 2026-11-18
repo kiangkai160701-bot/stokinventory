@@ -1773,13 +1773,13 @@ async function refreshJobProfiles(serverVersion = null) {
     J = J || jDef(); J.profiles = cached.profiles; saveJ();
     if (tab === 'jobs') { try { jRender(); } catch {} }
   }
+  if (isClosedHoursReadOnly() || document.hidden || pollingLogoutInProgress || cloudBusy) return;
   let version = serverVersion;
   if (!version) {
     const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
     if (!check?.ok) return;
     version = check.profilesVersion;
   }
-  if (isClosedHoursReadOnly() || document.hidden || pollingLogoutInProgress || cloudBusy) return;
   if (cached && String(cached.version || '') === String(version || '')) return;
   const result = await cloudRpc('api_job_profiles_get', { p_token: cloudToken });
   if (!result?.ok || String(currentBranch?.id) !== branchId) return;
@@ -2514,7 +2514,7 @@ me = u; pollingLogoutInProgress = false; $('#lgPinInput').value = ''; $('#lgUser
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); void refreshJobProfiles(); startPresence(); startCloudPolling(); startAnnouncementPolling(); annState.version = null; void refreshAnnouncement(true); if (u.must) pinModal(true);
+tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; void refreshJobProfiles(); startPresence(); startCloudPolling(); startAnnouncementPolling(); annState.version = null; void refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
@@ -2918,7 +2918,7 @@ document.addEventListener('visibilitychange', () => {
    clearInterval(presenceTimer); presenceTimer = null;
    clearInterval(annPollTimer); annPollTimer = null;
  } else {
-   if (me && cloudToken) { presenceTimer = setInterval(refreshPresence, 180000); startAnnouncementPolling(); }
+   if (me && cloudToken && !isClosedHoursReadOnly()) { presenceTimer = setInterval(refreshPresence, 180000); startAnnouncementPolling(); }
    scheduleForegroundSync(800);
  }
 });
