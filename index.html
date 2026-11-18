@@ -1815,7 +1815,8 @@ return new Promise(resolve => {
     tx.objectStore(SITE_BRAND_CACHE_STORE).put({
       siteName: String(data.siteName || 'ไข่หวานบ้านซูชิ'),
       logoData: typeof data.logoData === 'string' ? data.logoData : null,
-      updatedAt: Date.now()
+      // Store the server-side version timestamp, not the local cache-write time.
+      updatedAt: data.updatedAt || null
     }, String(key));
     tx.oncomplete = tx.onerror = tx.onabort = () => resolve();
   } catch { resolve(); }
@@ -1823,9 +1824,9 @@ return new Promise(resolve => {
 }
 async function restoreSiteBrandCache(key, branchId = '') {
 const cached = await readSiteBrandCache(key);
-if (!cached || (branchId && String(currentBranch?.id) !== String(branchId))) return false;
+if (!cached || (branchId && String(currentBranch?.id) !== String(branchId))) return null;
 applySiteBrand(cached);
-return true;
+return cached;
 }
 function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
@@ -1888,22 +1889,44 @@ catch (error) { console.warn('โหลดโลโก้เว็บไซต�
 }
 async function loadSiteBrand(branchId = currentBranch?.id) {
 if (isClosedHoursReadOnly() || !branchId) return;
+const cacheKey = 'branch:' + branchId;
 try {
-  // Branch-specific cached branding takes priority for the selected branch.
-  await restoreSiteBrandCache('branch:' + branchId, branchId);
-  const result = await cloudRpc('api_site_brand_get', { p_branch_id: branchId });
-if (result?.ok && String(currentBranch?.id) === String(branchId)) {
-  if (result.branchName && String(result.branchName) !== String(currentBranch.name)) {
-    currentBranch = { ...currentBranch, name: String(result.branchName) };
-    branchStore.set(currentBranch.id);
-    branches = branches.map(b => String(b.id) === String(branchId) ? { ...b, name: currentBranch.name } : b);
-    if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
-    const option = Array.from($('#lgBranch')?.options || []).find(item => String(item.value) === String(branchId));
-    if (option) option.textContent = 'สาขา' + currentBranch.name;
+  // Show the cached logo immediately. Ask only for its tiny version metadata.
+  const cached = await restoreSiteBrandCache(cacheKey, branchId);
+  if (String(currentBranch?.id) !== String(branchId)) return;
+
+  const version = await cloudRpc('api_site_brand_version_get', { p_branch_id: branchId });
+  if (!version?.ok) {
+    console.warn('ตรวจสอบเวอร์ชันโลโก้ไม่สำเร็จ', version?.error || '');
+    return; // Keep the cached logo; do not download the large image on metadata failure.
   }
-  applySiteBrand(result);
-  void writeSiteBrandCache('branch:' + branchId, result);
-}
+
+  if (cached && cached.updatedAt && String(cached.updatedAt) === String(version.updatedAt)) {
+    if (version.branchName && String(version.branchName) !== String(currentBranch.name)) {
+      currentBranch = { ...currentBranch, name: String(version.branchName) };
+      branchStore.set(currentBranch.id);
+      branches = branches.map(b => String(b.id) === String(branchId) ? { ...b, name: currentBranch.name } : b);
+      if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
+      const option = Array.from($('#lgBranch')?.options || []).find(item => String(item.value) === String(branchId));
+      if (option) option.textContent = 'สาขา' + currentBranch.name;
+    }
+    return; // No logo download when the server version has not changed.
+  }
+
+  const result = await cloudRpc('api_site_brand_get', { p_branch_id: branchId });
+  if (result?.ok && String(currentBranch?.id) === String(branchId)) {
+    if (result.branchName && String(result.branchName) !== String(currentBranch.name)) {
+      currentBranch = { ...currentBranch, name: String(result.branchName) };
+      branchStore.set(currentBranch.id);
+      branches = branches.map(b => String(b.id) === String(branchId) ? { ...b, name: currentBranch.name } : b);
+      if ($('#branchName')) $('#branchName').textContent = 'สาขา' + currentBranch.name;
+      const option = Array.from($('#lgBranch')?.options || []).find(item => String(item.value) === String(branchId));
+      if (option) option.textContent = 'สาขา' + currentBranch.name;
+    }
+    result.updatedAt = version.updatedAt || null;
+    applySiteBrand(result);
+    void writeSiteBrandCache(cacheKey, result);
+  }
 }
 catch (error) { console.warn('โหลดข้อมูลแบรนด์เว็บไซต์ไม่สำเร็จ', error); }
 }
@@ -5669,7 +5692,6 @@ if (message) $('#lgMsg').textContent = message;
 (async () => {
 await init();
 await loadGlobalSiteBrand();
-setInterval(loadSiteBrand, 120000);
 let startupMessage = '';
 try {
 const branchResult = await cloudRpc('api_branch_list');
