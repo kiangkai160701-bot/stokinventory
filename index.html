@@ -2063,8 +2063,7 @@ lastReset = state.lastReset || null;
 if (JOBS_CLOUD && state.jobs) {
   const cloudJobs = { ...state.jobs };
   delete cloudJobs.profiles;
-  const cachedProfiles = J?.profiles || {};
-  J = { ...cloudJobs, profiles: cachedProfiles };
+  J = { ...cloudJobs, profiles: {} };
   store.set(jKey(), cloudJobs);
 }
 }
