@@ -1200,54 +1200,54 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron::after{transform:rotate(180deg)}
 .disclosure-summary:active .disclosure-chevron{transform:scale(.92)}
 @media(max-width:680px){.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.backup-card .disclosure-inner>div[style*="flex-wrap"] .btn{width:100%;justify-content:center}}
-/* ===== Backup settings: layout with button styling matched to reference file ===== */
+/* ===== Backup settings: compact, space-efficient layout ===== */
 .settings-grid>.backup-admin-card,
 .settings-grid>.backup-card{grid-column:1/-1;width:100%;min-width:0;box-sizing:border-box}
 .backup-admin-card .disclosure-inner,
-.backup-card .disclosure-inner{display:grid;gap:12px;min-width:0}
+.backup-card .disclosure-inner{display:grid;gap:9px;min-width:0}
 .backup-admin-card .settings-hint,
-.backup-card .disclosure-inner>p:first-child{margin:0 0 2px;line-height:1.55;overflow-wrap:anywhere}
-.backup-admin-card .backup-admin-summary{display:grid;gap:8px;min-width:0;padding:20px 22px;border:1px solid var(--theme-border-strong,var(--line));border-radius:20px;background:var(--theme-soft,var(--card-bg));box-sizing:border-box}
-.backup-admin-card .backup-admin-summary b{font-size:calc(17px * var(--ts,1));line-height:1.5;overflow-wrap:anywhere}
-.backup-admin-card .backup-admin-summary small{font-size:calc(13px * var(--ts,1));line-height:1.65;color:var(--mute);overflow-wrap:anywhere}
-.backup-admin-card .backup-admin-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;min-width:0}
-/* Keep the original .btn.sm sizing for the two top-level actions */
-.backup-admin-card .backup-admin-list{display:grid;gap:14px;min-width:0}
-.backup-admin-card .backup-admin-list.is-scrollable{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:5px;max-height:var(--backup-visible-height);-webkit-overflow-scrolling:touch}
-.backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar{width:5px}
+.backup-card .disclosure-inner>p:first-child{margin:0 0 1px;line-height:1.45;overflow-wrap:anywhere}
+.backup-admin-card .backup-admin-summary{display:grid;gap:5px;min-width:0;padding:12px 14px;border:1px solid var(--theme-border-strong,var(--line));border-radius:14px;background:var(--theme-soft,var(--card-bg));box-sizing:border-box}
+.backup-admin-card .backup-admin-summary b{font-size:calc(14px * var(--ts,1));line-height:1.4;overflow-wrap:anywhere}
+.backup-admin-card .backup-admin-summary small{font-size:calc(11.5px * var(--ts,1));line-height:1.45;color:var(--mute);overflow-wrap:anywhere}
+.backup-admin-card .backup-admin-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:7px;min-width:0}
+.backup-admin-card .backup-admin-actions .btn{min-height:34px;padding:6px 11px;font-size:12px;border-radius:10px}
+.backup-admin-card .backup-admin-list{display:grid;gap:8px;min-width:0}
+.backup-admin-card .backup-admin-list.is-scrollable{overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-gutter:stable;padding-right:4px;max-height:var(--backup-visible-height);-webkit-overflow-scrolling:touch}
+.backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar{width:4px}
 .backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar-thumb{background:var(--theme-border-strong,var(--line));border-radius:99px}
 .backup-admin-card .backup-admin-list.is-scrollable::-webkit-scrollbar-track{background:transparent}
-
-.backup-admin-card .backup-version-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;padding:20px 22px;border:1px solid var(--line);border-radius:20px;background:var(--card-bg);box-sizing:border-box}
-.backup-admin-card .backup-version-info{display:grid;gap:7px;min-width:0}
-.backup-admin-card .backup-version-info b{font-size:calc(16px * var(--ts,1));line-height:1.45;overflow-wrap:anywhere}
-.backup-admin-card .backup-version-info small{font-size:calc(13px * var(--ts,1));line-height:1.55;color:var(--mute);overflow-wrap:anywhere}
-.backup-admin-card .backup-branch-actions{display:grid;gap:8px;min-width:0}
-.backup-admin-card .backup-branch-action-row{display:flex;align-items:center;gap:10px;min-width:0}
-.backup-admin-card .backup-branch-action-row .backup-restore-branch{flex:1 1 auto;min-width:0;justify-content:flex-start;text-align:left;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px}
+.backup-admin-card .backup-version-row{display:grid;grid-template-columns:minmax(0,1fr);gap:9px;min-width:0;padding:12px 13px;border:1px solid var(--line);border-radius:15px;background:var(--card-bg);box-sizing:border-box}
+.backup-admin-card .backup-version-info{display:grid;gap:3px;min-width:0}
+.backup-admin-card .backup-version-info b{font-size:calc(13.5px * var(--ts,1));line-height:1.35;overflow-wrap:anywhere}
+.backup-admin-card .backup-version-info small{font-size:calc(11.5px * var(--ts,1));line-height:1.4;color:var(--mute);overflow-wrap:anywhere}
+.backup-admin-card .backup-branch-actions{display:grid;gap:6px;min-width:0}
+.backup-admin-card .backup-branch-action-row{display:flex;align-items:center;gap:7px;min-width:0}
+.backup-admin-card .backup-branch-action-row .backup-restore-branch{flex:1 1 auto;min-width:0;min-height:34px;justify-content:flex-start;text-align:left;white-space:nowrap;padding:6px 9px;font-size:11.5px;border-radius:10px}
 .backup-admin-card .backup-branch-action-row .backup-restore-branch .backup-branch-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.backup-admin-card .backup-branch-action-row .backup-download-branch{flex:0 0 auto;width:auto;min-width:0;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px;background:var(--theme-soft);border-color:var(--theme-border-strong);color:var(--acc)}
+.backup-admin-card .backup-branch-action-row .backup-download-branch{flex:0 0 auto;width:auto;min-width:0;margin-left:auto;min-height:34px;display:inline-flex;align-items:center;justify-content:center;gap:4px;white-space:nowrap;padding:6px 9px;font-size:11.5px;border-radius:10px;background:var(--theme-soft);border-color:var(--theme-border-strong);color:var(--acc)}
 .backup-admin-card .backup-branch-action-row .backup-download-branch .backup-download-label{display:inline}
 .backup-admin-card .backup-branch-label,.backup-admin-card .backup-download-label{min-width:0;overflow-wrap:anywhere}
-.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:8px!important;min-width:0}
-.backup-card .disclosure-inner>div[style*="flex-wrap"]>.btn{width:auto;min-width:0;min-height:42px;justify-content:center;white-space:normal;text-align:center}
+.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:7px!important;min-width:0}
+.backup-card .disclosure-inner>div[style*="flex-wrap"]>.btn{width:auto;min-width:0;min-height:34px;padding:6px 10px;font-size:12px;justify-content:center;white-space:normal;text-align:center}
 .backup-card #selectedImportPanel{display:grid;gap:5px;min-width:0;box-sizing:border-box}
-.backup-card #selectedImportPanel>div{display:flex;flex-wrap:wrap;gap:8px!important}
-.backup-card #selectedImportPanel .btn{width:auto;min-width:0;min-height:40px;justify-content:center;white-space:normal}
+.backup-card #selectedImportPanel>div{display:flex;flex-wrap:wrap;gap:7px!important}
+.backup-card #selectedImportPanel .btn{width:auto;min-width:0;min-height:34px;padding:6px 10px;font-size:12px;justify-content:center;white-space:normal}
 .backup-card #selectedImportName,.backup-card #selectedImportMeta{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:420px){
- .backup-admin-card .backup-version-row{padding:16px 14px;gap:13px}
- .backup-admin-card .backup-branch-action-row{gap:8px}
- .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:8px 9px;font-size:12px}
- .backup-admin-card .backup-admin-summary{padding:16px 15px}
- .backup-admin-card .backup-admin-summary b{font-size:calc(15px * var(--ts,1))}
-}
-@media(max-width:360px){
+ .backup-admin-card .backup-version-row{padding:10px 11px;gap:8px}
  .backup-admin-card .backup-branch-action-row{gap:6px}
- .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:8px 8px;font-size:11.5px}
+ .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:6px 8px;font-size:11px}
+ .backup-admin-card .backup-admin-summary{padding:10px 12px}
+ .backup-admin-card .backup-admin-summary b{font-size:calc(13px * var(--ts,1))}
+ .backup-admin-card .backup-admin-summary small{font-size:11px}
+}
+@media(max-width:340px){
+ .backup-admin-card .backup-branch-action-row{gap:5px}
+ .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:6px 7px;font-size:10.5px}
 }
 @media(min-width:1100px){
- .backup-admin-card .backup-version-row{grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);align-items:start}
+ .backup-admin-card .backup-version-row{grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr);align-items:center}
 }
 /* ===== เมนูด้านข้าง + จ๊อบพนักงาน (mobile only) ===== */
 .sd-scrim{position:fixed;inset:0;z-index:42;background:rgba(40,28,36,.22);opacity:0;pointer-events:none;transition:opacity .26s ease}
