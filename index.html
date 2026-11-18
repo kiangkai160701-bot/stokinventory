@@ -1604,39 +1604,35 @@ html.formal-theme .top-runway{display:none!important}
 .history-result .hr-amt small{line-height:1;white-space:nowrap}
 </style>
 <style id="historyQuickFilterPolish">
-/* ใช้รูปแบบปุ่มช่วงเวลาตามไฟล์ตัวอย่าง */
-.history-filter .history-actions{display:contents}
-.history-filter .history-quick{display:none!important}
+/* ถอดค่าจากไฟล์ตัวอย่างโดยตรง: ขนาดปุ่มเล็กแบบ compact */
+.history-actions{display:contents}
+.history-quick{display:none!important}
 @media(max-width:1099px){
   .history-filter .history-actions{
-    display:flex;flex-wrap:nowrap;align-items:center;gap:8px;min-width:0;
-    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;
-    padding:3px 1px 6px;
+    display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-width:0;
+    overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch
   }
   .history-filter .history-actions::-webkit-scrollbar{display:none}
   .history-filter .history-actions>button{flex:0 0 auto;width:auto;min-width:0}
-  .history-filter .history-quick{
-    display:inline-flex!important;align-items:center;justify-content:center;
-    min-height:38px;padding:7px 15px;font-weight:700;white-space:nowrap;
-    color:var(--acc-hover);background:var(--acc-light);
-    border:1px solid color-mix(in srgb,var(--acc) 55%,transparent);
-    border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.04);
-    transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .16s ease;
-  }
-  .history-filter .history-quick:active{
-    background:color-mix(in srgb,var(--acc) 22%,var(--acc-light));transform:scale(.97)
-  }
-  .history-filter .history-quick.on{
-    color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc-hover));
-    border-color:var(--acc-hover);box-shadow:0 3px 9px var(--acc-glow);
-  }
-  .history-filter .history-quick:focus-visible{
-    outline:3px solid color-mix(in srgb,var(--acc) 28%,transparent);outline-offset:2px
-  }
 }
 @media(max-width:680px){
   .history-filter.range-filter:not(.dashboard-range)>.history-actions{grid-column:1/-1}
   .history-filter.range-filter:not(.dashboard-range)>.history-actions>#clearHistoryRange{min-width:0}
+}
+@media(max-width:1099px){
+  .history-filter .history-quick{
+    display:inline-flex!important;align-items:center;justify-content:center;
+    padding:4px 11px;font-weight:700;white-space:nowrap;
+    color:var(--acc-hover);background:var(--acc-light);
+    border:1px solid color-mix(in srgb,var(--acc) 55%,transparent)
+  }
+  .history-filter .history-quick:active{
+    background:color-mix(in srgb,var(--acc) 22%,var(--acc-light))
+  }
+  .history-filter .history-quick.on{
+    color:#fff;background:linear-gradient(135deg,var(--acc),var(--acc-hover));
+    border-color:var(--acc-hover);box-shadow:0 3px 9px var(--acc-glow)
+  }
 }
 </style>
 </head>
