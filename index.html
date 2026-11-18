@@ -2701,7 +2701,7 @@ clearInterval(presenceTimer);
 if (isClosedHoursReadOnly()) { stopPresence(); return; }
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
 refreshPresence();
-presenceTimer = setInterval(refreshPresence, 15000);
+presenceTimer = setInterval(refreshPresence, 30000);
 }
 function stopPresence() {
 clearInterval(presenceTimer); presenceTimer = null; presenceBusy = false;
@@ -2739,7 +2739,7 @@ showSyncUpdateStatus(); if (logNeedsPrune) save();
 }
 /* ---------- Announcement ticker (shown under the header, set by kiangkai only) ---------- */
 const isAnnouncer = () => String(me?.name || '').toLowerCase() === 'kiangkai';
-const annState = { id: null, message: '', endAt: 0, timer: null, unavailable: false, busy: false, resize: null };
+const annState = { id: null, message: '', endAt: 0, timer: null, unavailable: false, busy: false, resize: null, version: null };
 function annFill(message) {
   const bar = $('#announceBar'), track = $('#announceTrack'), move = $('#announceMove');
   if (!bar || !track || !move) return;
@@ -2776,13 +2776,16 @@ async function refreshAnnouncement(force = false) {
   if (!force && document.hidden) return;
   annState.busy = true;
   try {
+    const version = await cloudRpc('api_announcement_version_get', { p_token: cloudToken });
+    if (!version?.ok || !version.version) return;
+    if (annState.version === version.version) return; // Announcement has not changed; skip the full payload.
     const r = await cloudRpc('api_announcement_get', { p_token: cloudToken });
-    if (r?.ok) renderAnnounce(r.announcement);
+    if (r?.ok) { annState.version = version.version; renderAnnounce(r.announcement); }
   } catch (error) {
     if (/Could not find the function|api_announcement|schema cache/i.test(String(error?.message || ''))) annState.unavailable = true;
   } finally { annState.busy = false; }
 }
-setInterval(() => refreshAnnouncement(), 30000);
+setInterval(() => refreshAnnouncement(), 60000);
 window.addEventListener('focus', () => refreshAnnouncement(true));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshAnnouncement(true); });
 // Mobile browsers fire 'resize' while scrolling (address bar collapses). Only rebuild when the track WIDTH really changed, otherwise the text would restart from the right.
@@ -2935,7 +2938,7 @@ void status.offsetWidth;
 status.classList.add('blink');
 syncStatusTimer = setTimeout(() => { status.classList.remove('blink'); status.classList.add('hide'); }, 5000);
 }
-setInterval(() => { if (!isClosedHoursReadOnly()) refreshCloudState(); }, 5000);
+setInterval(() => { if (!isClosedHoursReadOnly()) refreshCloudState(); }, 15000);
 let closedHoursWasActive = isClosedHoursReadOnly();
 setInterval(() => {
   const active = isClosedHoursReadOnly();
