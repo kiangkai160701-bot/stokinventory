@@ -2618,7 +2618,7 @@ me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 void refreshPushSubscriptionForSession();
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); startPresence(); refreshAnnouncement(true); if (u.must) pinModal(true);
+tab = 'stock'; build(); startPresence(); annState.version = null; refreshAnnouncement(true); if (u.must) pinModal(true);
 }
 function logout() {
 stopPresence();
