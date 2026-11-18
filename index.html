@@ -2509,14 +2509,14 @@ const migratedLegacyData = migrateLegacyBrowserData(result);
 if (migratedLegacyData || logNeedsPrune) save();
 enter(result.me, result.branch);
 }
-function enter(u, branch = currentBranch) {
+function enter(u, branch = currentBranch, initialTab = 'stock') {
 setCurrentBranch(branch);
 syncClosedHoursNotice();
 me = u; pollingLogoutInProgress = false; $('#lgPinInput').value = ''; $('#lgUser').value = '';
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
+tab = initialTab || 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
 }
 async function logout() {
 pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
@@ -2553,7 +2553,7 @@ let presenceLastRequestAt = 0, presencePromise = null, presenceFailures = 0, pre
 let presenceRetryAt = 0, branchOnlineLastRequestAt = 0;
 async function refreshPresence(force = false) {
 if (presencePromise) return presencePromise;
-if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || !force && Date.now() - presenceLastRequestAt < 20000) return;
+if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || !force && Date.now() - presenceLastRequestAt < 30000) return;
 presenceBusy = true; presenceLastRequestAt = Date.now();
 presencePromise = (async () => {
 try {
@@ -2565,7 +2565,7 @@ else throw new Error(result?.error || 'Presence request failed');
 } catch {
 presenceFailures++;
 if (presenceFailures >= 3) { presencePaused = true; presenceRetryAt = Infinity; }
-else presenceRetryAt = Math.max(presenceLastRequestAt + 20000, Date.now() + [20000, 30000, 45000][presenceFailures - 1]);
+else presenceRetryAt = Math.max(presenceLastRequestAt + 30000, Date.now() + [30000, 45000, 60000][presenceFailures - 1]);
 } finally { presenceBusy = false; presencePromise = null; }
 })();
 return presencePromise;
@@ -2594,7 +2594,7 @@ function updateBranchOnlineBadges() {
 async function refreshBranchOnline() {
   if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
-  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 20000) return;
+  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 30000) return;
   branchOnlineBusy = true; branchOnlineLastRequestAt = Date.now();
   try {
     const r = await cloudRpc('api_presence_branch_counts', { p_token: cloudToken });
@@ -2611,7 +2611,7 @@ async function refreshBranchOnline() {
 function schedulePresencePoll() {
 clearTimeout(presenceTimer); presenceTimer = null;
 if (isClosedHoursReadOnly() || !me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
-const dueAt = Math.max(presenceLastRequestAt + 20000, presenceRetryAt || 0);
+const dueAt = Math.max(presenceLastRequestAt + 30000, presenceRetryAt || 0);
 presenceTimer = setTimeout(async () => {
  const before = presenceLastRequestAt;
  const wasSyncing = cloudBusy;
@@ -4597,8 +4597,9 @@ try {
 const result = await cloudRpc('api_branch_switch', { p_token: cloudToken, p_branch_id: branch.id, p_pin_hash: await hash(pin) });
 if (!result.ok) { if (button) button.disabled = false; e.target.elements.pin.value = ''; try { localStorage.removeItem(pinKey); } catch (_) {} return toast(result.error || 'เข้าสาขาไม่สำเร็จ', 1); }
 try { remember ? localStorage.setItem(pinKey, pin) : localStorage.removeItem(pinKey); } catch (_) {}
+const returnTab = tab || 'settings';
 sess.set(cloudToken, result.branch.id); setCurrentBranch(result.branch); applyCloudState(result.state); me = result.me;
-syncSnapshot = cloneData(result.state); syncVersion = result.version; closeModal(); enter(me, result.branch); toast(`เข้าสาขา${result.branch.name}แล้ว`);
+syncSnapshot = cloneData(result.state); syncVersion = result.version; closeModal(); enter(me, result.branch, returnTab); toast(`เข้าสาขา${result.branch.name}แล้ว`);
 } catch (error) { if (button) button.disabled = false; toast(error.message || 'เชื่อมต่อฐานข้อมูลไม่สำเร็จ', 1); }
 };
 }
