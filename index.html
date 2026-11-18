@@ -1833,13 +1833,24 @@ async function readJobProfilesCache(branchId) {
   return await readSiteBrandCache('job-profiles:' + String(branchId));
 }
 async function writeJobProfilesCache(branchId, profiles, version) {
-  await writeSiteBrandCache('job-profiles:' + String(branchId), {
-    profiles: profiles && typeof profiles === 'object' ? profiles : {},
-    version: version || null
+  const db = await openSiteBrandCache();
+  if (!db) return;
+  return new Promise(resolve => {
+    try {
+      const tx = db.transaction(SITE_BRAND_CACHE_STORE, 'readwrite');
+      tx.objectStore(SITE_BRAND_CACHE_STORE).put({
+        profiles: profiles && typeof profiles === 'object' ? profiles : {},
+        version: version || null
+      }, 'job-profiles:' + String(branchId));
+      tx.oncomplete = tx.onerror = tx.onabort = () => resolve();
+    } catch { resolve(); }
   });
 }
+let jobProfilesBusy = false;
 async function refreshJobProfiles(serverVersion = null) {
-  if (!cloudToken || !currentBranch?.id) return;
+  if (jobProfilesBusy || !cloudToken || !currentBranch?.id) return;
+  jobProfilesBusy = true;
+  try {
   const branchId = String(currentBranch.id), cacheKey = 'job-profiles:' + branchId;
   let cached = await readJobProfilesCache(branchId);
   if (String(currentBranch?.id) !== branchId) return;
@@ -1861,6 +1872,7 @@ async function refreshJobProfiles(serverVersion = null) {
   store.set(jKey(), J);
   await writeJobProfilesCache(branchId, J.profiles, result.profilesVersion || version);
   if (tab === 'jobs') { try { jRender(); } catch {} }
+  } finally { jobProfilesBusy = false; }
 }
 function applySiteBrand(data = {}) {
 const name = String(data.siteName || 'ไข่หวานบ้านซูชิ').trim().slice(0, 60) || 'ไข่หวานบ้านซูชิ';
