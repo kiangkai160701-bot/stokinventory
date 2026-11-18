@@ -1558,6 +1558,28 @@ html.formal-theme .top-runway{display:none!important}
 </head>
 <body data-theme="teal">
 <div id="bootScreen" role="status" aria-live="polite"><div class="boot-card"><span class="boot-mascot" id="siteBootLogo" aria-hidden="true"></span><span class="boot-spinner" aria-hidden="true"></span><strong>กำลังตรวจสอบข้อมูล</strong><small>กรุณารอสักครู่</small></div></div>
+<script id="boot-recovery">
+/* Independent recovery guard: runs before the main application script. */
+(function () {
+  window.setTimeout(function () {
+    var boot = document.getElementById('bootScreen');
+    if (!boot || boot.classList.contains('hide')) return;
+    boot.classList.add('hide');
+    var login = document.getElementById('login');
+    if (login) login.classList.remove('hide');
+    var message = document.getElementById('lgMsg');
+    if (message) {
+      message.textContent = 'ระบบเริ่มต้นไม่สำเร็จ กรุณากดปุ่มโหลดหน้าเว็บใหม่ หากยังเข้าไม่ได้ให้แจ้งผู้ดูแลระบบ';
+      var retry = document.createElement('button');
+      retry.type = 'button';
+      retry.textContent = 'โหลดหน้าเว็บใหม่';
+      retry.style.cssText = 'display:block;margin:12px auto 0;padding:10px 18px;border-radius:12px;background:#0f766e;color:#fff;font-weight:700';
+      retry.addEventListener('click', function () { window.location.reload(); });
+      message.appendChild(retry);
+    }
+  }, 12000);
+})();
+</script>
 <!-- The uploaded global brand logo is loaded before branch selection. -->
 <!-- LOGIN SCREEN -->
 <section id="login" class="hide">
