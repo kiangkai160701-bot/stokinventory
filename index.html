@@ -1200,30 +1200,30 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .disclosure-summary[aria-expanded="true"] .disclosure-chevron::after{transform:rotate(180deg)}
 .disclosure-summary:active .disclosure-chevron{transform:scale(.92)}
 @media(max-width:680px){.backup-card .disclosure-inner>div[style*="flex-wrap"]{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}.backup-card .disclosure-inner>div[style*="flex-wrap"] .btn{width:100%;justify-content:center}}
-/* ===== Backup settings: restore classic backup panel layout ===== */
+/* ===== Backup settings: layout with button styling matched to reference file ===== */
 .settings-grid>.backup-admin-card,
 .settings-grid>.backup-card{grid-column:1/-1;width:100%;min-width:0;box-sizing:border-box}
 .backup-admin-card .disclosure-inner,
 .backup-card .disclosure-inner{display:grid;gap:12px;min-width:0}
 .backup-admin-card .settings-hint,
 .backup-card .disclosure-inner>p:first-child{margin:0 0 2px;line-height:1.55;overflow-wrap:anywhere}
-/* All-branch backup summary */
 .backup-admin-card .backup-admin-summary{display:grid;gap:8px;min-width:0;padding:20px 22px;border:1px solid var(--theme-border-strong,var(--line));border-radius:20px;background:var(--theme-soft,var(--card-bg));box-sizing:border-box}
 .backup-admin-card .backup-admin-summary b{font-size:calc(17px * var(--ts,1));line-height:1.5;overflow-wrap:anywhere}
 .backup-admin-card .backup-admin-summary small{font-size:calc(13px * var(--ts,1));line-height:1.65;color:var(--mute);overflow-wrap:anywhere}
-.backup-admin-card .backup-admin-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:10px;min-width:0}
-.backup-admin-card .backup-admin-actions .btn{width:auto;min-width:0;min-height:40px;padding:8px 14px;font-size:calc(13px * var(--ts,1));justify-content:center;white-space:normal;text-align:center}
+.backup-admin-card .backup-admin-actions{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px;min-width:0}
+/* Keep the original .btn.sm sizing for the two top-level actions */
 .backup-admin-card .backup-admin-list{display:grid;gap:14px;min-width:0}
 .backup-admin-card .backup-version-row{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;padding:20px 22px;border:1px solid var(--line);border-radius:20px;background:var(--card-bg);box-sizing:border-box}
 .backup-admin-card .backup-version-info{display:grid;gap:7px;min-width:0}
 .backup-admin-card .backup-version-info b{font-size:calc(16px * var(--ts,1));line-height:1.45;overflow-wrap:anywhere}
 .backup-admin-card .backup-version-info small{font-size:calc(13px * var(--ts,1));line-height:1.55;color:var(--mute);overflow-wrap:anywhere}
-.backup-admin-card .backup-branch-actions{display:grid;gap:12px;min-width:0}
-.backup-admin-card .backup-branch-action-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(132px,30%);gap:12px;min-width:0}
-.backup-admin-card .backup-branch-action-row .btn{width:100%;min-width:0;min-height:54px;padding:9px 13px;font-size:calc(13px * var(--ts,1));justify-content:center;white-space:normal;text-align:left;line-height:1.3;border-radius:14px}
-.backup-admin-card .backup-branch-action-row .backup-download-branch{justify-content:center;text-align:center;padding-left:8px;padding-right:8px}
-.backup-admin-card .backup-branch-label,.backup-admin-card .backup-download-label{min-width:0;overflow-wrap:anywhere;word-break:break-word}
-/* Personal backup / import controls remain compact and separate */
+.backup-admin-card .backup-branch-actions{display:grid;gap:8px;min-width:0}
+.backup-admin-card .backup-branch-action-row{display:flex;align-items:center;gap:10px;min-width:0}
+.backup-admin-card .backup-branch-action-row .backup-restore-branch{flex:1 1 auto;min-width:0;justify-content:flex-start;text-align:left;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px}
+.backup-admin-card .backup-branch-action-row .backup-restore-branch .backup-branch-label{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.backup-admin-card .backup-branch-action-row .backup-download-branch{flex:0 0 auto;width:auto;min-width:0;margin-left:auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;padding:8px 12px;min-height:40px;font-size:12.5px;background:var(--theme-soft);border-color:var(--theme-border-strong);color:var(--acc)}
+.backup-admin-card .backup-branch-action-row .backup-download-branch .backup-download-label{display:inline}
+.backup-admin-card .backup-branch-label,.backup-admin-card .backup-download-label{min-width:0;overflow-wrap:anywhere}
 .backup-card .disclosure-inner>div[style*="flex-wrap"]{display:flex!important;flex-wrap:wrap!important;align-items:center;gap:8px!important;min-width:0}
 .backup-card .disclosure-inner>div[style*="flex-wrap"]>.btn{width:auto;min-width:0;min-height:42px;justify-content:center;white-space:normal;text-align:center}
 .backup-card #selectedImportPanel{display:grid;gap:5px;min-width:0;box-sizing:border-box}
@@ -1232,15 +1232,14 @@ html.nav-busy .card-mascot{animation-play-state:paused!important}
 .backup-card #selectedImportName,.backup-card #selectedImportMeta{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 @media(max-width:420px){
  .backup-admin-card .backup-version-row{padding:16px 14px;gap:13px}
- .backup-admin-card .backup-branch-action-row{grid-template-columns:minmax(0,1fr) minmax(112px,32%);gap:8px}
- .backup-admin-card .backup-branch-action-row .btn{min-height:48px;padding:8px 9px;font-size:calc(12px * var(--ts,1))}
+ .backup-admin-card .backup-branch-action-row{gap:8px}
+ .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:8px 9px;font-size:12px}
  .backup-admin-card .backup-admin-summary{padding:16px 15px}
  .backup-admin-card .backup-admin-summary b{font-size:calc(15px * var(--ts,1))}
- .backup-admin-card .backup-admin-actions .btn{min-height:38px;padding:7px 12px}
 }
-@media(max-width:340px){
- .backup-admin-card .backup-branch-action-row{grid-template-columns:minmax(0,1fr) minmax(100px,34%);gap:6px}
- .backup-admin-card .backup-branch-action-row .btn{min-height:44px;padding:7px 6px;font-size:calc(11px * var(--ts,1))}
+@media(max-width:360px){
+ .backup-admin-card .backup-branch-action-row{gap:6px}
+ .backup-admin-card .backup-branch-action-row .backup-restore-branch,.backup-admin-card .backup-branch-action-row .backup-download-branch{padding:8px 8px;font-size:11.5px}
 }
 @media(min-width:1100px){
  .backup-admin-card .backup-version-row{grid-template-columns:minmax(180px,.8fr) minmax(0,1.2fr);align-items:start}
