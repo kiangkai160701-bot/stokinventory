@@ -7009,6 +7009,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     } catch (e) { if (missing(e)) q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดแชทไม่สำเร็จ'))}</div>`; }
   }
   function openRooms() {
+    if (isClosedHoursReadOnly()) { notifyClosedHours(); return; }
     if (!me) return;
     window.jMenuClose && window.jMenuClose();
     const adm = isAdminMe();
@@ -7090,6 +7091,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
     finally { CH.pulling = false; }
   }
   function openRoom(opt = {}) {
+    if (isClosedHoursReadOnly()) { notifyClosedHours(); return; }
     CH.admin = isAdminMe();
     CH.room = CH.admin ? opt.room : null; CH.msgs = []; CH.lastId = 0; CH.readUpto = 0;
     q('#chTitle').textContent = CH.admin ? (opt.name || 'ผู้ใช้') : 'ผู้ดูแลระบบ';
