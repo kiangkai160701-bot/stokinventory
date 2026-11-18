@@ -2551,9 +2551,9 @@ updateBranchOnlineBadges();
 }
 let presenceLastRequestAt = 0, presencePromise = null, presenceFailures = 0, presencePaused = false;
 let presenceRetryAt = 0, branchOnlineLastRequestAt = 0;
-async function refreshPresence() {
+async function refreshPresence(force = false) {
 if (presencePromise) return presencePromise;
-if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || Date.now() - presenceLastRequestAt < 180000) return;
+if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || !force && Date.now() - presenceLastRequestAt < 20000) return;
 presenceBusy = true; presenceLastRequestAt = Date.now();
 presencePromise = (async () => {
 try {
@@ -2565,7 +2565,7 @@ else throw new Error(result?.error || 'Presence request failed');
 } catch {
 presenceFailures++;
 if (presenceFailures >= 3) { presencePaused = true; presenceRetryAt = Infinity; }
-else presenceRetryAt = Math.max(presenceLastRequestAt + 180000, Date.now() + [60000, 120000, 300000][presenceFailures - 1]);
+else presenceRetryAt = Math.max(presenceLastRequestAt + 20000, Date.now() + [20000, 30000, 45000][presenceFailures - 1]);
 } finally { presenceBusy = false; presencePromise = null; }
 })();
 return presencePromise;
@@ -2594,7 +2594,7 @@ function updateBranchOnlineBadges() {
 async function refreshBranchOnline() {
   if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
-  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 180000) return;
+  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 20000) return;
   branchOnlineBusy = true; branchOnlineLastRequestAt = Date.now();
   try {
     const r = await cloudRpc('api_presence_branch_counts', { p_token: cloudToken });
@@ -2611,7 +2611,7 @@ async function refreshBranchOnline() {
 function schedulePresencePoll() {
 clearTimeout(presenceTimer); presenceTimer = null;
 if (isClosedHoursReadOnly() || !me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
-const dueAt = Math.max(presenceLastRequestAt + 180000, presenceRetryAt || 0);
+const dueAt = Math.max(presenceLastRequestAt + 20000, presenceRetryAt || 0);
 presenceTimer = setTimeout(async () => {
  const before = presenceLastRequestAt;
  const wasSyncing = cloudBusy;
@@ -2624,8 +2624,10 @@ presenceTimer = setTimeout(async () => {
 function startPresence() {
 clearTimeout(presenceTimer); presenceTimer = null;
 if (isClosedHoursReadOnly() || !me || !cloudToken) { stopPresence(); return; }
+presenceLastRequestAt = 0; presenceRetryAt = 0; presenceFailures = 0; presencePaused = false;
+branchOnlineLastRequestAt = 0; branchOnlineCounts = {};
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
-void refreshPresence();
+void refreshPresence(true);
 schedulePresencePoll();
 }
 function stopPresence() {
