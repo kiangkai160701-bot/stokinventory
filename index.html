@@ -2591,21 +2591,21 @@ function updateBranchOnlineBadges() {
     el.title = label; el.setAttribute('aria-label', label);
   });
 }
-async function refreshBranchOnline() {
+async function refreshBranchOnline(force = false) {
   if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
-  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || branchOnlineUnavailable || Date.now() - branchOnlineLastRequestAt < 30000) return;
+  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || (!force && Date.now() - branchOnlineLastRequestAt < 30000)) return;
   branchOnlineBusy = true; branchOnlineLastRequestAt = Date.now();
   try {
     const r = await cloudRpc('api_presence_branch_counts', { p_token: cloudToken });
-    if (r?.ok) {
-      const src = r.counts || r.branches || [], map = {};
-      if (Array.isArray(src)) src.forEach(x => { const id = x.branch_id ?? x.id, n = Number(x.online ?? x.count ?? x.online_count); if (id != null && Number.isFinite(n)) map[String(id)] = n; });
-      else Object.entries(src).forEach(([id, n]) => { if (Number.isFinite(Number(n))) map[String(id)] = Number(n); });
-      branchOnlineCounts = map; updateBranchOnlineBadges();
-    }
+    if (!r?.ok) throw new Error(r?.error || 'โหลดจำนวนผู้ใช้ออนไลน์ข้ามสาขาไม่สำเร็จ');
+    const src = r.counts || r.branches || [], map = {};
+    if (Array.isArray(src)) src.forEach(x => { const id = x.branch_id ?? x.id, n = Number(x.online ?? x.count ?? x.online_count); if (id != null && Number.isFinite(n)) map[String(id)] = n; });
+    else Object.entries(src).forEach(([id, n]) => { if (Number.isFinite(Number(n))) map[String(id)] = Number(n); });
+    branchOnlineCounts = map; branchOnlineUnavailable = false; updateBranchOnlineBadges();
   } catch (error) {
-    if (/Could not find the function|api_presence_branch_counts|schema cache/i.test(String(error?.message || ''))) branchOnlineUnavailable = true;
+    // Do not permanently disable branch counts after a transient RPC/network failure.
+    console.warn('โหลดจำนวนผู้ใช้ออนไลน์ข้ามสาขาไม่สำเร็จ จะลองใหม่ในรอบถัดไป', error);
   } finally { branchOnlineBusy = false; }
 }
 function schedulePresencePoll() {
@@ -2625,7 +2625,7 @@ function startPresence() {
 clearTimeout(presenceTimer); presenceTimer = null;
 if (isClosedHoursReadOnly() || !me || !cloudToken) { stopPresence(); return; }
 presenceLastRequestAt = 0; presenceRetryAt = 0; presenceFailures = 0; presencePaused = false;
-branchOnlineLastRequestAt = 0; branchOnlineCounts = {};
+branchOnlineLastRequestAt = 0; branchOnlineCounts = {}; branchOnlineUnavailable = false;
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
 void refreshPresence(true);
 schedulePresencePoll();
@@ -4386,7 +4386,7 @@ document.querySelectorAll('[data-disclosure-toggle]').forEach(button => button.o
  if (opening && button.getAttribute('aria-controls') === 'storageDisclosurePanel') void refreshStorageUsage();
  if (opening && button.getAttribute('aria-controls') === 'adminBackupDisclosurePanel') void refreshAdminBackups();
 });
-bindAnnounceCard(); refreshBranchOnline();
+bindAnnounceCard(); refreshBranchOnline(true);
 const resetScopeSelect = $('#resetScope');
 if (resetScopeSelect) { const showResetHelp = () => { const box = $('#resetScopeHelp'); if (box) box.textContent = RESET_HELP[resetScopeSelect.value] || ''; }; resetScopeSelect.onchange = showResetHelp; showResetHelp(); }
 const resetButton = $('#resetDataBtn');
