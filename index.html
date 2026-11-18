@@ -2061,9 +2061,11 @@ ROLE = { ...DEFAULT_ROLES, ...(state.roles || {}) }; delete ROLE.viewer;
 CATS = state.categories || []; UNITS = state.units || [];
 lastReset = state.lastReset || null;
 if (JOBS_CLOUD && state.jobs) {
-  const cachedProfiles = store.get(jKey(), {})?.profiles || {};
-  J = { ...state.jobs, profiles: cachedProfiles };
-  
+  const cloudJobs = { ...state.jobs };
+  delete cloudJobs.profiles;
+  const cachedProfiles = J?.profiles || {};
+  J = { ...cloudJobs, profiles: cachedProfiles };
+  store.set(jKey(), cloudJobs);
 }
 }
 function migrateLegacyBrowserData(result) {
