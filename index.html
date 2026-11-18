@@ -2764,21 +2764,25 @@ if (!cloudToken || !syncSnapshot || cloudBusy || cloudRefreshBusy || $('#ov') ||
 if (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy')) return;
 cloudRefreshBusy = true;
 try {
-const result = await cloudRpc('api_get_state', { p_token: cloudToken });
+const check = await cloudRpc('api_get_state_version', { p_token: cloudToken });
 if (Date.now() < (window.__navHoldUntil || 0) || (IS_MOBILE_BROWSER && document.documentElement.classList.contains('nav-busy'))) return;
+if (!check.ok) { logout(); showHint(false); return toast(check.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
+const branchChanged = !!(check.branch && (check.branch.id !== currentBranch.id || check.branch.name !== currentBranch.name));
+if (branchChanged) setCurrentBranch(check.branch);
+// Most checks return only a tiny version response. Download the full inventory only after a real change.
+if (Number(check.version) === Number(syncVersion)) return;
+const result = await cloudRpc('api_get_state', { p_token: cloudToken });
 if (!result.ok) { logout(); showHint(false); return toast(result.error || 'กรุณาเข้าสู่ระบบใหม่', 1); }
-const branchChanged = !!(result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name));
-if (branchChanged) setCurrentBranch(result.branch);
-if (result.version !== syncVersion) {
+const fullBranchChanged = !!(result.branch && (result.branch.id !== currentBranch.id || result.branch.name !== currentBranch.name));
+if (fullBranchChanged) setCurrentBranch(result.branch);
 const previousState = JSON.stringify(safeState());
 applyCloudState(result.state);
 const stateChanged = previousState !== JSON.stringify(safeState());
 syncSnapshot = cloneData(result.state); syncVersion = result.version;
 me = result.me; $('#meName').textContent = me.name; $('#meRole').textContent = ROLE[me.role] || me.role; $('#btnEditName').classList.toggle('hide', !!me.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!me.branchManagerAccess);
-if (stateChanged || branchChanged) build(true);
+if (stateChanged || branchChanged || fullBranchChanged) build(true);
 else { renderedRevision = pageRenderRevision; syncNav(); }
 showSyncUpdateStatus(); if (logNeedsPrune) save();
-}
 } catch {} finally { cloudRefreshBusy = false; }
 }
 /* ---------- Announcement ticker (shown under the header, set by kiangkai only) ---------- */
@@ -2979,7 +2983,7 @@ void status.offsetWidth;
 status.classList.add('blink');
 syncStatusTimer = setTimeout(() => { status.classList.remove('blink'); status.classList.add('hide'); }, 5000);
 }
-setInterval(refreshCloudState, 2000);
+setInterval(refreshCloudState, 5000);
 window.addEventListener('focus', refreshCloudState);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { refreshCloudState(); if (tab === 'settings') refreshStorageUsage(); } });
 const can = {
