@@ -2548,7 +2548,7 @@ me = u; pollingLogoutInProgress = false; $('#lgPinInput').value = ''; $('#lgUser
 
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
-tab = initialTab || 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
+tab = initialTab || 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.unavailable = false; annState.retryAt = 0; annState.lastCheckAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
 }
 async function logout() {
 pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
@@ -2703,7 +2703,7 @@ foregroundSyncTimer = null;
 if (document.hidden || !me || !cloudToken || pollingLogoutInProgress || isClosedHoursReadOnly()) return;
 cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
 presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
-annState.failures = 0; annState.paused = false; annState.retryAt = 0;
+annState.failures = 0; annState.paused = false; annState.unavailable = false; annState.retryAt = 0; annState.lastCheckAt = 0;
 lastCloudPollAt = Date.now();
 void refreshCloudState(); void refreshPresence(); void refreshAnnouncement(true);
 scheduleCloudPoll(); schedulePresencePoll(); scheduleAnnouncementPoll();
@@ -2782,7 +2782,7 @@ function syncAnnounceOffset() {
 }
 async function refreshAnnouncement(force = false) {
   if (annState.promise) return annState.promise;
-  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || annState.unavailable || annState.paused || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
+  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
   annState.busy = true; annState.lastCheckAt = Date.now();
   annState.promise = (async () => {
   try {
@@ -2794,23 +2794,25 @@ async function refreshAnnouncement(force = false) {
     if (r?.ok) { annState.version = version.version; annState.failures = 0; annState.retryAt = 0; renderAnnounce(r.announcement); }
     else throw new Error(r?.error || 'Announcement request failed');
   } catch (error) {
-    if (/Could not find the function|api_announcement|schema cache/i.test(String(error?.message || ''))) annState.unavailable = true;
-    else { annState.failures++; if (annState.failures >= 3) { annState.paused = true; annState.retryAt = Infinity; } else annState.retryAt = Date.now() + [60000, 120000, 300000][annState.failures - 1]; }
-  } finally { annState.busy = false; annState.promise = null; }
+    annState.failures++;
+    // Do not permanently disable announcements on transient HTTP 5xx/network/schema-cache errors.
+    // Retry with bounded backoff; this keeps traffic low while allowing recovery without re-login.
+    annState.paused = false; annState.unavailable = false;
+    annState.retryAt = Date.now() + [30000, 60000, 120000, 300000][Math.min(annState.failures - 1, 3)];
+  } finally { annState.busy = false; annState.promise = null; scheduleAnnouncementPoll(); }
   })();
   return annState.promise;
 }
 let annPollTimer = null;
 function scheduleAnnouncementPoll(delay = null) {
 clearTimeout(annPollTimer); annPollTimer = null;
-if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly() || annState.paused || annState.unavailable) return;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
 const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
 const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 annPollTimer = setTimeout(async () => {
  const blockedBySync = cloudBusy;
  await refreshAnnouncement();
  if (blockedBySync && annState.failures === 0) annState.lastCheckAt = Date.now();
- if (annState.paused) return;
  const retryDelay = annState.failures > 0 && annState.retryAt > Date.now() ? annState.retryAt - Date.now() : null;
  scheduleAnnouncementPoll(retryDelay);
 }, wait);
