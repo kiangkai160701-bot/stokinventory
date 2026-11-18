@@ -5944,7 +5944,7 @@ function jSettings() {
     content.querySelectorAll('[data-profile-camera]').forEach(btn => btn.onclick = () => content.querySelector('[data-profile-camera-input="' + CSS.escape(btn.dataset.profileCamera) + '"]')?.click());
     content.querySelectorAll('[data-profile-gallery]').forEach(btn => btn.onclick = () => content.querySelector('[data-profile-gallery-input="' + CSS.escape(btn.dataset.profileGallery) + '"]')?.click());
     content.querySelectorAll('[data-profile-camera-input],[data-profile-gallery-input]').forEach(input => input.onchange = () => processImage(input));
-    content.querySelectorAll('[data-profile-remove]').forEach(btn => btn.onclick = () => {
+    content.querySelectorAll('[data-profile-remove]').forEach(btn => btn.onclick = async () => {
       const n = btn.dataset.profileRemove;
       if (!confirm('ต้องการลบรูปโปรไฟล์ของ ' + n + ' ใช่หรือไม่?')) return;
       const removed = await cloudRpc('api_job_profile_set', { p_token: cloudToken, p_name: n, p_data: null });
