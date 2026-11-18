@@ -2253,7 +2253,7 @@ const defaultPermissions = role => role === 'admin'
 ? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
 : role === 'supervisor'
 ? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
-: role === 'staff' ? { eggFeed: false, editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false, aiAssistant: true }
+: role === 'staff' ? { editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false, aiAssistant: true }
 : { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false, aiAssistant: true };
 const I = {
 plus: '<path d="M12 5v14M5 12h14"/>',
