@@ -2176,9 +2176,9 @@ $('#lgBranch').addEventListener('change', e => { const branch = branches.find(b 
 const CLOSED_HOUR_START = 22, CLOSED_HOUR_END = 6;
 const CLOSED_WRITE_RPCS = new Set([
 'api_announcement_cancel','api_announcement_set','api_app_download_update','api_branch_create','api_branch_deactivate',
-'api_branch_switch','api_change_pin','api_eggfeed','api_history_edit','api_inventory_backup_create',
-'api_inventory_backup_restore','api_inventory_backup_restore_branch','api_manage_username','api_reset_data',
-'api_set_theme','api_site_brand_update','api_sync','api_update_owner_account','api_update_username'
+'api_branch_switch','api_change_pin','api_eggfeed','api_history_edit','api_inventory_backup_create','api_inventory_backup_export',
+'api_inventory_backup_export_branch','api_inventory_backup_restore','api_inventory_backup_restore_branch','api_manage_username','api_reset_data',
+'api_set_theme','api_site_brand_update','api_storage_usage','api_sync','api_update_owner_account','api_update_username'
 ]);
 function bangkokHour() {
   const parts = new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Bangkok', hour: '2-digit', hourCycle: 'h23' }).formatToParts(new Date());
