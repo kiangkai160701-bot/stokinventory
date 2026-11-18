@@ -1779,6 +1779,7 @@ async function refreshJobProfiles(serverVersion = null) {
     if (!check?.ok) return;
     version = check.profilesVersion;
   }
+  if (isClosedHoursReadOnly() || document.hidden || pollingLogoutInProgress || cloudBusy) return;
   if (cached && String(cached.version || '') === String(version || '')) return;
   const result = await cloudRpc('api_job_profiles_get', { p_token: cloudToken });
   if (!result?.ok || String(currentBranch?.id) !== branchId) return;
@@ -2643,7 +2644,7 @@ cloudPollFailures = 0; cloudPollPaused = false; cloudPollRetryAt = 0;
 presenceFailures = 0; presencePaused = false; presenceRetryAt = 0;
 annState.failures = 0; annState.paused = false; annState.retryAt = 0;
 lastCloudPollAt = Date.now();
-void refreshCloudState(); void refreshPresence(); void refreshAnnouncement();
+void refreshCloudState(); void refreshPresence(); void refreshAnnouncement(true);
 scheduleCloudPoll();
 }, delay);
 }
@@ -3905,7 +3906,7 @@ if (list?.classList.contains('is-scrollable')) requestAnimationFrame(() => fitAd
 }, { passive: true });
 let adminBackupCachedResult = null, adminBackupCacheAt = 0, adminBackupPromise = null;
 async function refreshAdminBackups(force = false) {
-if (!cloudToken || pollingLogoutInProgress || document.hidden || cloudBusy) return;
+if (!cloudToken || pollingLogoutInProgress || document.hidden || cloudBusy || isClosedHoursReadOnly()) return;
 if (adminBackupPromise) return adminBackupPromise;
 const status = $('#adminBackupStatus'), branches = $('#adminBackupBranches'), list = $('#adminBackupList');
 if (!status || !branches || !list) return;
