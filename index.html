@@ -2651,7 +2651,7 @@ let presenceLastRequestAt = 0, presencePromise = null, presenceFailures = 0, pre
 let presenceRetryAt = 0, branchOnlineLastRequestAt = 0;
 async function refreshPresence(force = false) {
 if (presencePromise) return presencePromise;
-if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || !force && Date.now() - presenceLastRequestAt < 30000) return;
+if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || presencePaused || Date.now() < presenceRetryAt || !force && Date.now() - presenceLastRequestAt < 30000) return;
 presenceBusy = true; presenceLastRequestAt = Date.now();
 presencePromise = (async () => {
 try {
@@ -2690,7 +2690,7 @@ function updateBranchOnlineBadges() {
   });
 }
 async function refreshBranchOnline(force = false) {
-  if (isClosedHoursReadOnly() || !document.querySelector('[data-branch-online]')) return;
+  if (!document.querySelector('[data-branch-online]')) return;
   updateBranchOnlineBadges();
   if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || branchOnlineBusy || (!force && Date.now() - branchOnlineLastRequestAt < 30000)) return;
   branchOnlineBusy = true; branchOnlineLastRequestAt = Date.now();
@@ -2708,7 +2708,7 @@ async function refreshBranchOnline(force = false) {
 }
 function schedulePresencePoll() {
 clearTimeout(presenceTimer); presenceTimer = null;
-if (isClosedHoursReadOnly() || !me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || presencePaused) return;
 const dueAt = Math.max(presenceLastRequestAt + 30000, presenceRetryAt || 0);
 presenceTimer = setTimeout(async () => {
  const before = presenceLastRequestAt;
@@ -2721,7 +2721,7 @@ presenceTimer = setTimeout(async () => {
 }
 function startPresence() {
 clearTimeout(presenceTimer); presenceTimer = null;
-if (isClosedHoursReadOnly() || !me || !cloudToken) { stopPresence(); return; }
+if (!me || !cloudToken) { stopPresence(); return; }
 presenceLastRequestAt = 0; presenceRetryAt = 0; presenceFailures = 0; presencePaused = false;
 branchOnlineLastRequestAt = 0; branchOnlineCounts = {}; branchOnlineUnavailable = false;
 updateOnlineUsers([...(onlineUsers || []), me?.name].filter(Boolean));
