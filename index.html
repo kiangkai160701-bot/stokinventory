@@ -2750,8 +2750,9 @@ if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosed
 const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
 const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 annPollTimer = setTimeout(async () => {
- annState.lastCheckAt = Date.now();
+ const blockedBySync = cloudBusy;
  await refreshAnnouncement();
+ if (blockedBySync && annState.failures === 0) annState.lastCheckAt = Date.now();
  if (annState.paused) return;
  const retryDelay = annState.failures > 0 && annState.retryAt > Date.now() ? annState.retryAt - Date.now() : null;
  scheduleAnnouncementPoll(retryDelay);
@@ -2920,7 +2921,7 @@ setInterval(() => {
   if (active !== closedHoursWasActive) {
     closedHoursWasActive = active;
     if (active) { stopPresence(); stopCloudPolling(); stopAnnouncementPolling(); renderAnnounce(null); }
-    else if (me) { startPresence(); startCloudPolling(); startAnnouncementPolling(); scheduleForegroundSync(800); }
+    else if (me) { startPresence(); startCloudPolling(); scheduleForegroundSync(800); }
   }
 }, 30000);
 // Coalesce focus + visibility events. Multi-tab leader election is intentionally skipped:
@@ -2933,7 +2934,7 @@ document.addEventListener('visibilitychange', () => {
    clearInterval(presenceTimer); presenceTimer = null;
    clearInterval(annPollTimer); annPollTimer = null;
  } else {
-   if (me && cloudToken && !isClosedHoursReadOnly()) { presenceTimer = setInterval(refreshPresence, 180000); startAnnouncementPolling(); }
+   if (me && cloudToken && !isClosedHoursReadOnly()) { presenceTimer = setInterval(refreshPresence, 180000); }
    scheduleForegroundSync(800);
  }
 });
