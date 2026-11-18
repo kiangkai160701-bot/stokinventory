@@ -898,29 +898,6 @@ html.dark-theme .theme-opt:not([data-dark="1"]) .theme-emoji{background:linear-g
 .about-site-note{padding:13px 14px;border-left:3px solid var(--acc);border-radius:9px;background:var(--theme-wash)}
 .about-site-note b{display:block;margin-bottom:4px;color:var(--ink);font-size:calc(12.5px * var(--ts,1))}
 @media(max-width:640px){.about-site-grid{grid-template-columns:minmax(0,1fr)}.about-site-intro{padding:13px}.about-site-intro h3{font-size:calc(16px * var(--ts,1))}.about-site-section{padding:12px}.about-site-section ul{font-size:calc(11.5px * var(--ts,1))}}
-/* ===== ฟีด ไข่หวาน ===== */
-.ef-page{position:fixed;inset:0;z-index:55;display:flex;flex-direction:column;background:var(--bg-app);transform:translateX(105%);transition:transform .24s ease;overflow:hidden}
-.ef-page.open{transform:none}
-.ef-head{display:grid;grid-template-columns:38px minmax(0,1fr) 38px;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top) + 10px) 14px 10px;background:var(--card-bg);border-bottom:1px solid var(--line)}
-.ef-head h2{min-width:0;margin:0;font-size:calc(17px * var(--ts,1));text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ef-back,.ef-refresh{justify-self:center}
-.ef-refresh.is-loading svg{animation:efRefreshSpin .8s linear infinite}
-.ef-refresh:disabled{opacity:.65;cursor:wait}
-@keyframes efRefreshSpin{to{transform:rotate(360deg)}}
-@media(prefers-reduced-motion:reduce){.ef-refresh.is-loading svg{animation:none}}
-.ef-body{overflow:auto;overscroll-behavior:contain;padding:12px;max-width:760px;width:100%;margin:0 auto;box-sizing:border-box}
-.ef-filters{display:flex;gap:8px;margin-bottom:12px}.ef-filter{flex:1;border:1px solid var(--line);background:var(--card-bg);color:var(--mute);border-radius:12px;padding:9px;font:inherit;font-size:calc(13px * var(--ts,1))}.ef-filter.on{background:var(--acc);border-color:var(--acc);color:#fff}
-.ef-card{background:var(--card-bg);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:12px;box-shadow:var(--shadow-sm)}
-.ef-compose textarea,.ef-comment-input{width:100%;box-sizing:border-box;resize:vertical;border:1px solid var(--line);border-radius:11px;background:var(--bg-app);color:var(--ink);padding:10px;font:inherit;font-size:calc(13px * var(--ts,1))}
-.ef-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ef-row .grow{flex:1}
-.ef-btn{border:1px solid var(--line);border-radius:10px;padding:8px 11px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:calc(12px * var(--ts,1))}.ef-btn.primary{background:var(--acc);border-color:var(--acc);color:white}.ef-btn:disabled{opacity:.5}
-.ef-author{font-size:calc(13px * var(--ts,1));font-weight:800}.ef-meta{font-size:calc(11px * var(--ts,1));color:var(--mute);margin-top:2px}.ef-bodytext{font-size:calc(13px * var(--ts,1));line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;margin:10px 0}
-.ef-image{display:block;width:100%;max-height:420px;object-fit:contain;border-radius:12px;background:var(--bg-app);margin-top:9px}
-.ef-actions{display:flex;gap:8px;border-top:1px solid var(--line);padding-top:9px;margin-top:10px}.ef-actions button{flex:1}
-.ef-comment{padding:8px 0;border-top:1px solid var(--line);font-size:calc(12px * var(--ts,1))}.ef-comment b{font-size:calc(12px * var(--ts,1))}.ef-comment small{color:var(--mute);margin-left:5px}
-.ef-empty{text-align:center;color:var(--mute);padding:28px 12px;font-size:calc(13px * var(--ts,1))}
-.ef-preview{max-width:100%;max-height:150px;border-radius:10px;margin-top:8px}
-@media(min-width:1100px){.ef-page{inset:10px 10px 10px auto;width:min(760px,96vw);border:1px solid var(--line);border-radius:20px;box-shadow:0 14px 40px rgba(0,0,0,.18)}}
 </style>
 <style id="smooth-motion">html{-webkit-text-size-adjust:100%}
 button,.row,[data-t]{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -1553,105 +1530,8 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
 .ann-item-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .ann-cancel.armed{background:var(--bad);border-color:var(--bad);color:#fff}
 .ann-empty{display:block;color:var(--mute);font-size:calc(12px * var(--ts,1));line-height:1.5}
-/* ===== ระบบแชท ผู้ใช้ <-> ผู้ดูแลระบบ ===== */
-.chat-dot{display:none;width:10px;height:10px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px var(--card-bg,#fff);flex:none;pointer-events:none}
-.chat-dot.show{display:inline-block;animation:chatDotPulse 1.8s ease-in-out infinite}
-@keyframes chatDotPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
-#nav button,#dtabs button{position:relative}
-#nav .chat-dot.nav{position:absolute;top:4px;left:calc(50% + 9px);width:9px;height:9px}
-#dtabs .chat-dot.nav{position:absolute;top:4px;right:4px}
-.sd-tab .chat-dot{position:absolute;top:-4px;right:-4px}
-.sd-dock.open .sd-tab .chat-dot{display:none}
-.sd-item .chat-dot{margin-left:auto;margin-right:-4px}
-.btn.chat-btn{position:relative}
-.btn.chat-btn .chat-dot{position:absolute;top:4px;right:4px}
-.chat-rooms-btn{position:relative;gap:6px}
-.chat-rooms-btn .chat-dot{position:absolute;top:3px;right:3px}
-.chp{position:fixed;inset:0;z-index:47;display:flex;flex-direction:column;background:var(--bg-app);color:var(--ink);visibility:hidden;transform:translate3d(-100%,0,0);transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s .3s;overscroll-behavior:contain}
-.chp.open{visibility:visible;transform:none;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
-.chp-head{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;border-bottom:1px solid var(--line);background:var(--card-bg)}
-.chp-head h2{flex:1;margin:0;font-size:calc(17px * var(--ts,1))}
-.chp-title{flex:1;min-width:0;display:grid;line-height:1.25}
-.chp-title b{font-size:calc(16px * var(--ts,1));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chp-title small{color:var(--mute);font-size:calc(11.5px * var(--ts,1));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.chp .cp-btn{display:inline-grid;place-items:center;flex:none;width:38px;height:38px;padding:0;border:1px solid color-mix(in srgb,var(--acc) 38%,var(--card-bg));border-radius:12px;background:color-mix(in srgb,var(--acc) 15%,var(--card-bg));color:var(--acc-hover,var(--ink));font:inherit;font-size:calc(17px * var(--ts,1));cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.chp .cp-btn:active{transform:scale(.94)}
-.chp .cp-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-.chp .cp-btn[hidden]{display:none}
-.chp-note{margin:0;padding:7px 14px;background:color-mix(in srgb,var(--warn,#d97706) 12%,var(--card-bg));border-bottom:1px solid var(--line);color:var(--ink);font-size:calc(11.5px * var(--ts,1));line-height:1.45;text-align:center}
-.chp-search{padding:10px 12px 4px}
-.chp-search input{width:100%;min-height:40px;padding:0 13px;border:1px solid var(--line);border-radius:12px;background:var(--card-bg);color:var(--ink);font:inherit;font-size:calc(14px * var(--ts,1))}
-.chp-list{flex:1;min-height:0;overflow-y:auto;padding:6px 12px calc(24px + env(safe-area-inset-bottom,0px));-webkit-overflow-scrolling:touch}
-.cr-branch{display:flex;align-items:center;gap:8px;margin:14px 2px 6px;color:var(--mute);font-size:calc(12px * var(--ts,1));font-weight:700}
-.cr-branch i{font-style:normal;margin-left:auto;padding:1px 8px;border-radius:99px;background:#ef4444;color:#fff;font-size:calc(11px * var(--ts,1))}
-.cr-row{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:7px;padding:10px 11px;border:1px solid var(--line);border-radius:14px;background:var(--card-bg);color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cr-row:active{transform:scale(.985)}
-.cr-av{flex:none;display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:color-mix(in srgb,var(--acc) 22%,var(--card-bg));color:var(--acc-hover,var(--ink));font-size:calc(16px * var(--ts,1));font-weight:800}
-.cr-mid{flex:1;min-width:0;display:grid;gap:1px}
-.cr-mid b{font-size:calc(14px * var(--ts,1));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cr-mid small{color:var(--mute);font-size:calc(12px * var(--ts,1));overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.cr-end{flex:none;display:grid;justify-items:end;gap:4px;color:var(--mute);font-size:calc(10.5px * var(--ts,1))}
-.cr-badge{min-width:20px;padding:1px 6px;border-radius:99px;background:#ef4444;color:#fff;font-size:calc(11px * var(--ts,1));font-weight:700;text-align:center}
-.cr-off{opacity:.62}
-.cr-empty{padding:30px 10px;color:var(--mute);text-align:center;font-size:calc(13px * var(--ts,1))}
-.chp-msgs{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;gap:5px;padding:12px 12px 10px}
-.cb-day{align-self:center;margin:8px 0 4px;padding:2px 11px;border-radius:99px;background:color-mix(in srgb,var(--mute) 16%,var(--card-bg));color:var(--mute);font-size:calc(11px * var(--ts,1))}
-.cb{max-width:80%;padding:7px 11px 5px;border-radius:17px;font-size:calc(14px * var(--ts,1));line-height:1.42;overflow-wrap:anywhere;position:relative}
-.cb.mine{align-self:flex-end;background:var(--acc-hover,var(--acc));color:#fff;border-bottom-right-radius:5px}
-.cb.theirs{align-self:flex-start;background:var(--card-bg);border:1px solid var(--line);color:var(--ink);border-bottom-left-radius:5px}
-.cb-t{white-space:pre-wrap}
-.cb-m{display:flex;justify-content:flex-end;gap:5px;margin-top:2px;font-size:calc(10px * var(--ts,1));opacity:.78}
-.cb img{display:block;max-width:100%;max-height:270px;min-width:130px;min-height:90px;margin:0 0 4px;border-radius:12px;object-fit:cover;background:rgba(127,127,127,.18);cursor:zoom-in}
-.cb-aud{display:flex;align-items:center;gap:9px;min-width:160px;padding:3px 0 2px}
-.cb-play{flex:none;display:grid;place-items:center;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.28);color:inherit;font-size:calc(14px * var(--ts,1));cursor:pointer}
-.cb.theirs .cb-play{background:color-mix(in srgb,var(--acc) 20%,var(--card-bg));color:var(--acc-hover)}
-.cb-bar{flex:1;height:4px;border-radius:4px;background:rgba(127,127,127,.3);overflow:hidden}
-.cb-bar i{display:block;width:0;height:100%;background:currentColor;opacity:.85}
-.cb-sec{font-size:calc(11px * var(--ts,1));font-variant-numeric:tabular-nums}
-.chp-prev{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);background:var(--card-bg)}
-.chp-prev[hidden],.chp-rec[hidden]{display:none}
-.chp-prev img{width:54px;height:54px;border-radius:10px;object-fit:cover}
-.chp-prev span{flex:1;color:var(--mute);font-size:calc(12px * var(--ts,1))}
-.chp-rec{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid var(--line);background:var(--card-bg);font-size:calc(13px * var(--ts,1))}
-.chp-rec i{width:11px;height:11px;border-radius:50%;background:#ef4444;animation:chatDotPulse 1s ease-in-out infinite}
-.chp-rec b{flex:1;font-variant-numeric:tabular-nums}
-.chp-comp{display:flex;align-items:flex-end;gap:8px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--card-bg)}
-.chp-comp textarea{flex:1;min-width:0;max-height:112px;min-height:40px;padding:9px 12px;border:1px solid var(--line);border-radius:20px;background:var(--bg-app);color:var(--ink);font:inherit;font-size:calc(14.5px * var(--ts,1));line-height:1.35;resize:none}
-.chp-comp .cp-send{background:var(--acc);border-color:var(--acc);color:#fff}
-.chp-comp .cp-btn{width:40px;height:40px;border-radius:50%}
-.chp-comp .cp-btn.rec{background:#ef4444;border-color:#ef4444;color:#fff}
-.chp-zoom{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:14px;background:rgba(0,0,0,.86);cursor:zoom-out}
-.chp-zoom img{max-width:100%;max-height:100%;border-radius:8px}
-@media(min-width:1100px){.chp{inset:12px 12px 12px auto;width:min(460px,92vw);border:1px solid var(--line);border-radius:22px;overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.22)}}
-@media(prefers-reduced-motion:reduce){.chp{transition:none!important}.chat-dot.show{animation:none}}
 /* เว้นระยะระหว่างปุ่มในเมนูด้านข้าง */
 #sdItems{display:flex;flex-direction:column;gap:10px}
-/* ===== แชท: สติ๊กเกอร์การ์ตูนตามธีม + จุดแจ้งเตือนกลม ===== */
-.chp{contain:paint}
-.chp::before,.chp::after{position:absolute;z-index:0;pointer-events:none;font-size:calc(92px * var(--ts,1));line-height:1;opacity:.07}
-.chp::before{content:var(--cf1,"");right:-12px;bottom:96px;rotate:-12deg}
-.chp::after{content:var(--cf2,"");left:-14px;top:34%;rotate:10deg}
-.chp>*{position:relative;z-index:1}
-.chp-stk{flex:none;display:grid;place-items:center;width:32px;height:32px;border:1px solid var(--theme-border-strong,var(--line));border-radius:50%;background:var(--theme-soft);font-size:calc(18px * var(--ts,1));line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
-.chp-stk:empty{display:none}
-.cr-hero{position:relative;display:grid;gap:2px;margin:2px 0 6px;padding:12px 56px 12px 14px;border:1px solid var(--line);border-radius:16px;background:color-mix(in srgb,var(--acc) 11%,var(--card-bg))}
-.cr-hero b{font-size:calc(14.5px * var(--ts,1))}
-.cr-hero small{color:var(--mute);font-size:calc(12px * var(--ts,1))}
-.cr-hero .card-mascot{width:34px;height:34px;top:50%;right:12px;bottom:auto;margin-top:-17px;font-size:calc(22px * var(--ts,1))}
-.cr-stk{margin-left:auto;font-size:calc(17px * var(--ts,1));line-height:1}
-.cr-branch i+.cr-stk{margin-left:8px}
-.cr-none{margin-bottom:6px;padding:10px 12px;border:1px dashed var(--line);border-radius:12px;color:var(--mute);font-size:calc(12px * var(--ts,1));line-height:1.5}
-.cb-empty{display:grid;justify-items:center;gap:6px;margin:auto;padding:26px 12px;color:var(--mute);font-size:calc(13px * var(--ts,1));text-align:center}
-.cb-empty b{color:var(--ink);font-size:calc(14px * var(--ts,1))}
-.cb-empty .big{font-size:calc(48px * var(--ts,1));line-height:1;animation:cardMascotBob 3.8s ease-in-out infinite}
-@media(prefers-reduced-motion:reduce){.chp-stk,.cb-empty .big{animation:none}}
-.chp-comp textarea,.chp-search input{font-size:calc(16px * var(--ts,1))!important}
-.chp-comp textarea{overflow-y:hidden;scrollbar-width:none;line-height:1.3}
-.chp-comp textarea::-webkit-scrollbar{display:none}
-#nav .chat-dot.nav,#dtabs .chat-dot.nav{width:9px!important;height:9px!important;min-width:9px;min-height:9px;max-width:9px;max-height:9px;aspect-ratio:1/1;padding:0;border:0;box-sizing:border-box;border-radius:50%!important;line-height:0;font-size:0;transform:none}
-#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{display:block;animation:chatRingPulse 1.8s ease-out infinite}
-@keyframes chatRingPulse{0%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 2px rgba(239,68,68,.55)}70%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}100%{box-shadow:0 0 0 2px var(--card-bg,#fff),0 0 0 7px rgba(239,68,68,0)}}
-@media(prefers-reduced-motion:reduce){#nav .chat-dot.nav.show,#dtabs .chat-dot.nav.show{animation:none}}
 .ann-item-btns{display:flex;gap:6px;margin-left:auto}
 /* Stock list: skip layout+paint of rows that are off-screen (mobile layout only) */
 @media(max-width:1099px){#list .row{content-visibility:auto;contain-intrinsic-size:auto 84px}}
@@ -2176,7 +2056,7 @@ $('#lgBranch').addEventListener('change', e => { const branch = branches.find(b 
 const CLOSED_HOUR_START = 22, CLOSED_HOUR_END = 6;
 const CLOSED_WRITE_RPCS = new Set([
 'api_announcement_cancel','api_announcement_set','api_app_download_update','api_branch_create','api_branch_deactivate',
-'api_branch_switch','api_change_pin','api_eggfeed','api_history_edit','api_inventory_backup_create','api_inventory_backup_export',
+'api_branch_switch','api_change_pin','api_history_edit','api_inventory_backup_create','api_inventory_backup_export',
 'api_inventory_backup_export_branch','api_inventory_backup_restore','api_inventory_backup_restore_branch','api_manage_username','api_reset_data',
 'api_set_theme','api_site_brand_update','api_storage_usage','api_sync','api_update_owner_account','api_update_username'
 ]);
@@ -2297,7 +2177,7 @@ let uiTextScale = TEXT_SCALE_PRESETS.reduce((closest, value) => Math.abs(value -
 /* =====================================================================
    ระบบปรับขนาดตัวอักษร (ตัวคูณกลาง --ts)
    - ทุก font-size ใน CSS เป็น calc(Npx * var(--ts,1)) ตัวคูณมาจากค่าที่ผู้ใช้เลือก (92/100/112%)
-     เบราว์เซอร์คำนวณให้เองทุกหน้า ทุกหน้าต่างที่เด้งขึ้นมา toast เมนู ปฏิทิน ฟีด แชต ฯลฯ
+     เบราว์เซอร์คำนวณให้เองทุกหน้า ทุกหน้าต่างที่เด้งขึ้นมา toast เมนู ปฏิทิน ส่วนต่าง ๆ ฯลฯ
    - เพิ่ม CSS / HTML / function ใหม่ทีหลัง: เขียน font-size เป็น px ตามปกติได้เลย
      ตัวเฝ้าด้านล่าง (tsGuard) แปลงเป็น calc(... * var(--ts,1)) ให้อัตโนมัติ
    - เขียน font-size ด้วย longhand เท่านั้น (ไม่ใช่ font: shorthand ที่มี var()) และห้ามนำค่า computed px ไปใส่ inline
@@ -2360,7 +2240,7 @@ set(v) { cloudToken = v || null; cloudTokenStore.set(v); }
 const num = n => Number(n).toLocaleString('th-TH');
 const DEFAULT_ROLES = { admin: 'ผู้ดูแลระบบ', supervisor: 'หัวหน้างาน', staff: 'พนักงานคลัง' };
 let ROLE = { ...DEFAULT_ROLES, ...(store.get('inv_roles', {}) || {}) }; delete ROLE.viewer;
-const READ_ONLY_PERMISSIONS = { eggFeed: false, editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, resetData: false, manageBranches: false };
+const READ_ONLY_PERMISSIONS = { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, resetData: false, manageBranches: false };
 const normalizeRemovedViewerAccounts = users => (Array.isArray(users) ? users : []).map(user => String(user?.role || '').toLowerCase() === 'viewer'
 ? { ...user, role: 'staff', permissions: { ...READ_ONLY_PERMISSIONS } }
 : user);
@@ -2370,11 +2250,11 @@ const fullAccessUser = user => !!(user?.owner || user?.role === 'admin' || Strin
 const globalAdminDirectoryUser = Object.freeze({ name: 'kiangkai', role: 'admin', active: true, owner: true, globalAdmin: true });
 const isGlobalBranchAdmin = user => !!user?.owner && !user?.branchManagerAccess;
 const defaultPermissions = role => role === 'admin'
-? { eggFeed: true, editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
+? { editStock: true, manageLists: true, manageUsers: true, deleteUsers: true, deleteStock: true, managePermissions: true, resetData: true, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
 : role === 'supervisor'
-? { eggFeed: false, editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
+? { editStock: true, manageLists: true, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: true, aiAssistant: true }
 : role === 'staff' ? { eggFeed: false, editStock: true, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: true, manageJobs: false, aiAssistant: true }
-: { eggFeed: false, editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false, aiAssistant: true };
+: { editStock: false, manageLists: false, manageUsers: false, deleteUsers: false, deleteStock: false, managePermissions: false, manageBranches: false, sideMenu: false, manageJobs: false, aiAssistant: true };
 const I = {
 plus: '<path d="M12 5v14M5 12h14"/>',
 up: '<path d="M12 20V9m-4 4 4-4 4 4M5 4h14"/>',
@@ -3055,8 +2935,7 @@ permissions: () => fullAccessUser(me) || !!me?.permissions?.managePermissions,
 manageBranches: () => isGlobalBranchAdmin(me),
 reset: () => fullAccessUser(me) || !!me?.permissions?.resetData,
 sideMenu: () => fullAccessUser(me) || !!(me?.permissions?.sideMenu ?? defaultPermissions(me?.role).sideMenu),
-manageJobs: () => fullAccessUser(me) || !!(me?.permissions?.manageJobs ?? defaultPermissions(me?.role).manageJobs),
-eggFeed: () => fullAccessUser(me) || !!(me?.permissions?.eggFeed ?? defaultPermissions(me?.role).eggFeed)
+manageJobs: () => fullAccessUser(me) || !!(me?.permissions?.manageJobs ?? defaultPermissions(me?.role).manageJobs)
 };
 function tabs() {
 const items = [
@@ -3070,8 +2949,8 @@ return isWideDesktop() ? items.filter(([key]) => !['dashboard', 'log'].includes(
 }
 function build(keepScroll = false) {
 const nav = $('#nav');
-const navHtml = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span>${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
-const dtabsHtml = tabs().map(t => `<button data-t="${t[0]}">${t[1]}${t[0] === 'users' ? '<i class="chat-dot nav" data-chat-dot="tab" aria-hidden="true"></i>' : ''}</button>`).join('');
+const navHtml = '<span class="nav-pill" aria-hidden="true"></span>' + tabs().map(t => `<button type="button" data-t="${t[0]}" aria-label="${t[1]}">${ic(t[2])}<span>${t[1]}</span></button>`).join('');
+const dtabsHtml = tabs().map(t => `<button data-t="${t[0]}">${t[1]}</button>`).join('');
 if (!(keepScroll && nav.__html === navHtml && $('#dtabs').__html === dtabsHtml && nav.querySelector('.nav-pill'))) { nav.innerHTML = navHtml; $('#dtabs').innerHTML = dtabsHtml; nav.__html = navHtml; $('#dtabs').__html = dtabsHtml; }
 render(false, keepScroll);
 placeNavPill(true);
@@ -4290,7 +4169,7 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       <div class="permission-list" id="permissionList">${U.map(user => `<section class="permission-user">
         <div class="permission-heading"><b>${esc(user.name)}</b><span class="pill p-${esc(user.role)}">${esc(ROLE[user.role] || user.role)}</span>${user.owner ? '<span class="owner-tag">ผู้ดูแลหลัก</span>' : ''}</div>
         <div class="permission-grid">${[
-          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน'], ['eggFeed', 'ใช้งานฟีด ไข่หวาน'], ['aiAssistant', 'ใช้งานผู้ช่วย AI']
+          ['editStock', 'จัดการสต็อก'], ['deleteStock', 'ลบวัตถุดิบ'], ['manageLists', 'แก้ไขรายการตัวเลือก'], ['manageUsers', 'จัดการบัญชี'], ['deleteUsers', 'ลบบัญชีผู้ใช้'], ['managePermissions', 'กำหนดสิทธิ์'], ['resetData', 'รีเซ็ตข้อมูล'], ['sideMenu', 'ใช้งานเมนูด้านข้าง'], ['manageJobs', 'จัดการจ๊อบพนักงาน'], ['aiAssistant', 'ใช้งานผู้ช่วย AI']
         ].map(([key, label]) => `<label class="permission-option"><input type="checkbox" data-user="${esc(user.name)}" data-permission="${key}" ${fullAccessUser(user) || (key === 'sideMenu' || key === 'manageJobs' || key === 'aiAssistant' ? (user.permissions?.[key] ?? defaultPermissions(user.role)[key]) : user.permissions?.[key]) ? 'checked' : ''} ${fullAccessUser(user) ? 'disabled' : ''}><span>${label}</span></label>`).join('')}</div>
       </section>`).join('')}</div></div></div>
     </div>` : ''}
@@ -5629,11 +5508,11 @@ function usersView() {
 const manageUsers = can.users(); const users = manageUsers ? [globalAdminDirectoryUser, ...U.filter(user => String(user.name || '').toLowerCase() !== 'kiangkai')] : [globalAdminDirectoryUser];
 const activity = user => { const logs=L.filter(x=>String(x.user||'').toLowerCase()===String(user.name).toLowerCase()); const last=logs.reduce((best,x)=>Math.max(best,Number(x.ts)||0),0); const day=86400000, now=Date.now(); return {count:logs.length, recent:logs.filter(x=>now-(Number(x.ts)||0)<=30*day).length, last:last?new Date(last).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}):'ยังไม่มีประวัติ',ins:logs.filter(x=>x.type==='in').length,outs:logs.filter(x=>x.type==='out').length}; };
 const summary=users.map(activity), totalMoves=summary.reduce((n,x)=>n+x.count,0), onlineCount=users.filter(u=>onlineUsers.has(u.name.toLowerCase())).length;
-return `<div class="sect"><h2>${manageUsers ? 'จัดการผู้ใช้' : 'ผู้ใช้'}</h2><span style="display:flex;gap:8px">${isAnnouncer() ? '<button type="button" class="btn sm sec chat-rooms-btn" id="chatRoomsBtn">💬 ห้องแชท<i class="chat-dot" data-chat-dot="rooms"></i></button>' : ''}${manageUsers ? `<button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button>` : ''}</span></div>
+return `<div class="sect"><h2>${manageUsers ? 'จัดการผู้ใช้' : 'ผู้ใช้'}</h2><span style="display:flex;gap:8px">${manageUsers ? `<button class="btn sm" id="nu">${ic('plus')} เพิ่ม</button>` : ''}</span></div>
   <div class="stats"${manageUsers ? '' : ' style="display:none"'}><div class="st"><small>บัญชีทั้งหมด</small><b>${users.length}</b><small>รวมผู้ดูแลหลักทุกสาขา</small></div><div class="st"><small>กำลังใช้งาน</small><b>${onlineCount}</b><small>ออนไลน์ขณะนี้</small></div><div class="st"><small>ความเคลื่อนไหว</small><b>${totalMoves}</b><small>รายการในประวัติสาขานี้</small></div><div class="st"><small>ใช้งานใน 30 วัน</small><b>${summary.reduce((n,x)=>n+x.recent,0)}</b><small>รายการล่าสุดในสาขานี้</small></div></div>
   <div class="list">${users.map(u => `<div class="card user-activity-card" data-history-user="${esc(u.name)}" tabindex="0" aria-label="ดูประวัติของ ${esc(u.name)}"><div class="t"><div class="user-name-line"><b>${esc(u.name)}${u.name === me.name ? ' (คุณ)' : ''}</b><span class="user-online-badge" data-online-user="${esc(u.name)}">Offline</span></div>
   <span class="pill p-${u.role}">${ROLE[u.role]}</span> ${u.globalAdmin ? '<span class="owner-tag">ผู้ดูแลหลัก · ทุกสาขา</span>' : ''} ${u.active ? '' : '<span class="pill p-out">ปิด</span>'}<small style="display:block;margin-top:5px;color:var(--mute)">รายการ ${activity(u).count} · รับเข้า ${activity(u).ins} · เบิกจ่าย ${activity(u).outs}</small><small class="user-activity-meta">ทำรายการล่าสุด: ${activity(u).last}</small><small class="user-activity-meta" data-last-online-user="${esc(u.name)}">ออนไลน์ล่าสุด: ${lastOnlineByUser.has(u.name.toLowerCase()) ? new Date(lastOnlineByUser.get(u.name.toLowerCase())).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : onlineUsers.has(u.name.toLowerCase()) ? 'กำลังใช้งาน' : 'ยังไม่มีข้อมูล'}</small></div>
-  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${u.globalAdmin ? (isAnnouncer() ? '' : '<button type="button" class="btn sm sec chat-btn" data-chat-open="admin">💬 แชท<i class="chat-dot" data-chat-dot="own"></i></button>') : (isAnnouncer() ? `<button type="button" class="btn sm sec chat-btn" data-chat-open="user" data-chat-user="${esc(u.name)}">💬 แชท<i class="chat-dot" data-chat-dot="user:${esc(String(u.name).toLowerCase())}"></i></button>` : '')}${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
+  <div class="user-card-actions"><button type="button" class="btn sm sec" data-view-user-history="${esc(u.name)}">ดูประวัติ</button>${!u.globalAdmin && (u.name === me.name || can.users()) ? `<button type="button" class="btn sm sec" data-ue="${esc(u.name)}">แก้ไข</button>` : ''}${!u.globalAdmin && u.name !== me.name && !u.owner && can.delUsers() && (can.permissions() || !['admin','supervisor'].includes(u.role)) ? `<button type="button" class="btn sm sec" style="color:var(--bad)" data-ud="${esc(u.name)}">ลบ</button>` : ''}</div></div>`).join('')}</div>`;
 }
 document.addEventListener('click', e => {
 if (!me || tab !== 'users') return;
@@ -6756,11 +6635,11 @@ function jSettings() {
     });
   }, { passive: true });
 })();
-const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }, { id: 'eggfeed', icon: '🥚', label: 'ฟีด ไข่หวาน', show: () => can.eggFeed(), open: () => window.eggFeedOpen && window.eggFeedOpen() }, { id: 'chat', icon: '💬', label: 'ห้องแชท', show: () => true, open: () => window.chatOpenRooms && window.chatOpenRooms() }];
+const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนักงาน', show: () => can.sideMenu(), open: () => jOpenPage() }];
 (function setupSideMenu() {
   const scrim = document.createElement('div'); scrim.className = 'sd-scrim';
   const dock = document.createElement('div'); dock.className = 'sd-dock';
-  dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg><i class="chat-dot" data-chat-dot="dock"></i></button>';
+  dock.innerHTML = '<div class="sd-panel"><div class="sd-title">เมนูด้านข้าง</div><div id="sdItems"></div></div><button type="button" class="sd-tab" aria-label="เปิดเมนูด้านข้าง"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>';
   const page = document.createElement('div'); page.className = 'jp'; page.id = 'jobPage'; page.setAttribute('aria-hidden', 'true');
   page.innerHTML = '<div class="jp-head"><button type="button" class="jp-btn sq" id="jpBack" aria-label="กลับ"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🗓️ จ๊อบพนักงาน</h2><button type="button" class="jp-btn sq jp-gear" id="jpGear" aria-label="ตั้งค่า"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg></button></div><div class="jp-body" id="jpBody"></div><div class="jp-undo" id="jpUndo"><span>คัดลอกตารางแล้ว</span><button type="button" class="jp-btn" id="jpUndoBtn">ย้อนกลับ</button></div><button type="button" class="jp-fab" id="jpAdd">+ แจ้งสถานะ</button>';
   document.body.append(scrim, dock, page);
@@ -6776,7 +6655,7 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   const refresh = () => {
     const on = !!me && !$('#app').classList.contains('hide') && !isWideDesktop() && JMENU.some(m => m.show());
     dock.classList.toggle('on', on);
-    if (on) { items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span>${m.id === 'chat' ? '<i class="chat-dot" data-chat-dot="rooms"></i>' : ''}<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join(''); window.chatUpdateDots && window.chatUpdateDots(); }
+    if (on) { items.innerHTML = JMENU.filter(m => m.show()).map(m => `<button type="button" class="sd-item" data-m="${m.id}"><span>${m.icon}</span><span>${m.label}</span><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>`).join(''); }
     else { menuOpen(false); window.jPageClose(); }
   };
   dock.querySelector('.sd-tab').onclick = () => menuOpen(!dock.classList.contains('open'));
@@ -6813,488 +6692,6 @@ const JMENU = [{ id: 'jobs', icon: '🗓️', label: 'จ๊อบพนัก�
   refresh();
 })();
 
-/* ===== ฟีด ไข่หวาน: โพสต์ 24 ชั่วโมง ===== */
-(function eggFeedSystem(){
- const state={filter:'all',posts:[],busy:false};
- const rpc=(action,payload={})=>cloudRpc('api_eggfeed',{p_token:cloudToken,p_action:action,p_payload:payload});
- const fmt=ts=>new Date(ts).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'});
- const page=document.createElement('section'); page.className='ef-page'; page.id='eggFeedPage';
- page.innerHTML='<header class="ef-head"><button class="jp-btn sq ef-back" type="button" id="efBack" aria-label="กลับ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button><h2>🥚 ฟีด ไข่หวาน</h2><button class="jp-btn sq ef-refresh" type="button" id="efRefresh" aria-label="รีเฟรชฟีด" title="รีเฟรชฟีด"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.6 9a7 7 0 0 1 11.7-2L20 12M4 12l2.7 5a7 7 0 0 0 11.7-2"/></svg></button></header><main class="ef-body" id="efBody"></main>';
- document.body.append(page);
- const body=()=>document.getElementById('efBody');
- window.eggFeedClose=()=>page.classList.remove('open');
- window.eggFeedOpen=async()=>{if(!can.eggFeed())return toast('ไม่มีสิทธิ์ใช้งานฟีด ไข่หวาน',1);page.classList.add('open');await load();};
- async function readImage(file){
-  if(!file)return '';
-  if(!file.type.startsWith('image/'))throw new Error('กรุณาเลือกไฟล์รูปภาพ');
-  if(file.size>3500000)throw new Error('รูปภาพต้องมีขนาดไม่เกิน 3.5 MB');
-  return await new Promise((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=()=>reject(new Error('อ่านรูปภาพไม่สำเร็จ'));r.readAsDataURL(file);});
- }
- function render(){
-  const posts=state.posts||[];
-  body().innerHTML=`<div class="ef-filters"><button class="ef-filter ${state.filter==='all'?'on':''}" data-ef-filter="all">🌐 ทุกสาขา</button><button class="ef-filter ${state.filter==='branch'?'on':''}" data-ef-filter="branch">📍 สาขาของฉัน</button></div>
-  <section class="ef-card ef-compose"><b>สร้างโพสต์ใหม่</b><textarea id="efPostText" rows="3" maxlength="2000" placeholder="วันนี้อยากบอกอะไรกับเพื่อน ๆ ..."></textarea><div class="ef-row" style="margin-top:8px"><label class="ef-btn">📷 เพิ่มรูป<input id="efPostImage" type="file" accept="image/*" hidden></label><select id="efAudience" class="ef-btn"><option value="all">🌐 ทุกสาขาเห็น</option><option value="branch">📍 เฉพาะสาขาฉัน</option></select><span class="grow"></span><button class="ef-btn primary" id="efPublish">โพสต์</button></div><img id="efPostPreview" class="ef-preview" hidden></section>
-  ${posts.length?posts.map(p=>`<article class="ef-card" data-post="${p.id}"><div class="ef-row"><span class="ef-author">${esc(p.author_name)} · สาขา${esc(p.branch_name||'-')}</span><span class="grow"></span>${(String(p.author_name).toLowerCase()===String(me?.name).toLowerCase()||fullAccessUser(me))?'<button class="ef-btn" data-ef-delete="'+p.id+'">ลบ</button>':''}</div><div class="ef-meta">โพสต์วันที่ ${esc(fmt(p.created_at))} · ${p.audience==='all'?'ทุกสาขา':'เฉพาะสาขา'}</div>${p.body?'<div class="ef-bodytext">'+esc(p.body)+'</div>':''}${p.image_data?'<img class="ef-image" src="'+p.image_data+'" alt="รูปภาพในโพสต์">':''}<div class="ef-meta">หมดอายุ ${esc(fmt(p.expires_at))}</div><div class="ef-actions"><button class="ef-btn ${p.liked?'primary':''}" data-ef-like="${p.id}">${p.liked?'♥ ถูกใจแล้ว':'♡ ถูกใจ'} · ${p.like_count||0}</button><button class="ef-btn" data-ef-focus-comment="${p.id}">💬 แสดงความคิดเห็น · ${(p.comments||[]).length}</button></div><div class="ef-comments">${(p.comments||[]).map(c=>'<div class="ef-comment"><b>'+esc(c.author_name)+' · สาขา'+esc(c.branch_name||'-')+'</b><small>'+esc(fmt(c.created_at))+'</small>'+(c.body?'<div class="ef-bodytext">'+esc(c.body)+'</div>':'')+(c.image_data?'<img class="ef-image" src="'+c.image_data+'" alt="รูปภาพความคิดเห็น">':'')+'</div>').join('')}</div><div class="ef-row" style="margin-top:8px"><input class="ef-comment-input grow" data-ef-comment-text="${p.id}" maxlength="1000" placeholder="เขียนความคิดเห็น..."><label class="ef-btn">📷<input type="file" accept="image/*" hidden data-ef-comment-image="${p.id}"></label><button class="ef-btn primary" data-ef-comment-send="${p.id}">ส่ง</button></div><div class="ef-meta" data-ef-comment-preview="${p.id}"></div></article>`).join(''):'<div class="ef-empty">ยังไม่มีโพสต์ในฟีดนี้<br>เริ่มโพสต์ข้อความหรือรูปภาพได้เลย 💛</div>'}`;
- }
- async function load(){
-  if(state.busy)return;state.busy=true;const refreshBtn=page.querySelector('#efRefresh');if(refreshBtn){refreshBtn.disabled=true;refreshBtn.classList.add('is-loading');refreshBtn.setAttribute('aria-busy','true');}body().innerHTML='<div class="ef-empty">กำลังโหลดฟีด...</div>';
-  try{const r=await rpc('list',{filter:state.filter});if(!r.ok)throw new Error(r.error||'โหลดฟีดไม่สำเร็จ');state.posts=r.posts||[];render();}
-  catch(e){body().innerHTML='<div class="ef-empty">'+esc(e.message||'โหลดฟีดไม่สำเร็จ')+'</div>';}
-  finally{state.busy=false;if(refreshBtn){refreshBtn.disabled=false;refreshBtn.classList.remove('is-loading');refreshBtn.removeAttribute('aria-busy');}}
- }
- let postImage='',commentImages={};
- page.addEventListener('click',async e=>{
-  const b=e.target.closest('button');if(!b)return;
-  try{
-   if(b.id==='efBack'){window.eggFeedClose();return;}
-   if(b.id==='efRefresh'){await load();return;}
-   if(b.dataset.efFilter){state.filter=b.dataset.efFilter;await load();return;}
-   if(b.id==='efPublish'){
-    const bodyText=document.getElementById('efPostText').value.trim(),audience=document.getElementById('efAudience').value;
-    if(!bodyText&&!postImage)return toast('กรุณาใส่ข้อความหรือเลือกรูปภาพ',1);
-    b.disabled=true;const r=await rpc('create',{body:bodyText,audience,image_data:postImage});if(!r.ok)throw new Error(r.error||'โพสต์ไม่สำเร็จ');postImage='';await load();toast('โพสต์เรียบร้อยแล้ว');return;
-   }
-   if(b.dataset.efLike){const r=await rpc('like',{post_id:b.dataset.efLike});if(!r.ok)throw new Error(r.error);await load();return;}
-   if(b.dataset.efDelete){if(!confirm('ต้องการลบโพสต์นี้ถาวรใช่หรือไม่?'))return;const r=await rpc('delete',{post_id:b.dataset.efDelete});if(!r.ok)throw new Error(r.error);await load();toast('ลบโพสต์แล้ว');return;}
-   if(b.dataset.efCommentSend){
-    const id=b.dataset.efCommentSend,input=page.querySelector('[data-ef-comment-text="'+id+'"]'),bodyText=input.value.trim(),image=commentImages[id]||'';
-    if(!bodyText&&!image)return toast('กรุณาเขียนความคิดเห็นหรือเลือกรูปภาพ',1);
-    b.disabled=true;const r=await rpc('comment',{post_id:id,body:bodyText,image_data:image});if(!r.ok)throw new Error(r.error);delete commentImages[id];await load();toast('ส่งความคิดเห็นแล้ว');return;
-   }
-   if(b.dataset.efFocusComment){page.querySelector('[data-ef-comment-text="'+b.dataset.efFocusComment+'"]')?.focus();}
-  }catch(err){toast(err.message||'ทำรายการไม่สำเร็จ',1);b.disabled=false;}
- });
- page.addEventListener('change',async e=>{
-  if(e.target.id==='efPostImage'){
-   try{postImage=await readImage(e.target.files[0]);const img=document.getElementById('efPostPreview');img.src=postImage;img.hidden=!postImage;}catch(err){toast(err.message,1);e.target.value='';}
-  }
-  const id=e.target.dataset.efCommentImage;if(id){
-   try{commentImages[id]=await readImage(e.target.files[0]);const label=page.querySelector('[data-ef-comment-preview="'+id+'"]');if(label)label.textContent='เลือกรูปภาพสำหรับความคิดเห็นแล้ว';}catch(err){toast(err.message,1);e.target.value='';}
-  }
- });
-})();
-
-// ===== ระบบแชท: ผู้ใช้ทุกสาขา <-> ผู้ดูแลระบบ (kiangkai) | ข้อความอยู่ได้ 3 วัน =====
-(function chatSystem() {
-  const NOTE = '🕒 ข้อความในแชทนี้อยู่ได้ 3 วัน หลังจากนั้นระบบจะล้างให้อัตโนมัติเพื่อประหยัดพื้นที่เก็บข้อมูล';
-  const BACK = '<svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg>';
-  const CH = { admin: false, total: 0, rooms: {}, branchId: '', unavailable: false, busy: false,
-    room: null, peer: '', msgs: [], lastId: 0, readUpto: 0, timer: null, roomsTimer: null, pulling: false,
-    sending: false, rec: null, pending: null, audio: null, audioId: 0 };
-  const isAdminMe = () => String(me?.name || '').toLowerCase() === 'kiangkai';
-  const missing = e => /Could not find the function|schema cache|chat_/i.test(String(e?.message || ''));
-  const rpc = (name, args = {}) => cloudRpc(name, { p_token: cloudToken, ...args });
-  const q = s => document.querySelector(s);
-  const friends = () => THEME_CARD_FRIENDS[currentTheme] || THEMES[currentTheme]?.friends || ['🍣', '🍙', '🍤'];
-  const stk = (i, cls = '') => { const f = friends(); return f.length && stkKeep(i) ? `<span class="card-mascot ${cls}" aria-hidden="true">${f[i % f.length]}</span>` : ''; };
-
-  const layer = document.createElement('div');
-  layer.id = 'chatLayer';
-  layer.innerHTML = `
-  <div class="chp" id="chatRooms" aria-hidden="true">
-    <div class="chp-head"><button type="button" class="cp-btn" id="crBack" aria-label="กลับ">${BACK}</button><h2>💬 ห้องแชท</h2><span class="chp-stk" aria-hidden="true"></span></div>
-    <p class="chp-note">${NOTE}</p>
-    <div class="chp-search"><input id="crSearch" type="search" placeholder="ค้นหาชื่อผู้ใช้หรือสาขา" autocomplete="off"></div>
-    <div class="chp-list" id="crList"></div>
-  </div>
-  <div class="chp" id="chatRoom" aria-hidden="true">
-    <div class="chp-head">
-      <button type="button" class="cp-btn" id="chBack" aria-label="กลับ">${BACK}</button>
-      <div class="chp-title"><b id="chTitle">แชท</b><small id="chSub"></small></div>
-      <span class="chp-stk" aria-hidden="true"></span>
-      <button type="button" class="cp-btn" id="chDel" aria-label="ล้างข้อความในแชทนี้" title="ล้างข้อความในแชทนี้" hidden>🗑️</button>
-    </div>
-    <p class="chp-note">${NOTE}</p>
-    <div class="chp-msgs" id="chMsgs"></div>
-    <div class="chp-prev" id="chPrev" hidden><img id="chPrevImg" alt="รูปที่จะส่ง"><span>พร้อมส่งรูปนี้ (พิมพ์คำบรรยายได้)</span><button type="button" class="cp-btn" id="chPrevX" aria-label="ยกเลิกรูป">✕</button></div>
-    <div class="chp-rec" id="chRec" hidden><i></i><b id="chRecT">0:00</b><button type="button" class="cp-btn" id="chRecX" aria-label="ยกเลิกการอัด">🗑️</button><button type="button" class="cp-btn cp-send" id="chRecOk" aria-label="ส่งเสียง">➤</button></div>
-    <div class="chp-comp" id="chComp">
-      <button type="button" class="cp-btn" id="chImg" aria-label="ส่งรูปภาพ">📷</button>
-      <input type="file" id="chFile" accept="image/*" hidden>
-      <textarea id="chText" rows="1" maxlength="2000" placeholder="พิมพ์ข้อความ..."></textarea>
-      <button type="button" class="cp-btn" id="chMic" aria-label="อัดข้อความเสียง">🎤</button>
-      <button type="button" class="cp-btn cp-send" id="chSend" aria-label="ส่ง" hidden>➤</button>
-    </div>
-  </div>`;
-  document.body.appendChild(layer);
-  const elRooms = q('#chatRooms'), elRoom = q('#chatRoom'), elMsgs = q('#chMsgs'), elText = q('#chText');
-  function paintChat() {
-    const f = friends(), n = f.length || 1;
-    [elRooms, elRoom].forEach((el, i) => {
-      el.style.setProperty('--cf1', JSON.stringify(f[(i * 2) % n] || ''));
-      el.style.setProperty('--cf2', JSON.stringify(f[(i * 2 + 1) % n] || ''));
-      const sk = el.querySelector('.chp-stk'); if (sk) sk.textContent = stkKeep(i) ? (f[(i + 3) % n] || '') : '';
-    });
-  }
-
-  /* ---------- จุดแดง ---------- */
-  function updateDots() {
-    const adm = isAdminMe(), own = !!me && !adm && CH.total > 0, rooms = !!me && CH.total > 0;
-    document.querySelectorAll('[data-chat-dot]').forEach(el => {
-      const k = el.dataset.chatDot; let on = false;
-      if (k === 'tab' || k === 'own') on = own;
-      else if (k === 'rooms' || k === 'dock') on = rooms;
-      else if (k.startsWith('user:')) on = !!me && adm && (CH.rooms[`${CH.branchId}|${k.slice(5)}`] || 0) > 0;
-      el.classList.toggle('show', on);
-    });
-  }
-  window.chatUpdateDots = updateDots;
-  let dotRaf = 0;
-  const queueDots = () => { if (!dotRaf) dotRaf = requestAnimationFrame(() => { dotRaf = 0; updateDots(); }); };
-  ['#nav', '#dtabs', '#main'].forEach(sel => { const el = q(sel); if (el) new MutationObserver(queueDots).observe(el, { childList: true }); });
-
-  async function pollUnread() {
-    if (isClosedHoursReadOnly()) return;
-    if (!me || !cloudToken) { if (CH.total || Object.keys(CH.rooms).length) { CH.total = 0; CH.rooms = {}; updateDots(); } closeAll(); return; }
-    if (CH.unavailable || CH.busy || document.visibilityState === 'hidden') return;
-    CH.busy = true;
-    try {
-      const r = await rpc('chat_unread');
-      if (r?.ok) { CH.admin = !!r.admin; CH.total = Number(r.total) || 0; CH.rooms = r.rooms || {}; CH.branchId = r.branch_id || ''; updateDots(); }
-    } catch (e) { if (missing(e)) CH.unavailable = true; }
-    finally { CH.busy = false; }
-  }
-  setInterval(pollUnread, 15000);
-  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pollUnread(); });
-  window.addEventListener('focus', pollUnread);
-  const boot = setInterval(() => { if (me && cloudToken) { clearInterval(boot); pollUnread(); } }, 1200);
-
-  /* ---------- ตัวช่วย ---------- */
-  const fmtTime = ts => new Date(ts).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
-  const dayKey = ts => { const d = new Date(ts); return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`; };
-  const dayLabel = ts => {
-    const d = new Date(ts), now = new Date(), y = new Date(Date.now() - 864e5);
-    if (dayKey(d) === dayKey(now)) return 'วันนี้';
-    if (dayKey(d) === dayKey(y)) return 'เมื่อวาน';
-    return d.toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
-  };
-  const preview = r => (r.last_sender === 'admin' ? 'คุณ: ' : '') + (r.last_kind === 'image' ? '📷 รูปภาพ' : r.last_kind === 'audio' ? '🎤 ข้อความเสียง' : (r.last_body || ''));
-  const errText = (e, fb) => missing(e) ? 'ยังไม่ได้ติดตั้งระบบแชทบน Supabase (รันไฟล์ supabase-chat-migration.sql)' : (e?.message || fb);
-
-  /* ---------- รายการห้อง (เฉพาะ kiangkai) ---------- */
-  let roomData = [];
-  function renderRooms() {
-    const term = q('#crSearch').value.trim().toLowerCase();
-    const list = roomData.filter(r => !term || `${r.user_name} ${r.branch_name}`.toLowerCase().includes(term));
-    const box = q('#crList'), groups = new Map();
-    list.forEach(r => { const k = r.branch_name || '-'; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(r); });
-    if (!term) branches.forEach(b => { if (!groups.has(b.name)) groups.set(b.name, []); });
-    if (!groups.size) { box.innerHTML = `<div class="cr-empty">${roomData.length ? 'ไม่พบรายชื่อที่ค้นหา' : 'ยังไม่มีรายชื่อผู้ใช้ในระบบแชท<br>รายชื่อจะปรากฏเมื่อมีผู้ใช้เข้าสู่ระบบ'}</div>`; return; }
-    const f = friends();
-    const hero = `<div class="cr-hero has-card-mascot"><b>💬 ห้องแชททุกสาขา</b><small>แตะชื่อเพื่อเริ่มคุย ไม่ต้องสลับสาขา</small>${stk(0, 'mascot-top-right')}</div>`;
-    box.innerHTML = hero + [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], 'th')).map(([branch, rows], gi) => {
-      rows.sort((a, b) => (b.unread > 0) - (a.unread > 0) || (b.last_at || 0) - (a.last_at || 0) || a.user_name.localeCompare(b.user_name, 'th'));
-      const un = rows.reduce((n, r) => n + (r.unread || 0), 0);
-      return `<div class="cr-branch">📍 สาขา${esc(branch)} · ${rows.length} คน${un ? `<i>${un}</i>` : ''}${f.length && stkKeep(gi) ? `<span class="cr-stk" aria-hidden="true">${f[gi % f.length]}</span>` : ''}</div>` + (rows.length ? rows.map(r => `
-        <button type="button" class="cr-row ${r.active === false ? 'cr-off' : ''}" data-room="${esc(r.room_key)}" data-name="${esc(r.user_name)}" data-branch="${esc(r.branch_name || '')}">
-          <span class="cr-av">${esc(String(r.user_name).trim().charAt(0).toUpperCase() || '?')}</span>
-          <span class="cr-mid"><b>${esc(r.user_name)}${r.active === false ? ' (ปิดใช้งาน)' : ''}</b><small>${r.last_at ? esc(preview(r)) : 'ยังไม่เคยสนทนา · แตะเพื่อเริ่มคุย'}</small></span>
-          <span class="cr-end">${r.last_at ? `<span>${esc(dayLabel(r.last_at) === 'วันนี้' ? fmtTime(r.last_at) : dayLabel(r.last_at))}</span>` : ''}${r.unread ? `<span class="cr-badge">${r.unread}</span>` : ''}</span>
-        </button>`).join('') : '<div class="cr-none">ยังไม่มีผู้ใช้ของสาขานี้ในแชท · ผู้ใช้ต้องเข้าสู่ระบบก่อนจึงจะปรากฏ</div>');
-    }).join('');
-  }
-  async function loadRooms() {
-    try {
-      const r = await rpc('chat_rooms');
-      if (!r?.ok) { q('#crList').innerHTML = `<div class="cr-empty">${esc(r?.error || 'โหลดรายชื่อไม่สำเร็จ')}</div>`; return; }
-      roomData = r.rooms || []; renderRooms();
-    } catch (e) { q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดรายชื่อไม่สำเร็จ'))}</div>`; }
-  }
-  /* ผู้ใช้ทั่วไปเห็นห้องเดียว: ผู้ดูแลระบบ (kiangkai) */
-  let selfLast = null;
-  function renderSelfRoom() {
-    const unread = CH.total || 0, m = selfLast;
-    const sub = m ? ((m.sender === 'user' ? 'คุณ: ' : '') + (m.kind === 'image' ? '📷 รูปภาพ' : m.kind === 'audio' ? '🎤 ข้อความเสียง' : (m.body || ''))) : 'แตะเพื่อเริ่มคุยกับผู้ดูแลระบบ';
-    const when = m ? (dayLabel(m.ts) === 'วันนี้' ? fmtTime(m.ts) : dayLabel(m.ts)) : '';
-    q('#crList').innerHTML = `<div class="cr-hero has-card-mascot"><b>💬 ห้องแชทของคุณ</b><small>คุยกับผู้ดูแลระบบได้โดยตรง</small>${stk(0, 'mascot-top-right')}</div>
-      <button type="button" class="cr-row" data-self-room="1"><span class="cr-av">👑</span><span class="cr-mid"><b>ผู้ดูแลระบบ</b><small>${esc(sub)}</small></span><span class="cr-end">${when ? `<span>${esc(when)}</span>` : ''}${unread ? `<span class="cr-badge">${unread}</span>` : ''}</span></button>`;
-  }
-  async function loadSelfRoom() {
-    renderSelfRoom();
-    try {
-      const r = await rpc('chat_get', { p_room: null, p_after: 0, p_mark: false });
-      if (r?.ok) { const ms = (r.messages || []).slice().sort((a, b) => a.id - b.id); selfLast = ms.length ? ms[ms.length - 1] : null; renderSelfRoom(); }
-    } catch (e) { if (missing(e)) q('#crList').innerHTML = `<div class="cr-empty">${esc(errText(e, 'โหลดแชทไม่สำเร็จ'))}</div>`; }
-  }
-  function openRooms() {
-    if (isClosedHoursReadOnly()) { notifyClosedHours(); return; }
-    if (!me) return;
-    window.jMenuClose && window.jMenuClose();
-    const adm = isAdminMe();
-    q('.chp-search').hidden = !adm;
-    paintChat(); elRooms.classList.add('open'); elRooms.setAttribute('aria-hidden', 'false');
-    if (adm) q('#crList').innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
-    const load = adm ? loadRooms : loadSelfRoom;
-    load(); clearInterval(CH.roomsTimer);
-    CH.roomsTimer = setInterval(() => { if (document.visibilityState === 'visible') { load(); pollUnread(); } }, 6000);
-  }
-  function closeRooms() { elRooms.classList.remove('open'); elRooms.setAttribute('aria-hidden', 'true'); clearInterval(CH.roomsTimer); }
-  window.chatOpenRooms = openRooms;
-
-  /* ---------- ห้องสนทนา ---------- */
-  const mediaCache = new Map(), mediaLoading = new Map();
-  function mediaUrl(id, mime) {
-    if (mediaCache.has(id)) return Promise.resolve(mediaCache.get(id));
-    if (mediaLoading.has(id)) return mediaLoading.get(id);
-    const p = rpc('chat_get_media', { p_id: id }).then(r => {
-      if (!r?.ok) throw new Error(r?.error || 'โหลดไฟล์ไม่สำเร็จ');
-      const bin = atob(r.data), arr = new Uint8Array(bin.length);
-      for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-      const url = URL.createObjectURL(new Blob([arr], { type: r.mime || mime }));
-      mediaCache.set(id, url); return url;
-    }).finally(() => mediaLoading.delete(id));
-    mediaLoading.set(id, p); return p;
-  }
-  const secText = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
-  function bubble(m, mineSide, isLastMine) {
-    const mine = m.sender === mineSide;
-    let inner = '';
-    if (m.kind === 'image') inner += `<img data-img="${m.id}" alt="รูปภาพ" ${mediaCache.has(m.id) ? `src="${mediaCache.get(m.id)}"` : ''}>`;
-    if (m.kind === 'audio') inner += `<div class="cb-aud"><button type="button" class="cb-play" data-aud="${m.id}" data-mime="${esc(m.mime || 'audio/webm')}" aria-label="เล่นเสียง">▶</button><div class="cb-bar"><i></i></div><span class="cb-sec">${secText(m.secs || 0)}</span></div>`;
-    if (m.body) inner += `<div class="cb-t">${esc(m.body)}</div>`;
-    const tick = mine ? (m.read ? '· อ่านแล้ว' : '· ส่งแล้ว') : '';
-    return `<div class="cb ${mine ? 'mine' : 'theirs'}" data-mid="${m.id}">${inner}<div class="cb-m"><span>${fmtTime(m.ts)}</span>${mine && isLastMine ? `<span>${tick}</span>` : ''}</div></div>`;
-  }
-  function renderMsgs(forceBottom) {
-    const side = CH.admin ? 'admin' : 'user';
-    const nearBottom = elMsgs.scrollHeight - elMsgs.scrollTop - elMsgs.clientHeight < 90;
-    let lastMine = 0; CH.msgs.forEach(m => { if (m.sender === side) lastMine = m.id; });
-    let html = '', prevDay = '';
-    CH.msgs.forEach(m => {
-      const dk = dayKey(m.ts);
-      if (dk !== prevDay) { html += `<div class="cb-day">${esc(dayLabel(m.ts))}</div>`; prevDay = dk; }
-      html += bubble(m, side, m.id === lastMine);
-    });
-    if (!CH.msgs.length) { const f = friends(); html = `<div class="cb-empty">${f.length ? `<span class="big">${f[0]}</span>` : ''}<b>ยังไม่มีข้อความ</b><span>ลองพิมพ์ทักทายได้เลย 👋</span></div>`; }
-    elMsgs.innerHTML = html;
-    elMsgs.querySelectorAll('img[data-img]').forEach(img => {
-      if (img.getAttribute('src')) return;
-      const id = Number(img.dataset.img);
-      mediaUrl(id, 'image/jpeg').then(u => { img.src = u; if (nearBottom) elMsgs.scrollTop = elMsgs.scrollHeight; }).catch(() => { img.alt = 'รูปหมดอายุแล้ว'; });
-    });
-    if (forceBottom || nearBottom) elMsgs.scrollTop = elMsgs.scrollHeight;
-    if (CH.audioId) { const b = elMsgs.querySelector(`[data-aud="${CH.audioId}"]`); if (b && CH.audio && !CH.audio.paused) b.textContent = '⏸'; }
-  }
-  async function pull(initial) {
-    if (isClosedHoursReadOnly() || CH.pulling || !elRoom.classList.contains('open')) return;
-    CH.pulling = true;
-    try {
-      const r = await rpc('chat_get', { p_room: CH.admin ? CH.room : null, p_after: initial ? 0 : CH.lastId, p_mark: document.visibilityState === 'visible' });
-      if (!r?.ok) { if (initial) toast(r?.error || 'โหลดแชทไม่สำเร็จ', 1); return; }
-      if (CH.admin && r.room_key) CH.room = r.room_key;
-      const incoming = r.messages || [];
-      let changed = !!initial;
-      if (initial) { CH.msgs = []; CH.lastId = 0; }
-      const have = new Set(CH.msgs.map(m => m.id));
-      incoming.forEach(m => { if (!have.has(m.id)) { CH.msgs.push(m); changed = true; } });
-      CH.msgs.sort((a, b) => a.id - b.id);
-      CH.lastId = CH.msgs.length ? CH.msgs[CH.msgs.length - 1].id : 0;
-      const ru = Number(r.read_upto) || 0;
-      if (ru !== CH.readUpto) { CH.readUpto = ru; changed = true; }
-      const side = CH.admin ? 'admin' : 'user';
-      CH.msgs.forEach(m => { if (m.sender === side && m.id <= CH.readUpto && !m.read) { m.read = true; changed = true; } });
-      if (changed) renderMsgs(initial);
-      if (document.visibilityState === 'visible') pollUnread();
-    } catch (e) { if (initial) toast(errText(e, 'โหลดแชทไม่สำเร็จ'), 1); }
-    finally { CH.pulling = false; }
-  }
-  function openRoom(opt = {}) {
-    if (isClosedHoursReadOnly()) { notifyClosedHours(); return; }
-    CH.admin = isAdminMe();
-    CH.room = CH.admin ? opt.room : null; CH.msgs = []; CH.lastId = 0; CH.readUpto = 0;
-    q('#chTitle').textContent = CH.admin ? (opt.name || 'ผู้ใช้') : 'ผู้ดูแลระบบ';
-    q('#chSub').textContent = CH.admin ? (opt.branch ? `สาขา${opt.branch}` : '') : 'kiangkai · ตอบกลับเมื่อว่าง';
-    q('#chDel').hidden = !CH.admin;
-    elText.value = ''; clearPending(); syncComposer(); autoGrow();
-    elMsgs.innerHTML = '<div class="cr-empty">กำลังโหลด…</div>';
-    paintChat(); elRoom.classList.add('open'); elRoom.setAttribute('aria-hidden', 'false');
-    pull(true); clearInterval(CH.timer);
-    CH.timer = setInterval(() => { if (document.visibilityState === 'visible') pull(false); }, 3000);
-  }
-  function closeRoom() {
-    clearInterval(CH.timer); recCancel(); stopAudio();
-    elRoom.classList.remove('open'); elRoom.setAttribute('aria-hidden', 'true');
-    pollUnread(); if (elRooms.classList.contains('open')) { if (isAdminMe()) loadRooms(); else loadSelfRoom(); }
-  }
-  function closeAll() { if (elRoom.classList.contains('open')) closeRoom(); if (elRooms.classList.contains('open')) closeRooms(); }
-
-  /* ---------- ส่งข้อความ / รูป / เสียง ---------- */
-  function syncComposer() {
-    const has = !!elText.value.trim() || !!CH.pending;
-    q('#chSend').hidden = !has; q('#chMic').hidden = has; q('#chImg').hidden = !!CH.rec;
-  }
-  function autoGrow() { elText.style.height = 'auto'; const h = elText.scrollHeight; elText.style.height = Math.min(112, h) + 'px'; elText.style.overflowY = h > 112 ? 'auto' : 'hidden'; }
-  function clearPending() { CH.pending = null; q('#chPrev').hidden = true; q('#chFile').value = ''; }
-  async function send(args, localUrl) {
-    if (isClosedHoursReadOnly()) { notifyClosedHours(); return false; }
-    if (CH.sending) return false;
-    CH.sending = true;
-    try {
-      const r = await rpc('chat_send', { p_room: CH.admin ? CH.room : null, ...args });
-      if (!r?.ok) { toast(r?.error || 'ส่งไม่สำเร็จ', 1); return false; }
-      if (CH.admin && r.room_key) CH.room = r.room_key;
-      if (localUrl && r.id) mediaCache.set(r.id, localUrl);
-      await pull(false); elMsgs.scrollTop = elMsgs.scrollHeight; return true;
-    } catch (e) { toast(errText(e, 'ส่งไม่สำเร็จ'), 1); return false; }
-    finally { CH.sending = false; }
-  }
-  async function sendComposer() {
-    const text = elText.value.trim();
-    if (CH.sending || (!text && !CH.pending)) return;
-    const btn = q('#chSend'); btn.disabled = true;
-    const keepKeyboard = document.activeElement === elText;
-    let ok;
-    if (CH.pending) { const p = CH.pending; ok = await send({ p_kind: 'image', p_body: text, p_media: p.data, p_mime: p.mime }, p.preview); }
-    else ok = await send({ p_kind: 'text', p_body: text });
-    btn.disabled = false;
-    if (ok) { elText.value = ''; clearPending(); autoGrow(); syncComposer(); }
-    if (keepKeyboard && document.activeElement !== elText) elText.focus({ preventScroll: true });
-  }
-  function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const url = URL.createObjectURL(file), img = new Image();
-      img.onload = () => {
-        let max = 1280, qlt = 0.72;
-        for (let i = 0; i < 5; i++) {
-          const sc = Math.min(1, max / Math.max(img.width, img.height));
-          const c = document.createElement('canvas');
-          c.width = Math.max(1, Math.round(img.width * sc)); c.height = Math.max(1, Math.round(img.height * sc));
-          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-          const d = c.toDataURL('image/jpeg', qlt);
-          if (d.length <= 600000 || i === 4) {
-            URL.revokeObjectURL(url);
-            if (d.length > 880000) return reject(new Error('รูปใหญ่เกินไป'));
-            return resolve({ data: d.split(',')[1], mime: 'image/jpeg', preview: d });
-          }
-          max = Math.round(max * 0.8); qlt = Math.max(0.5, qlt - 0.07);
-        }
-      };
-      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('เปิดไฟล์รูปไม่ได้')); };
-      img.src = url;
-    });
-  }
-  /* เสียง */
-  function recTick() { if (!CH.rec) return; const s = (Date.now() - CH.rec.start) / 1000; q('#chRecT').textContent = `${secText(s)} / 1:00`; if (s >= 60) recFinish(); }
-  async function recStart() {
-    if (CH.rec) return;
-    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') return toast('เครื่องนี้ยังไม่รองรับการอัดเสียง', 1);
-    let stream;
-    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); }
-    catch { return toast('ไม่ได้รับอนุญาตให้ใช้ไมโครโฟน', 1); }
-    const mt = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find(m => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(m)) || '';
-    let mr;
-    try { mr = new MediaRecorder(stream, mt ? { mimeType: mt, audioBitsPerSecond: 24000 } : { audioBitsPerSecond: 24000 }); }
-    catch { stream.getTracks().forEach(t => t.stop()); return toast('เริ่มอัดเสียงไม่สำเร็จ', 1); }
-    const rec = { mr, stream, start: Date.now(), chunks: [], cancel: false, timer: null, mime: (mr.mimeType || mt || 'audio/webm') };
-    mr.ondataavailable = e => { if (e.data && e.data.size) rec.chunks.push(e.data); };
-    mr.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop()); clearInterval(rec.timer);
-      const secs = Math.round((Date.now() - rec.start) / 1000);
-      if (rec.cancel) return;
-      if (secs < 1) return toast('ข้อความเสียงสั้นเกินไป', 1);
-      const blob = new Blob(rec.chunks, { type: rec.mime });
-      const data = await new Promise(res => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.readAsDataURL(blob); });
-      if (data.length > 880000) return toast('ข้อความเสียงใหญ่เกินไป ลองอัดให้สั้นลง', 1);
-      const localUrl = URL.createObjectURL(blob);
-      await send({ p_kind: 'audio', p_body: '', p_media: data, p_mime: rec.mime.split(';')[0], p_secs: secs }, localUrl);
-    };
-    CH.rec = rec; mr.start(); rec.timer = setInterval(recTick, 250);
-    q('#chRec').hidden = false; q('#chComp').hidden = true; q('#chRecT').textContent = '0:00 / 1:00';
-  }
-  function recEnd() { CH.rec = null; q('#chRec').hidden = true; q('#chComp').hidden = false; syncComposer(); }
-  function recFinish() { const r = CH.rec; if (!r) return; try { r.mr.stop(); } catch {} recEnd(); }
-  function recCancel() { const r = CH.rec; if (!r) return; r.cancel = true; try { r.mr.stop(); } catch {} r.stream.getTracks().forEach(t => t.stop()); clearInterval(r.timer); recEnd(); }
-  function stopAudio() { if (CH.audio) { try { CH.audio.pause(); } catch {} } CH.audio = null; CH.audioId = 0; elMsgs.querySelectorAll('.cb-play').forEach(b => { b.textContent = '▶'; }); elMsgs.querySelectorAll('.cb-bar i').forEach(i => { i.style.width = '0'; }); }
-  async function playAudio(btn) {
-    const id = Number(btn.dataset.aud);
-    if (CH.audio && CH.audioId === id) { if (CH.audio.paused) { CH.audio.play(); btn.textContent = '⏸'; } else { CH.audio.pause(); btn.textContent = '▶'; } return; }
-    stopAudio(); btn.textContent = '…';
-    try {
-      const url = await mediaUrl(id, btn.dataset.mime);
-      const a = new Audio(url); CH.audio = a; CH.audioId = id;
-      const bar = btn.parentElement.querySelector('.cb-bar i');
-      a.ontimeupdate = () => { if (a.duration) bar.style.width = (a.currentTime / a.duration * 100) + '%'; };
-      a.onended = () => { btn.textContent = '▶'; bar.style.width = '0'; CH.audio = null; CH.audioId = 0; };
-      await a.play(); btn.textContent = '⏸';
-    } catch (e) { btn.textContent = '▶'; CH.audio = null; CH.audioId = 0; toast(e?.message || 'เล่นเสียงไม่ได้', 1); }
-  }
-
-  /* ---------- events ---------- */
-  q('#crBack').onclick = closeRooms;
-  q('#chBack').onclick = closeRoom;
-  q('#crSearch').oninput = renderRooms;
-  q('#crList').onclick = e => {
-    if (e.target.closest('[data-self-room]')) { openRoom({}); return; }
-    const b = e.target.closest('[data-room]'); if (!b) return;
-    openRoom({ room: b.dataset.room, name: b.dataset.name, branch: b.dataset.branch });
-  };
-  q('#chDel').onclick = () => {
-    if (!CH.admin || !CH.room) return;
-    const room = CH.room, nm = q('#chTitle').textContent;
-    openModal(`<h3>🧹 ล้างแชทกับ ${esc(nm)}?</h3><p class="settings-hint">ข้อความ รูปภาพ และไฟล์เสียงทั้งหมดในห้องนี้จะถูกลบถาวร กู้คืนไม่ได้<br>ห้องแชทและรายชื่อยังอยู่ ส่งข้อความต่อได้ตามปกติ</p><div class="acts"><button type="button" class="btn sec" id="chClrNo">ยกเลิก</button><button type="button" class="btn" id="chClrYes" style="background:#ef4444;border-color:#ef4444;color:#fff">ล้างทั้งหมด</button></div>`);
-    $('#chClrNo').onclick = () => closeModal();
-    $('#chClrYes').onclick = async e => {
-      const btn = e.currentTarget; btn.disabled = true;
-      try {
-        const r = await rpc('chat_delete_room', { p_room: room });
-        if (!r?.ok) { btn.disabled = false; return toast(r?.error || 'ล้างแชทไม่สำเร็จ', 1); }
-        closeModal(); stopAudio();
-        mediaCache.forEach(u => { try { URL.revokeObjectURL(u); } catch {} }); mediaCache.clear(); mediaLoading.clear();
-        if (CH.room === room) { CH.msgs = []; CH.lastId = 0; CH.readUpto = 0; renderMsgs(true); }
-        toast('ล้างแชทแล้ว'); pollUnread(); if (elRooms.classList.contains('open')) loadRooms();
-      } catch (err) { btn.disabled = false; toast(errText(err, 'ล้างแชทไม่สำเร็จ'), 1); }
-    };
-  };
-  elText.addEventListener('input', () => { autoGrow(); syncComposer(); });
-  elText.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey && !IS_MOBILE_BROWSER) { e.preventDefault(); sendComposer(); } });
-  q('#chSend').onclick = sendComposer;
-  /* กดปุ่มส่งแล้วไม่ให้ช่องพิมพ์เสียโฟกัส -> แป้นพิมพ์ค้างอยู่จนกว่าผู้ใช้จะปิดเอง */
-  ['mousedown', 'pointerdown'].forEach(ev => q('#chSend').addEventListener(ev, e => { if (e.pointerType === 'mouse' || e.type === 'mousedown') e.preventDefault(); }));
-  q('#chSend').addEventListener('touchend', e => { if (e.cancelable && document.activeElement === elText) { e.preventDefault(); sendComposer(); } }, { passive: false });
-  q('#chImg').onclick = () => q('#chFile').click();
-  q('#chFile').onchange = async e => {
-    const f = e.target.files?.[0]; if (!f) return;
-    if (!/^image\//.test(f.type)) { e.target.value = ''; return toast('กรุณาเลือกไฟล์รูปภาพ', 1); }
-    try {
-      const p = await compressImage(f);
-      CH.pending = p; q('#chPrevImg').src = p.preview; q('#chPrev').hidden = false; syncComposer();
-    } catch (err) { toast(err.message || 'เปิดรูปไม่ได้', 1); e.target.value = ''; }
-  };
-  q('#chPrevX').onclick = () => { clearPending(); syncComposer(); };
-  q('#chMic').onclick = recStart;
-  q('#chRecX').onclick = recCancel;
-  q('#chRecOk').onclick = recFinish;
-  elMsgs.addEventListener('click', e => {
-    const img = e.target.closest('img[data-img]');
-    if (img && img.src) { const z = document.createElement('div'); z.className = 'chp-zoom'; z.innerHTML = `<img src="${img.src}" alt="">`; z.onclick = () => z.remove(); document.body.appendChild(z); return; }
-    const pb = e.target.closest('[data-aud]'); if (pb) playAudio(pb);
-  });
-  /* ปุ่มแชทในหน้าผู้ใช้งาน: ใช้ห้อง (room_key) เดียวกับรายชื่อห้องแชท จะได้เป็นห้องเดียวกันเสมอ */
-  async function openUserRoom(name) {
-    const same = r => String(r.user_name).toLowerCase() === String(name).toLowerCase() && (!r.branch_name || r.branch_name === currentBranch?.name);
-    let hit = roomData.find(same);
-    if (!hit) { try { const r = await rpc('chat_rooms'); if (r?.ok) { roomData = r.rooms || []; hit = roomData.find(same); } } catch {} }
-    openRoom({ room: hit ? hit.room_key : '@' + name, name, branch: hit?.branch_name || currentBranch?.name || '' });
-  }
-  document.addEventListener('click', e => {
-    const b = e.target.closest('[data-chat-open]');
-    if (b) {
-      e.preventDefault(); e.stopPropagation();
-      if (isAdminMe()) openUserRoom(b.dataset.chatUser);
-      else openRoom({});
-      return;
-    }
-    if (e.target.closest('#chatRoomsBtn')) openRooms();
-  }, true);
-  /* คีย์บอร์ดมือถือ: ให้ช่องพิมพ์ไม่ถูกบัง */
-  if (window.visualViewport) {
-    const fit = () => { const v = window.visualViewport; [elRoom, elRooms].forEach(el => { if (window.innerWidth < 1100) { el.style.height = v.height + 'px'; el.style.top = v.offsetTop + 'px'; el.style.bottom = 'auto'; } else { el.style.height = ''; el.style.top = ''; el.style.bottom = ''; } }); if (elRoom.classList.contains('open')) elMsgs.scrollTop = elMsgs.scrollHeight; };
-    window.visualViewport.addEventListener('resize', fit); window.visualViewport.addEventListener('scroll', fit); fit();
-    const settle = () => { fit(); [60, 180, 360, 650].forEach(t => setTimeout(fit, t)); };
-    elText.addEventListener('focus', settle); elText.addEventListener('blur', () => setTimeout(fit, 150));
-    q('#crSearch').addEventListener('focus', settle); q('#crSearch').addEventListener('blur', () => setTimeout(fit, 150));
-  }
-})();
 </script>
 
 
