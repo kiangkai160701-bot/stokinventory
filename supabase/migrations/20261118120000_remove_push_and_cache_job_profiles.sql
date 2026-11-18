@@ -17,7 +17,7 @@ AS $function$
     coalesce((select jsonb_agg(x.user_data - 'pin' order by x.position)
       from jsonb_array_elements(coalesce(p_data->'users','[]'::jsonb)) with ordinality as x(user_data,position)),'[]'::jsonb)),
     '{jobs}',case when jsonb_typeof(p_data->'jobs')='object' then (p_data->'jobs')-'profiles' else coalesce(p_data->'jobs','{}'::jsonb) end,true);
-$function$
+$function$;
 CREATE OR REPLACE FUNCTION public.api_get_state_version(p_token text)
  RETURNS jsonb
  LANGUAGE plpgsql
@@ -82,7 +82,7 @@ begin
                from private.inventory_branches where id = v_branch_id)
   );
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.api_sync(p_token text, p_base jsonb, p_data jsonb)
  RETURNS jsonb
@@ -274,7 +274,7 @@ BEGIN
   update private.inventory_state set data = v_next, version = version + 1, updated_at = now() where id=true and branch_id=v_branch_id returning version into v_version;
   return jsonb_build_object('ok', true, 'state', public.api_safe_state(v_next), 'version', v_version);
 end;
-$function$
+$function$;
 
 CREATE OR REPLACE FUNCTION public.api_branch_create(p_token text, p_name text)
  RETURNS jsonb
@@ -299,7 +299,7 @@ BEGIN
   insert into private.inventory_branches(id,name,created_by) values(v_id,v_name,v_username);
   insert into private.inventory_state(id,branch_id,data,version) values(true,v_id,jsonb_build_object('users','[]'::jsonb,'products','[]'::jsonb,'log','[]'::jsonb,'roles',coalesce(v_roles,'{}'::jsonb),'categories','[]'::jsonb,'units','[]'::jsonb),1);
   return jsonb_build_object('ok',true,'branch',jsonb_build_object('id',v_id,'name',v_name));
-end $function$
+end $function$;
 
 CREATE OR REPLACE FUNCTION public.api_branch_deactivate(p_token text, p_branch_id uuid)
  RETURNS jsonb
@@ -326,7 +326,7 @@ BEGIN
   delete from private.inventory_sessions where branch_id=p_branch_id;
   delete from private.inventory_login_failures where branch_id=p_branch_id;
   return jsonb_build_object('ok',true,'branch',jsonb_build_object('id',p_branch_id,'name',v_branch_name));
-end $function$
+end $function$;
 
 
 CREATE OR REPLACE FUNCTION public.api_job_profiles_get(p_token text)
