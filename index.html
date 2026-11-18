@@ -2518,11 +2518,16 @@ $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#a
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
 tab = 'stock'; build(); presenceFailures = 0; presencePaused = false; presenceRetryAt = 0; annState.failures = 0; annState.paused = false; annState.retryAt = 0; annState.version = null; void refreshJobProfiles(); startPresence(); startCloudPolling(); void refreshAnnouncement(true); startAnnouncementPolling(); if (u.must) pinModal(true);
 }
-function logout() {
+async function logout() {
 pollingLogoutInProgress = true; stopCloudPolling(); stopAnnouncementPolling(); stopPresence();
 const oldToken = cloudToken;
 if (oldToken) {
-  cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
+  try {
+    const result = await cloudRpc('api_logout', { p_token: oldToken });
+    if (!result?.ok) console.warn('ยกเลิก Session บนเซิร์ฟเวอร์ไม่สำเร็จ');
+  } catch (error) {
+    console.warn('ยกเลิก Session บนเซิร์ฟเวอร์ไม่สำเร็จ', error);
+  }
 }
 sess.set(null); syncSnapshot = null; me = null; if (typeof pageDomCache !== 'undefined') { pageDomCache.clear(); renderedPageKey = null; renderCache = { tab: '', wide: null, html: '' }; } renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
 }
