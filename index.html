@@ -2848,14 +2848,14 @@ function syncAnnounceOffset() {
 }
 async function refreshAnnouncement(force = false) {
   if (annState.promise) return annState.promise;
-  if (isClosedHoursReadOnly() || !cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
+  if (!cloudToken || !me || pollingLogoutInProgress || document.hidden || cloudBusy || Date.now() < annState.retryAt || (!force && annState.failures === 0 && Date.now() - annState.lastCheckAt < 300000)) return;
   annState.busy = true; annState.lastCheckAt = Date.now();
   annState.promise = (async () => {
   try {
     const version = await cloudRpc('api_announcement_version_get', { p_token: cloudToken });
     if (!version?.ok || !version.version) throw new Error(version?.error || 'Announcement version check failed');
     if (annState.version === version.version) { annState.failures = 0; annState.retryAt = 0; return; }
-    if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken || isClosedHoursReadOnly()) return;
+    if (cloudBusy || document.hidden || pollingLogoutInProgress || !cloudToken) return;
     const r = await cloudRpc('api_announcement_get', { p_token: cloudToken });
     if (r?.ok) { annState.version = version.version; annState.failures = 0; annState.retryAt = 0; renderAnnounce(r.announcement); }
     else throw new Error(r?.error || 'Announcement request failed');
@@ -2872,7 +2872,7 @@ async function refreshAnnouncement(force = false) {
 let annPollTimer = null;
 function scheduleAnnouncementPoll(delay = null) {
 clearTimeout(annPollTimer); annPollTimer = null;
-if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden) return;
 const dueAt = annState.failures > 0 ? annState.retryAt : annState.lastCheckAt + 300000;
 const wait = delay == null ? Math.max(1000, dueAt - Date.now()) : Math.max(1000, delay);
 annPollTimer = setTimeout(async () => {
@@ -2885,7 +2885,7 @@ annPollTimer = setTimeout(async () => {
 }
 function startAnnouncementPolling() {
 clearTimeout(annPollTimer); annPollTimer = null;
-if (!me || !cloudToken || pollingLogoutInProgress || document.hidden || isClosedHoursReadOnly()) return;
+if (!me || !cloudToken || pollingLogoutInProgress || document.hidden) return;
 scheduleAnnouncementPoll();
 }
 function stopAnnouncementPolling() { clearTimeout(annPollTimer); annPollTimer = null; }
