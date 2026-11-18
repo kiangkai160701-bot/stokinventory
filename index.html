@@ -2469,75 +2469,6 @@ return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('')
 let h = 5381; for (const c of 'inv:' + s) h = ((h * 33) ^ c.charCodeAt(0)) >>> 0; return 'f' + h;
 }
 }
-const PUSH_FUNCTION_URL = `${CLOUD_URL}/functions/v1/push-dispatch`;
-async function pushApi(payload = null, method = 'POST') {
-  const headers = { apikey: CLOUD_KEY, Authorization: `Bearer ${CLOUD_KEY}` };
-  if (method === 'POST') headers['Content-Type'] = 'application/json';
-  const response = await fetch(PUSH_FUNCTION_URL, {
-    method, headers,
-    ...(method === 'POST' ? { body: JSON.stringify(payload || {}) } : {})
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok || data?.ok === false) throw new Error(data?.error || 'เชื่อมต่อระบบ Push ไม่สำเร็จ');
-  return data;
-}
-function pushBase64UrlBytes(value) {
-  const normalized = String(value).replace(/-/g, '+').replace(/_/g, '/');
-  const raw = atob(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '='));
-  return Uint8Array.from(raw, ch => ch.charCodeAt(0));
-}
-async function syncNotificationPreferences(preferences = getNotificationPrefs()) {
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window) || Notification.permission !== 'granted') return;
-  const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
-  const subscription = await registration?.pushManager?.getSubscription();
-  if (!subscription || !cloudToken) return;
-  await pushApi({ action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(), preferences });
-}
-async function enablePushOnThisDevice() {
-  if (!cloudToken || !me) throw new Error('กรุณาเข้าสู่ระบบก่อนเปิดใช้งาน Push');
-  if (!window.isSecureContext) throw new Error('ต้องเปิดเว็บไซต์ผ่าน HTTPS จึงจะใช้ Push Notification ได้');
-  if (!('Notification' in window) || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-    throw new Error('เบราว์เซอร์นี้ยังไม่รองรับ Web Push');
-  }
-  let permission = Notification.permission;
-  if (permission === 'default') permission = await Notification.requestPermission();
-  if (permission !== 'granted') throw new Error(permission === 'denied' ? 'การแจ้งเตือนถูกปิดไว้ในการตั้งค่าเบราว์เซอร์' : 'ยังไม่ได้อนุญาตการแจ้งเตือน');
-  const keyResult = await pushApi(null, 'GET');
-  if (!keyResult.publicKey) throw new Error('ยังไม่ได้ตั้งค่า VAPID Public Key ใน Supabase');
-  const appBase = new URL('.', location.href);
-  const registration = await navigator.serviceWorker.register(new URL('sw.js', appBase).href, { scope: appBase.pathname });
-  await navigator.serviceWorker.ready;
-  let subscription = await registration.pushManager.getSubscription();
-  if (!subscription) {
-    subscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: pushBase64UrlBytes(keyResult.publicKey)
-    });
-  }
-  await pushApi({
-    action: 'register', token: cloudToken, deviceId: notificationDeviceId(),
-    subscription: subscription.toJSON()
-  });
-  await pushApi({
-    action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(),
-    preferences: getNotificationPrefs()
-  });
-  return registration;
-}
-async function refreshPushSubscriptionForSession() {
-  if (!cloudToken || !me || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window) || Notification.permission !== 'granted') return;
-  try {
-    const registration = await navigator.serviceWorker.getRegistration(new URL('.', location.href).pathname);
-    const subscription = await registration?.pushManager?.getSubscription();
-    if (!subscription) return;
-    await pushApi({ action: 'register', token: cloudToken, deviceId: notificationDeviceId(), subscription: subscription.toJSON() });
-    await pushApi({ action: 'preferences', token: cloudToken, deviceId: notificationDeviceId(), preferences: getNotificationPrefs() });
-  } catch {}
-}
-async function dispatchPendingPushEvents() {
-  if (!cloudToken || !me) return;
-  try { await pushApi({ action: 'dispatch', token: cloudToken }); } catch {}
-}
 const save = () => {
 if (isClosedHoursReadOnly()) {
   if (syncSnapshot) {
@@ -2561,7 +2492,7 @@ if (result.error?.includes('หมดเวลา')) { logout(); return toast(re
 return toast(result.error || 'บันทึกข้อมูลส่วนกลางไม่สำเร็จ', 1);
 }
 syncSnapshot = cloneData(result.state); syncVersion = result.version || syncVersion + 1; logNeedsPrune = false;
-void dispatchPendingPushEvents();
+
 U.forEach(user => { delete user.pin; });
 const activeProfile = U.find(user => user.name === me?.name);
 if (activeProfile) { me = activeProfile; $('#meRole').textContent = ROLE[me.role] || me.role; }
@@ -2615,7 +2546,7 @@ function enter(u, branch = currentBranch) {
 setCurrentBranch(branch);
 syncClosedHoursNotice();
 me = u; $('#lgPinInput').value = ''; $('#lgUser').value = '';
-void refreshPushSubscriptionForSession();
+
 $('#bootScreen').classList.add('hide'); $('#login').classList.add('hide'); $('#app').classList.remove('hide');
 $('#meName').textContent = u.name; $('#meRole').textContent = ROLE[u.role]; $('#btnEditName').classList.toggle('hide', !!u.branchManagerAccess); $('#btnPin').classList.toggle('hide', !!u.branchManagerAccess);
 tab = 'stock'; build(); startPresence(); annState.version = null; refreshAnnouncement(true); if (u.must) pinModal(true);
@@ -2624,8 +2555,6 @@ function logout() {
 stopPresence();
 const oldToken = cloudToken;
 if (oldToken) {
-  const deviceId = store.get('inv_notification_device_id', '');
-  if (deviceId) pushApi({ action: 'unregister', token: oldToken, deviceId }).catch(() => {});
   cloudRpc('api_logout', { p_token: oldToken }).catch(() => {});
 }
 sess.set(null); syncSnapshot = null; me = null; if (typeof pageDomCache !== 'undefined') { pageDomCache.clear(); renderedPageKey = null; renderCache = { tab: '', wide: null, html: '' }; } renderAnnounce(null); closeModal(); $('#bootScreen').classList.add('hide'); $('#app').classList.add('hide'); $('#login').classList.remove('hide'); showHint(); prefillLastUsername();
@@ -4070,48 +3999,6 @@ confirmBtn.disabled = false; confirmBtn.textContent = 'ยืนยันแล�
 }
 
 
-const NOTIFICATION_ITEMS = [
-  ['low_stock','สินค้าใกล้หมด','เมื่อจำนวนคงเหลือต่ำกว่าค่าขั้นต่ำที่กำหนด','📉'],
-  ['out_of_stock','สินค้าหมดสต๊อก','เมื่อจำนวนคงเหลือของสินค้าเป็นศูนย์','🚨'],
-  ['stock_received','รับสินค้าเข้าคลัง','เมื่อมีการบันทึกรับวัตถุดิบเข้าสต๊อก','📥'],
-  ['stock_issued','เบิกสินค้าออก','เมื่อมีการบันทึกเบิกวัตถุดิบออกจากคลัง','📤'],
-  ['product_created','เพิ่มสินค้าใหม่','เมื่อมีการเพิ่มรายการวัตถุดิบใหม่','➕'],
-  ['product_updated','แก้ไขข้อมูลสินค้า','เมื่อมีการแก้ไขชื่อ หมวด หน่วย หรือข้อมูลสินค้า','✏️'],
-  ['product_deleted','ลบสินค้า','เมื่อมีการลบรายการวัตถุดิบออกจากระบบ','🗑️'],
-  ['stock_adjusted','ปรับยอดสต๊อก','เมื่อมีการปรับจำนวนคงเหลือโดยตรง','🧮'],
-  ['branch_changed','เพิ่มหรือแก้ไขสาขา','เมื่อมีการเพิ่มสาขาหรือเปลี่ยนข้อมูลสาขา','🏬'],
-  ['user_created','มีผู้ใช้งานใหม่','เมื่อมีการสร้างบัญชีผู้ใช้งานใหม่','👤']
-].map(([id,title,description,icon]) => ({id,title,description,icon}));
-const NOTIFICATION_DEFAULTS = Object.freeze({low_stock:true,out_of_stock:true});
-function notificationDeviceId() {
-  let device = store.get('inv_notification_device_id', '');
-  if (!device) {
-    device = globalThis.crypto?.randomUUID?.() || ('device-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
-    store.set('inv_notification_device_id', device);
-  }
-  return device;
-}
-function notificationPrefsKey() {
-  const account = String(me?.name || 'guest').trim().toLowerCase();
-  return 'inv_notification_preferences_v1:' + account + ':' + notificationDeviceId();
-}
-function getNotificationPrefs() {
-  const saved = store.get(notificationPrefsKey(), {});
-  return Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, typeof saved?.[item.id] === 'boolean' ? saved[item.id] : !!NOTIFICATION_DEFAULTS[item.id]]));
-}
-function notificationPrefsCount(prefs = getNotificationPrefs()) {
-  return NOTIFICATION_ITEMS.filter(item => prefs[item.id]).length;
-}
-function notificationPrefsRows(prefs = getNotificationPrefs()) {
-  return NOTIFICATION_ITEMS.map(item => {
-    const enabled = !!prefs[item.id];
-    return '<div class="notification-pref-row"><div class="notification-pref-copy"><b>' + item.icon + ' ' + esc(item.title) + '</b><small>' + esc(item.description) + '</small></div><button type="button" class="notification-switch" data-notification-toggle="' + item.id + '" role="switch" aria-checked="' + enabled + '" aria-label="' + (enabled ? 'ปิด' : 'เปิด') + 'แจ้งเตือน' + esc(item.title) + '"></button></div>';
-  }).join('');
-}
-function updateNotificationPrefsCount(prefs = getNotificationPrefs()) {
-  const count = $('#notificationPrefsCount');
-  if (count) count.textContent = notificationPrefsCount(prefs) + '/' + NOTIFICATION_ITEMS.length + ' เปิด';
-}
 function settingsView() {
 const canViewStorage = !!(me?.owner || me?.role === 'admin');
 const canManageBackup = String(me?.name || '').trim().toLowerCase() === 'kiangkai' && me?.owner === true;
@@ -4176,18 +4063,6 @@ return `<div class="sect"><h2>ตั้งค่าระบบ</h2><small>ก�
       </div>
       <p class="settings-hint" style="margin:10px 0 0">เลือกไฟล์แล้วตรวจชื่อไฟล์ก่อน จากนั้นกดยืนยันนำเข้า</p>
     </div></div></div>
-    <div class="dash-card disclosure-card notification-settings-card" id="notificationSettingsCard">
-      <button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="notificationDisclosurePanel"><span>🔔 การแจ้งเตือน</span><span class="disclosure-count" id="notificationPrefsCount">${notificationPrefsCount()}/${NOTIFICATION_ITEMS.length} เปิด</span><span class="disclosure-chevron" aria-hidden="true"></span></button>
-      <div class="disclosure-panel" id="notificationDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner">
-        <p class="settings-hint">เลือกเปิด–ปิดการแจ้งเตือนแต่ละประเภทได้ตามต้องการ การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้ ไม่กระทบผู้ใช้งานหรืออุปกรณ์อื่น</p>
-        <div class="notification-status" id="notificationPermissionStatus" role="status" aria-live="polite"><b>สถานะ Push Notification</b><span>กำลังตรวจสอบอุปกรณ์…</span></div>
-        <div class="notification-toolbar"><button type="button" class="btn sm sec" id="notificationEnableAll">เปิดทั้งหมด</button><button type="button" class="btn sm sec" id="notificationDisableAll">ปิดทั้งหมด</button></div>
-        <div class="notification-list-scroll" id="notificationPrefsList" role="group" aria-label="รายการตั้งค่าการแจ้งเตือน">${notificationPrefsRows()}</div>
-        <button type="button" class="btn sm" id="notificationRequestPermission" style="margin-top:10px">อนุญาตและเปิดใช้งาน Push บนอุปกรณ์นี้</button>
-        <div class="notification-test-row"><div class="notification-test-copy"><b>🔔 ตรวจสอบการแจ้งเตือน</b><small>ส่งการแจ้งเตือนทดสอบมายังมือถือเครื่องนี้</small></div><button type="button" class="btn sm sec" id="notificationTestPush" disabled>ทดสอบ</button></div>
-        <small class="notification-footnote">เลื่อนภายในรายการเพื่อดูการแจ้งเตือนทั้งหมด 10 รายการ การตั้งค่าจะบันทึกแยกตามบัญชีและอุปกรณ์นี้</small>
-      </div></div>
-    </div>
     ${can.reset() || can.permissions() ? '<div class="settings-bottom-row">' : ''}
     ${can.reset() ? `<div class="dash-card disclosure-card reset-card"><button type="button" class="disclosure-summary" data-disclosure-toggle aria-expanded="false" aria-controls="resetDisclosurePanel"><span>♻️ รีเซ็ตข้อมูล</span><span class="disclosure-chevron" aria-hidden="true"></span></button><div class="disclosure-panel" id="resetDisclosurePanel" aria-hidden="true" inert><div class="disclosure-inner"><p class="settings-hint">เลือกข้อมูลที่ต้องการล้าง ก่อนรีเซ็ตต้องยืนยันชื่อผู้ใช้และรหัสผ่าน 6 หลักอีกครั้ง</p><label class="fld"><span>ข้อมูลที่ต้องการรีเซ็ต</span><select class="in" id="resetScope"><option value="stock">รีเซ็ตเฉพาะจำนวนคงเหลือ (คงรายการไว้)</option><option value="products">รายการวัตถุดิบและจำนวนคงเหลือ</option><option value="history">ประวัติการเคลื่อนไหว</option><option value="users">บัญชีผู้ใช้ (คงบัญชีผู้ดูแลหลักไว้)</option><option value="all">วัตถุดิบและประวัติทั้งหมด</option></select></label><small class="reset-help" id="resetScopeHelp" aria-live="polite"></small><button type="button" class="btn bad" id="resetDataBtn">รีเซ็ตข้อมูลที่เลือก</button><div class="reset-audit" style="margin-top:16px;padding:12px 14px;border-radius:14px;background:var(--theme-soft);border:1px solid var(--theme-border-strong)"><b style="display:block;margin-bottom:5px">🕘 การรีเซ็ตข้อมูลล่าสุด</b>${resetAudit ? `<div><span style="color:var(--mute)">หัวข้อ:</span> ${esc(({stock:'เฉพาะจำนวนคงเหลือ',products:'วัตถุดิบและจำนวนคงเหลือ',history:'ประวัติการเคลื่อนไหว',users:'บัญชีผู้ใช้',all:'วัตถุดิบและประวัติทั้งหมด'})[resetAudit.scope] || resetAudit.scope || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">ผู้ดำเนินการ:</span> ${esc(resetAudit.user || 'ไม่ทราบ')}</div><div><span style="color:var(--mute)">วันที่:</span> ${Number.isFinite(Number(resetAudit.ts)) ? new Date(Number(resetAudit.ts)).toLocaleString('th-TH',{dateStyle:'medium',timeStyle:'short'}) : 'ไม่ทราบ'}</div>` : `<span style="color:var(--mute)">ยังไม่มีประวัติการรีเซ็ต</span>`}</div></div></div></div>` : ''}
     ${can.permissions() ? `<div class="dash-card permissions-card disclosure-card">
@@ -4378,87 +4253,6 @@ if ($('#saveSiteBrandBtn')) $('#saveSiteBrandBtn').onclick = event => saveSiteBr
 if ($('#saveAppDownloadBtn')) $('#saveAppDownloadBtn').onclick = event => saveAppDownloadUrl(event.currentTarget);
 if ($('#appDownloadBtn')) $('#appDownloadBtn').onclick = () => { const u = normalizeAppDownloadUrl(appDownloadUrl); if (!u) return toast('ยังไม่มีการกำหนดลิงก์ดาวน์โหลด', 1); window.open(u, '_blank', 'noopener,noreferrer'); };
 loadAppDownloadUrl();
-
-const notificationPrefsList = $('#notificationPrefsList');
-if (notificationPrefsList) {
-  let preferences = getNotificationPrefs();
-  const permissionStatus = $('#notificationPermissionStatus');
-  const updateStatus = async () => {
-    if (!permissionStatus) return;
-    const permission = 'Notification' in window ? Notification.permission : 'unsupported';
-    let subscribed = false;
-    try {
-      const reg = await navigator.serviceWorker?.getRegistration(new URL('.', location.href).pathname);
-      subscribed = !!(await reg?.pushManager?.getSubscription());
-    } catch {}
-    const labels = {
-      granted: subscribed ? 'อนุญาตแล้ว · อุปกรณ์นี้สมัครรับ Push แล้ว' : 'อนุญาตแล้ว · ยังไม่ได้สมัครรับ Push',
-      denied: 'ถูกปฏิเสธ · ต้องเปิดสิทธิ์ในตั้งค่าเบราว์เซอร์',
-      default: 'ยังไม่ได้อนุญาตการแจ้งเตือน',
-      unsupported: 'เบราว์เซอร์นี้ไม่รองรับ Push Notification'
-    };
-    permissionStatus.innerHTML = '<b>สถานะ Push Notification</b><span>' + (labels[permission] || labels.unsupported) + '</span>';
-    const testButton = $('#notificationTestPush');
-    if (testButton) testButton.disabled = !(permission === 'granted' && subscribed && !!cloudToken && !!me);
-  };
-  const updatePrefsUI = () => {
-    const count = $('#notificationPrefsCount');
-    if (count) count.textContent = notificationPrefsCount(preferences) + '/' + NOTIFICATION_ITEMS.length + ' เปิด';
-    notificationPrefsList.querySelectorAll('[data-notification-toggle]').forEach(button => {
-      const on = preferences[button.dataset.notificationToggle] === true;
-      button.setAttribute('aria-checked', String(on));
-      button.setAttribute('aria-label', (on ? 'ปิด' : 'เปิด') + 'แจ้งเตือน' + (NOTIFICATION_ITEMS.find(x => x.id === button.dataset.notificationToggle)?.title || ''));
-    });
-  };
-  const persistPrefs = () => {
-    store.set(notificationPrefsKey(), preferences);
-    updatePrefsUI();
-    syncNotificationPreferences(preferences).catch(() => {});
-  };
-  notificationPrefsList.onclick = event => {
-    const button = event.target.closest('[data-notification-toggle]');
-    if (!button || !Object.hasOwn(preferences, button.dataset.notificationToggle)) return;
-    preferences[button.dataset.notificationToggle] = !preferences[button.dataset.notificationToggle];
-    persistPrefs();
-  };
-  if ($('#notificationEnableAll')) $('#notificationEnableAll').onclick = () => {
-    preferences = Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, true]));
-    persistPrefs();
-  };
-  if ($('#notificationDisableAll')) $('#notificationDisableAll').onclick = () => {
-    preferences = Object.fromEntries(NOTIFICATION_ITEMS.map(item => [item.id, false]));
-    persistPrefs();
-  };
-  if ($('#notificationRequestPermission')) $('#notificationRequestPermission').onclick = async event => {
-    const button = event.currentTarget;
-    button.disabled = true;
-    try {
-      await enablePushOnThisDevice();
-      await updateStatus();
-      toast('เปิดใช้งาน Push Notification บนอุปกรณ์นี้แล้ว');
-    } catch (error) {
-      await updateStatus();
-      toast(error.message || 'เปิดใช้งาน Push ไม่สำเร็จ', 1);
-    } finally { button.disabled = false; }
-  };
-  if ($('#notificationTestPush')) $('#notificationTestPush').onclick = async event => {
-    const button = event.currentTarget;
-    button.disabled = true;
-    const originalText = button.textContent;
-    button.textContent = 'กำลังส่ง…';
-    try {
-      await pushApi({ action: 'test', token: cloudToken, deviceId: notificationDeviceId() });
-      toast('ส่งการแจ้งเตือนทดสอบแล้ว กรุณาตรวจสอบมือถือเครื่องนี้');
-    } catch (error) {
-      toast(error.message || 'ส่งการแจ้งเตือนทดสอบไม่สำเร็จ', 1);
-    } finally {
-      button.textContent = originalText;
-      await updateStatus();
-    }
-  };
-  updatePrefsUI();
-  updateStatus();
-}
 
 if (isWideDesktop()) document.querySelectorAll('.settings-grid .disclosure-card>[data-disclosure-toggle]').forEach(button => {
 const panel = document.getElementById(button.getAttribute('aria-controls'));
@@ -5753,7 +5547,7 @@ const JT = { off: { l: 'หยุด', e: '🛌' }, leave: { l: 'ลา', e: '�
 const JDAYS = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
 const JORDER = ['absent', 'late', 'leave', 'off'];
 const jKey = () => 'jobs:' + (currentBranch?.id || 'main');
-const jDef = () => ({ v: 4, ev: {}, rec: {}, closed: {}, periods: {}, max: 2, start: '', startByName: {}, profiles: {}, staff: null });
+const jDef = () => ({ v: 4, ev: {}, rec: {}, closed: {}, periods: {}, start: '', startByName: {}, profiles: {}, staff: null });
 const jStartFor = name => (J.startByName && J.startByName[name]) || (J.startByName && Object.keys(J.startByName).length ? jToday() : J.start || jToday());
 const jIsSupervisor = () => me?.role === 'supervisor' || String(me?.name || '').trim().toLowerCase() === 'kiangkai';
 const jAvatar = (name, cls = '') => '<span class="jp-av '+cls+'">'+(J.profiles?.[name] ? '<img src="'+esc(J.profiles[name])+'" alt="รูปโปรไฟล์ '+esc(name)+'">' : esc([...name][0] || '?'))+'</span>'; 
@@ -6001,7 +5795,6 @@ function jRender() {
   const pre = ph !== 'fut' && !eligibleNames.length;
   if (info.closed) html += '<div class="jp-closed">🏪 วันหยุดร้าน — ไม่นับลา สาย ขาด</div>';
   else if (mgr) {
-    if (off > J.max) html += `<div class="jp-warn">⚠️ วันนี้มีคนหยุด/ลา/ขาด ${off} คน เกินที่ตั้งไว้ (${J.max} คน)</div>`;
     html += info.rows.map(({ n, e }) => `<button type="button" class="jp-row" data-edit="${esc(n)}">${jAvatar(n)}<span class="jp-info"><b>${esc(n)}</b>${e.n || e.rec ? `<small>${esc(e.n || 'หยุดประจำทุกสัปดาห์')}</small>` : ''}</span>${jPill(e)}</button>`).join('');
     if (pre && !info.rows.length) html += '<div class="jp-ok">— ยังไม่เริ่มบันทึกในวันนี้</div>';
     else if (info.normal.length) html += `<div class="jp-ok">${ph === 'fut' ? '🗓️ มาทำงานตามปกติ' : '✅ มาทำงาน'} ${info.normal.length} คน</div><div class="jp-who2">${info.normal.map(n => `<span class="jp-chip t-ok">${esc(n)}</span>`).join('')}</div>`;
@@ -6035,8 +5828,8 @@ function jForm(ed) {
     const k = el.date.value, w = el.who.value; let n = 0;
     if (k && !J.closed[k]) jStaff().forEach(x => { if (x === w) return; const e = jEff(k, x); if (e && e.t !== 'late') n++; });
     const off = ['off', 'leave', 'absent'].includes(t); if (off) n++;
-    const bad = off && k && !J.closed[k] && n > J.max, warn = $('#jfWarn');
-    warn.classList.toggle('hide', !bad); if (bad) warn.textContent = `⚠️ วันนั้นจะมีคนหยุด/ลา/ขาด ${n} คน เกินที่ตั้งไว้ (${J.max} คน)`;
+    const bad = false, warn = $('#jfWarn');
+    warn.classList.add('hide');
   };
   f.onchange = sync; f.oninput = e => { if (e.target.name === 'date') sync(); };
   f.onclick = e => { const b = e.target.closest('[data-min]'); if (b) el.min.value = b.dataset.min; };
@@ -6159,9 +5952,9 @@ function jSettings() {
   $('#jpSheetClose').onclick = close; layer.addEventListener('click', e => { if (e.target === layer) close(); });
   const menu = () => {
     title.textContent = 'ตั้งค่าจ๊อบพนักงาน';
-    content.innerHTML = '<button type="button" class="jp-setting-option" data-sheet="dates"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3"/></svg></span><span class="jp-setting-copy"><b>ตั้งค่าวันเริ่มงาน</b><small>กำหนดวันเริ่มงานของพนักงานแต่ละคน ย้อนหลังหรืออนาคตได้</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button><button type="button" class="jp-setting-option" data-sheet="alert"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg></span><span class="jp-setting-copy"><b>เตือนเมื่อวันเดียวกันมีคนหยุด/ลา/ขาดเกินกี่คน</b><small>กำหนดจำนวนคนเพื่อใช้เป็นเกณฑ์แจ้งเตือน</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>';
+    content.innerHTML = '<button type="button" class="jp-setting-option" data-sheet="dates"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18M8 14h3"/></svg></span><span class="jp-setting-copy"><b>ตั้งค่าวันเริ่มงาน</b><small>กำหนดวันเริ่มงานของพนักงานแต่ละคน ย้อนหลังหรืออนาคตได้</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>';
     if (jIsSupervisor()) content.insertAdjacentHTML('beforeend', '<button type="button" class="jp-setting-option" data-sheet="profiles"><span class="jp-setting-icon"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M17 8h5M19.5 5.5v5"/></svg></span><span class="jp-setting-copy"><b>โปรไฟล์พนักงาน</b><small>เพิ่มหรือเปลี่ยนรูปภาพโปรไฟล์ของพนักงานทุกคน</small></span><svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></svg></button>');
-    content.querySelectorAll('[data-sheet]').forEach(b => b.onclick = () => b.dataset.sheet === 'dates' ? dates() : b.dataset.sheet === 'alert' ? alertSetting() : profiles());
+    content.querySelectorAll('[data-sheet]').forEach(b => b.onclick = () => b.dataset.sheet === 'dates' ? dates() : profiles());
   };
   const dates = () => {
     title.textContent = 'ตั้งค่าวันเริ่มงาน'; const names = jStaff();
@@ -6209,13 +6002,6 @@ function jSettings() {
       if (!confirm('ต้องการลบรูปโปรไฟล์ของ ' + n + ' ใช่หรือไม่?')) return;
       delete J.profiles[n]; saveJ(); jRender(); toast('ลบรูปโปรไฟล์แล้ว'); profiles();
     });
-  };
-  const alertSetting = () => {
-    title.textContent = 'ตั้งค่าการแจ้งเตือน'; let mx = Math.max(1, Math.min(30, Number(J.max) || 2));
-    content.innerHTML = '<p class="jp-settings-note">แจ้งเตือนเมื่อจำนวนพนักงานที่หยุด ลา หรือขาดในวันเดียวกันเกินจำนวนที่กำหนด</p><div class="jp-settings-step"><button type="button" id="jpAlertMinus">−</button><b id="jpAlertValue">'+mx+'</b><button type="button" id="jpAlertPlus">+</button></div><button type="button" class="jp-settings-save" id="jpSaveAlert">บันทึกการตั้งค่า</button>';
-    const show = () => { $('#jpAlertValue').textContent = mx; };
-    $('#jpAlertMinus').onclick = () => { mx = Math.max(1, mx - 1); show(); }; $('#jpAlertPlus').onclick = () => { mx = Math.min(30, mx + 1); show(); };
-    $('#jpSaveAlert').onclick = () => { J.max = mx; saveJ(); jRender(); toast('บันทึกเกณฑ์แจ้งเตือนแล้ว'); close(); };
   };
   menu(); requestAnimationFrame(() => layer.classList.add('show'));
 }
