@@ -1546,6 +1546,78 @@ button,.btn,[role=button],a,input,select,label{touch-action:manipulation}
   #main .sect.dashboard-sect>small{text-align:left}
 }
 
+
+
+/* ===== Bottom navigation: soft capsule + fluid active indicator ===== */
+@media (max-width:1099px) {
+  #nav.nav {
+    border-radius: 999px !important;
+    overflow: hidden;
+    padding: 5px 6px;
+    background: var(--theme-nav-bg);
+    border: 1px solid var(--theme-border-strong, var(--line));
+    box-shadow: 0 12px 30px var(--theme-shadow);
+  }
+  #nav.nav button {
+    border-radius: 999px !important;
+    min-height: 46px;
+    gap: 4px;
+    padding: 6px 3px;
+    background: transparent;
+    transition: color .32s ease, transform .32s cubic-bezier(.22,1,.36,1) !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #nav.nav button:active {
+    transform: scale(.94);
+  }
+  #nav.nav button > svg {
+    width: 21px;
+    height: 21px;
+    stroke-width: 1.85;
+    transition: transform .48s cubic-bezier(.22,1,.36,1), filter .35s ease;
+  }
+  #nav.nav button.on > svg {
+    transform: translateY(-1px) scale(1.06);
+    filter: drop-shadow(0 2px 3px var(--acc-glow));
+  }
+  #nav.nav button > span {
+    line-height: 1.2;
+    transition: color .3s ease, opacity .3s ease;
+  }
+  #nav .nav-pill {
+    top: 0;
+    border-radius: 999px !important;
+    background: var(--theme-soft);
+    border: 1px solid var(--theme-border-strong, var(--line));
+    box-shadow: 0 3px 12px var(--theme-shadow), inset 0 1px 0 rgba(255,255,255,.5);
+    transform: translate3d(0,0,0);
+    transition:
+      transform .62s cubic-bezier(.22,1,.36,1),
+      width .62s cubic-bezier(.22,1,.36,1),
+      height .42s cubic-bezier(.22,1,.36,1),
+      opacity .18s ease,
+      border-radius .42s ease;
+    will-change: transform, width;
+  }
+  #nav .nav-pill.snap {
+    transition: none !important;
+  }
+  #nav.nav.has-pill button.on {
+    color: var(--ink);
+    background: transparent !important;
+    border-color: transparent !important;
+    box-shadow: none !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav .nav-pill,
+  #nav.nav button,
+  #nav.nav button > svg,
+  #nav.nav button > span {
+    transition-duration: .01ms !important;
+  }
+}
+
 </style>
 <style id="topRunnerStyle">/* ตัวการ์ตูนตัวเล็กวิ่งบนขอบบนของแถบเมนูด้านล่าง (ไม่รับการกด ไม่ดันปุ่ม) */
 .top-runway{position:fixed;left:30px;right:30px;top:auto;bottom:calc(12px + 44px + env(safe-area-inset-bottom,0px));width:auto;height:20px;overflow:hidden;pointer-events:none!important;z-index:41;--rn-dist:0px;--rn-dur:12s;contain:layout paint style;will-change:transform;transform:translateZ(0)}
@@ -7180,5 +7252,42 @@ html .history-list .history-item.history-item .history-result .history-edit-btn{
   scan();
 })();
 </script>
+
+<style id="nav-visibility-refinement">
+/* เพิ่มความชัดของแถบเมนูและแคปซูลที่เลื่อน โดยคงสีพื้นแบบสีเดียวและความสูงเดิม */
+@media (max-width: 1099px) {
+  #nav.nav {
+    border: 1px solid color-mix(in srgb, var(--acc) 22%, var(--theme-border-strong, var(--line))) !important;
+    box-shadow:
+      0 5px 16px var(--theme-shadow),
+      inset 0 1px 0 rgba(255,255,255,.38) !important;
+  }
+  #nav .nav-pill {
+    background: var(--theme-soft) !important;
+    border: 1px solid color-mix(in srgb, var(--acc) 30%, var(--theme-border-strong, var(--line))) !important;
+    box-shadow:
+      0 2px 8px color-mix(in srgb, var(--acc) 15%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--acc) 9%, transparent),
+      inset 0 1px 0 rgba(255,255,255,.42) !important;
+  }
+  #nav.nav.has-pill button.on > svg {
+    filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--acc) 24%, transparent)) !important;
+  }
+  #nav .nav-pill.ready {
+    transition:
+      transform .66s cubic-bezier(.22,1,.36,1),
+      width .66s cubic-bezier(.22,1,.36,1),
+      height .44s cubic-bezier(.22,1,.36,1),
+      opacity .18s ease,
+      border-radius .42s ease,
+      box-shadow .24s ease,
+      border-color .24s ease !important;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  #nav .nav-pill.ready { transition-duration: .01ms !important; }
+}
+</style>
+
 </body>
 </html>
